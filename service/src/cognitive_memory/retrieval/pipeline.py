@@ -24,6 +24,23 @@ RESULT_FAILED = "FAILED"
 RESULT_NOT_NEEDED = "NOT_NEEDED"
 
 
+def _brief_from_fragments(fragments: list[dict[str, Any]]) -> str:
+    """Render the same brief format as MemoryService.build_context."""
+    if not fragments:
+        return "【认知记忆】暂无相关条目"
+    lines = ["【认知记忆·仅供参考】"]
+    for frag in fragments:
+        tag = f"{frag.get('type')}|{frag.get('epistemic_status')}"
+        if frag.get("via_relation"):
+            tag = f"{tag}|rel"
+        if "negated" in (frag.get("tags") or []):
+            tag = f"{tag}|neg"
+        if frag.get("expires_at"):
+            tag = f"{tag}|exp"
+        lines.append(f"- [{tag}] {frag.get('content')}")
+    return "\n".join(lines)
+
+
 def _filter_candidates(memories: list[Memory], plan: QueryPlan) -> list[Memory]:
     out: list[Memory] = []
     for m in memories:
@@ -262,6 +279,20 @@ def run_retrieve(
                 domain=domain,
             )
         )
+
+        # build_context re-retrieves independently; never publish its brief or
+        # fragments when they contain records filtered out of `items` (expired,
+        # unauthorized, or unsafe). One safe snapshot must drive every field.
+        if items:
+            safe_ids = {str(it.get("id")) for it in items}
+            ctx.fragments = [
+                frag for frag in (ctx.fragments or [])
+                if str(frag.get("id")) in safe_ids
+            ]
+            ctx.brief = _brief_from_fragments(list(ctx.fragments))
+        else:
+            ctx.fragments = []
+            ctx.brief = ""
 
         if not items:
             status = RESULT_NO_MATCH

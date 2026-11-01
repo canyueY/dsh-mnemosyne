@@ -7,7 +7,7 @@ import json
 import re
 import sqlite3
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Callable
 
 from cognitive_memory.domain.models import (
     ContextBuildIn,
@@ -421,7 +421,12 @@ class MemoryService:
                 (mem.id, sid, _now()),
             )
 
-    def propose_memory(self, body: MemoryProposeIn) -> Memory:
+    def propose_memory(
+        self,
+        body: MemoryProposeIn,
+        *,
+        write_guard: Callable[[], None] | None = None,
+    ) -> Memory:
         from cognitive_memory.ingestion.pipeline import coerce_long_term_status
         from cognitive_memory.governance.policy import assert_allow_store
         from cognitive_memory.governance.workspace import assert_workspace_authorized
@@ -431,6 +436,12 @@ class MemoryService:
         assert_workspace_authorized(self.db, meta, action="ingest")
 
         with self.db.transaction() as conn:
+            # The guard must run inside the same write transaction, after any
+            # caller-side interleaving point and immediately before the insert.
+            # A stale worker therefore cannot leave a real Memory behind while
+            # only its task-completion record is rejected.
+            if write_guard is not None:
+                write_guard()
             cached = self._idempotent_get(conn, body.idempotency_key, "memory_propose")
             if cached:
                 return Memory.model_validate(cached)
@@ -1010,17 +1021,11 @@ class MemoryService:
         # 限额：只把前 limit 个候选交给信封裁剪
         candidates = candidates[: max(1, int(body.limit))]
 
-        # measurement/hard_limit_verified 只认服务端真实计量器；客户端 bool 不得覆盖
-        accurate_tokenizer = bool(
-            envelope_in.get("accurate_tokenizer")
-            or budget_cfg.get("accurate_tokenizer")
-            or getattr(self, "has_accurate_tokenizer", False)
-        )
-        measurement_override = envelope_in.get("measurement")
-        if measurement_override not in {"measured", "estimated", "unknown", None}:
-            measurement_override = None
-        if measurement_override == "measured" and not accurate_tokenizer:
-            measurement_override = None
+        # measurement/hard_limit_verified 只认服务端真实计量器。
+        # 顶层和 envelope 内的客户端布尔声明都不可信；当前服务端固定使用
+        # estimate_tokens_chars，所以不存在 accurate tokenizer。
+        accurate_tokenizer = False
+        measurement_override = None
         envelope = build_context_envelope(
             token_budget=budget,
             sections={

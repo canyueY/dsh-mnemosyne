@@ -1,0 +1,53 @@
+{
+  "exit": 0,
+  "result": {
+    "ok": true,
+    "action": "migrated",
+    "profile": "web",
+    "backup": {
+      "backupRoot": "D:\\HuaweiMoveData\\Users\\残月Y\\Desktop\\桌宠\\dsh-mnemosyne\\service\\reports\\three-package-recheck-2026-11-01\\migration-variant-CWQkr1\\profiles\\web\\_backups\\migrate-2026-11-01T08-57-54-082Z",
+      "saved": [
+        "package.json",
+        "cordis.patch.yml"
+      ]
+    },
+    "had_old_dependency": true,
+    "had_old_bundle": true,
+    "bundles": [
+      "keep-other",
+      "dsh-mnemosyne"
+    ],
+    "preserved_other_bundles": [
+      "keep-other"
+    ],
+    "cordis_changed": true,
+    "data": {
+      "skipped": true,
+      "reason": "skip_data"
+    },
+    "data_before": {
+      "path": null,
+      "exists": false,
+      "files": []
+    },
+    "data_after": {
+      "path": null,
+      "exists": false,
+      "files": []
+    },
+    "data_dir_deleted": false,
+    "reentrant": true,
+    "phases": {
+      "profile_done": true,
+      "data_pending": true,
+      "data_done": false
+    },
+    "rollback": {
+      "command": "node scripts/migrate-dsh.mjs --profile web --dsh-home D:\\HuaweiMoveData\\Users\\残月Y\\Desktop\\桌宠\\dsh-mnemosyne\\service\\reports\\three-package-recheck-2026-11-01\\migration-variant-CWQkr1 --rollback",
+      "backup": "D:\\HuaweiMoveData\\Users\\残月Y\\Desktop\\桌宠\\dsh-mnemosyne\\service\\reports\\three-package-recheck-2026-11-01\\migration-variant-CWQkr1\\profiles\\web\\_backups\\migrate-2026-11-01T08-57-54-082Z"
+    }
+  },
+  "unrelated_nested_fields_preserved": false,
+  "quoted_legacy_entry_still_present": true,
+  "after": "- insert:\n    - id: keep-other\n      name: keep-other\n      config:\n        id: dsh-mnemosyne\n        name: dsh-mnemosyne\n- insert:\n    - id: 'dsh-cognitive-memory'\n      name: 'dsh-cognitive-memory'\n"
+}

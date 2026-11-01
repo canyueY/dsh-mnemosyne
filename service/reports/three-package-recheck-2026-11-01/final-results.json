@@ -1,0 +1,29 @@
+{
+  "date": "2026-11-01",
+  "reviewed_head": "13fead58cc39b0dcfe6735c21c36bf48cc078bd7",
+  "accepted": false,
+  "remaining_findings": [
+    {"id":"C01","priority":"P1","original":"R03/F03/FA06","title":"无来源未验证 Claim 仍确定采用","file":"service/src/cognitive_memory/cognition/answer_selection.py","line":322,"proof":"remaining-python.json#unverified_sourceless_claim"},
+    {"id":"C02","priority":"P1","original":"F11/FA20","title":"旧 worker 在完成提交被拒绝前已写入真实 Memory","file":"service/src/cognitive_memory/jobs/dispatcher.py","line":201,"proof":"remaining-python.json#stale_worker_real_write"},
+    {"id":"C03","priority":"P2","original":"R09/F09","title":"嵌套 envelope 仍能伪造精确计量","file":"service/src/cognitive_memory/core/service.py","line":1014,"proof":"remaining-python.json#envelope_tokenizer_bypass"},
+    {"id":"C04","priority":"P2","original":"R08/F08/FA15","title":"brief/fragments 重新带出过期候选","file":"service/src/cognitive_memory/retrieval/pipeline.py","line":253,"proof":"remaining-python.json#mixed_filtered_context"},
+    {"id":"C05","priority":"P2","original":"R10/F10","title":"迁移误改其他插件嵌套字段并漏掉引号条目","file":"scripts/migrate-dsh.mjs","line":114,"proof":"remaining-migration.json"}
+  ],
+  "final_checks": {
+    "python": {"passed":437,"warnings":1,"exit":0,"log":"python-full.log"},
+    "node_sequential": {"passed":36,"failed":0,"skipped":0,"exit":0,"log":"node-sequential.log"},
+    "node_syntax":{"exit":0,"log":"node-check.log"},
+    "sdk_build":{"exit":0,"log":"sdk-build.log"},
+    "actual_tarball_and_mcp":{"exit":0,"proof":"artifact-and-mcp.json"},
+    "working_tree_diff_check":{"exit":0,"scope":"No tracked differences after implementation commit"},
+    "implementation_commit_diff_check":{"exit":2,"command":"git diff --check HEAD~1 HEAD","log":"diff-check.log"},
+    "canvas_syntax":{"diagnostics":[],"limit":"transpile syntax only, not rendered visual or full type validation"}
+  },
+  "limits":[
+    "原最小反例已修正，完整要求仍有上述五项变体或写层缺口",
+    "本轮未独立重跑 DSH 0.2.1-rc.3 会话工具拒绝；已查阅实现方真实验证记录",
+    "MCP 成功调用使用本地 HTTP fixture，未连接生产 Node",
+    "首次 Node 的 TEMP 权限和并行复制干扰保留日志，最终仓库外 TEMP 串行复验通过",
+    "仅新增复查产物，未修改业务源码、原进度文件、生产 Bank 或真实 DSH profile"
+  ]
+}

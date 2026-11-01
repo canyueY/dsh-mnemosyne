@@ -14,7 +14,7 @@
     "D06": {
       "status": "done",
       "report": "reports/D06.md",
-      "notes": "post review-fixes: npm 34 / py 437 / diff-check clean"
+      "notes": "post review-fixes + recheck C01–C05: npm 37 / py 441 / diff-check clean"
     }
   }
 }

@@ -1,0 +1,93 @@
+[
+  {
+    "name": "python-full",
+    "cmd": [
+      "D:\\HuaweiMoveData\\Users\\残月Y\\Desktop\\桌宠\\dsh-mnemosyne\\service\\.venv\\Scripts\\python.exe",
+      "-m",
+      "pytest",
+      "tests",
+      "-q"
+    ],
+    "exit": 0,
+    "seconds": 77.25,
+    "tail": "........................................................................ [ 16%]\r\n........................................................................ [ 32%]\r\n........................................................................ [ 49%]\r\n........................................................................ [ 65%]\r\n........................................................................ [ 82%]\r\n........................................................................ [ 98%]\r\n.....                                                                    [100%]\r\n============================== warnings summary ===============================\r\n.venv\\lib\\site-packages\\fastapi\\testclient.py:1\r\n  D:\\HuaweiMoveData\\Users\\残月Y\\Desktop\\桌宠\\dsh-mnemosyne\\service\\.venv\\lib\\site-packages\\fastapi\\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.\r\n    from starlette.testclient import TestClient as TestClient  # noqa\r\n\r\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\r\n437 passed, 1 warning in 73.18s (0:01:13)\r\n"
+  },
+  {
+    "name": "node-full",
+    "cmd": [
+      "npm.cmd",
+      "test"
+    ],
+    "exit": 1,
+    "seconds": 3.56,
+    "tail": " (0.2235ms)\n✔ redactSecrets never echoes plaintext token (0.1982ms)\n✔ FA19: settings persist to file and reload after process-store reset (restart) (6.8193ms)\nℹ tests 36\nℹ suites 0\nℹ pass 35\nℹ fail 1\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 3017.5741\n\n✖ failing tests:\n\ntest at src\\test\\install-dsh.test.mjs:98:1\n✖ DA02/DA03: install preserves other bundles and second run is idempotent (2074.1355ms)\n  AssertionError [ERR_ASSERTION]: {\n    \"ok\": false,\n    \"code\": \"install_failed\",\n    \"error\": \"Error: ERR_PNPM_DIRECTORY_FETCHER_IO\\n\\n  × adding a new package\\n  ╰─▶ I/O error while walking directory \\\"D:\\\\\\\\HuaweiMoveData\\\\\\\\Users\\\\\\\\残月Y\\\\\\n      \\\\Desktop\\\\\\\\桌宠\\\\\\\\dsh-mnemosyne\\\\\\\\service/reports/three-package-recheck-\\n      2026-11-01/temp/tmpk0ay6_kb/data/memory.db-wal\\\": 系统找不到指定的路径。\\n      (os error 3)\\n\\ndsh: plugin command failed; diagnostics: D:\\\\HuaweiMoveData\\\\Users\\\\残月Y\\\\Desktop\\\\桌宠\\\\dsh-mnemosyne\\\\service\\\\reports\\\\three-package-recheck-2026-11-01\\\\temp\\\\dsh-install-da023-VJPDFY\\\\profiles\\\\web\\\\.plugin-manager\\\\logs\\\\operation-W9tWR0\\\\pnpm.log\\n\\nProgress: resolved 1, reused 0, downloaded 0, added 0\",\n    \"hint\": \"Inspect profile .plugin-manager/logs; restore from backup if needed\",\n    \"profile\": \"web\",\n    \"source\": \"file:D:/HuaweiMoveData/Users/残月Y/Desktop/桌宠/dsh-mnemosyne\",\n    \"backup\": {\n      \"backupRoot\": \"D:\\\\HuaweiMoveData\\\\Users\\\\残月Y\\\\Desktop\\\\桌宠\\\\dsh-mnemosyne\\\\service\\\\reports\\\\three-package-recheck-2026-11-01\\\\temp\\\\dsh-install-da023-VJPDFY\\\\profiles\\\\web\\\\_backups\\\\install-2026-11-01T08-56-56-127Z\",\n      \"saved\": [\n        \"package.json\",\n        \"cordis.patch.yml\"\n      ]\n    },\n    \"dsh\": {\n      \"status\": 1\n    }\n  }\n  \n  1 !== 0\n  \n      at TestContext.<anonymous> (file:///D:/HuaweiMoveData/Users/%E6%AE%8B%E6%9C%88Y/Desktop/%E6%A1%8C%E5%AE%A0/dsh-mnemosyne/src/test/install-dsh.test.mjs:123:10)\n      at Test.runInAsyncScope (node:async_hooks:227:14)\n      at Test.run (node:internal/test_runner/test:1402:25)\n      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)\n      at Test.postRun (node:internal/test_runner/test:1542:19)\n      at Test.run (node:internal/test_runner/test:1467:12)\n      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: 1,\n    expected: 0,\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n"
+  },
+  {
+    "name": "node-check",
+    "cmd": [
+      "npm.cmd",
+      "run",
+      "check"
+    ],
+    "exit": 0,
+    "seconds": 1.8,
+    "tail": "\n> dsh-mnemosyne@2.0.0 check\n> node --check src/index.js && node --check src/memory-client.js && node --check src/memory-process.js && node --check src/tool-spec.js && node --check src/settings.js && node --check src/config-schema.js && node --check src/agent-preset.js && node --check src/preset-guard.js && node --check src/mcp-gateway.js\n\n"
+  },
+  {
+    "name": "sdk-build",
+    "cmd": [
+      "npm.cmd",
+      "run",
+      "build"
+    ],
+    "exit": 0,
+    "seconds": 1.14,
+    "tail": "\n> @mnemosyne/client@2.0.0 build\n> tsc -p tsconfig.json\n\n"
+  },
+  {
+    "name": "diff-check",
+    "cmd": [
+      "git",
+      "diff",
+      "--check",
+      "HEAD~1",
+      "HEAD"
+    ],
+    "exit": 2,
+    "seconds": 0.11,
+    "tail": "s/2.0/audits/domain-cognition-audit.md:256: trailing whitespace.\n+- [x] 识别真实仓库与 Remote / HEAD / dirty  \nservice/docs/2.0/audits/domain-cognition-audit.md:257: trailing whitespace.\n+- [x] 区分计划功能与代码实现  \nservice/docs/2.0/audits/domain-cognition-audit.md:258: trailing whitespace.\n+- [x] 能力矩阵（有文件位置级别证据）  \nservice/docs/2.0/audits/domain-cognition-audit.md:259: trailing whitespace.\n+- [x] P0.5 provenance 门禁重申  \nservice/docs/2.0/audits/domain-cognition-audit.md:260: trailing whitespace.\n+- [x] Music Domain 可复用范式确认  \nservice/docs/2.0/audits/domain-cognition-audit.md:261: trailing whitespace.\n+- [x] Fanqie Missing 明确列出  \nservice/docs/2.0/audits/domain-cognition-audit.md:262: trailing whitespace.\n+- [x] 权威仓 Archive 冲突上报  \nservice/docs/2.0/audits/domain-cognition-audit.md:263: trailing whitespace.\n+- [ ] 人工确认权威仓与 Claim 合流策略（**未完成，阻塞完整 Book Claim**）  \nservice/docs/2.0/audits/domain-cognition-audit.md:273: trailing whitespace.\n+1. 确认权威仓选项 A/B/C（见 `docs/domain-cognition/AUTHORITY_AND_CLAIM_PLAN.md`）。  \nservice/docs/2.0/audits/domain-cognition-audit.md:274: trailing whitespace.\n+2. 完整 clone `mnemosyne-memory-bank` 后按 `memory-bank-contracts/SYNC_CHECKLIST.md` 开契约 PR。  \nservice/docs/2.0/audits/domain-cognition-audit.md:275: trailing whitespace.\n+3. 提供或授权创建真实 `dsh-fanqie-shelf-memory` 后进入 Phase 3 实现。  \nservice/docs/2.0/audits/domain-cognition-audit.md:276: trailing whitespace.\n+4. **不创建** Fanqie 空壳仓冒充 E2E。  \nservice/docs/2.0/audits/domain-cognition-audit.md:280: trailing whitespace.\n+**审计人：** Composer（Agent）  \nservice/docs/2.0/audits/domain-cognition-audit.md:281: trailing whitespace.\n+**本文件路径：** `mnemosyne/docs/audits/domain-cognition-audit.md`  \nservice/reports/three-package-review-2026-11-01/diff-check.log:2: trailing whitespace.\n++`auto_start`、`service_root`、`data_dir`、`python`、`base_url`、`token`(secret)、`auto_capture`。  \nservice/reports/three-package-review-2026-11-01/diff-check.log:4: trailing whitespace.\n++**状态：** Phase 1 Implemented（2026-10-30）；E08 健康探针（2026-11-01）  \nservice/reports/three-package-review-2026-11-01/node-check.log:4: new blank line at EOF.\nservice/reports/three-package-review-2026-11-01/node-full.log:39: new blank line at EOF.\nservice/reports/three-package-review-2026-11-01/python-full.log:14: new blank line at EOF.\nservice/reports/three-package-review-2026-11-01/sdk-build.log:4: new blank line at EOF.\nservice/sdk-ts/.gitignore:3: new blank line at EOF.\n"
+  },
+  {
+    "name": "original-python-counterexamples",
+    "cmd": [
+      "D:\\HuaweiMoveData\\Users\\残月Y\\Desktop\\桌宠\\dsh-mnemosyne\\service\\.venv\\Scripts\\python.exe",
+      "D:\\HuaweiMoveData\\Users\\残月Y\\Desktop\\桌宠\\dsh-mnemosyne\\service\\reports\\three-package-recheck-2026-11-01\\reproduce_review.py"
+    ],
+    "exit": 0,
+    "seconds": 1.45,
+    "tail": "[\r\n  {\r\n    \"case\": \"target_arguments_ignored\",\r\n    \"http\": 200,\r\n    \"requested_arguments\": [\r\n      \"茶\"\r\n    ],\r\n    \"status\": \"unknown\",\r\n    \"selected\": []\r\n  },\r\n  {\r\n    \"case\": \"rejected_claim_chosen\",\r\n    \"status\": \"unknown\",\r\n    \"selected\": []\r\n  },\r\n  {\r\n    \"case\": \"cross_bank_checkpoint_overwrite\",\r\n    \"agent_granted_banks\": [\r\n      \"personal\"\r\n    ],\r\n    \"overwrite_http\": 403,\r\n    \"stored_row_bank\": \"projects\",\r\n    \"stored_goal\": \"original-project-goal\",\r\n    \"manifest_bank\": \"projects\"\r\n  },\r\n  {\r\n    \"case\": \"client_flag_makes_heuristic_measured\",\r\n    \"measurement\": \"estimated\",\r\n    \"hard_limit_verified\": false\r\n  },\r\n  {\r\n    \"case\": \"expired_fusion_result_restored\",\r\n    \"status\": \"NO_MATCH\",\r\n    \"expired_id\": \"mem_1a1965382f64c428cd560\",\r\n    \"returned_ids\": [],\r\n    \"fusion\": {\r\n      \"status\": \"unknown\",\r\n      \"reason_codes\": [\r\n        \"no_safe_items\"\r\n      ],\r\n      \"embedding_meta\": {\r\n        \"embedding_kind\": \"hash\",\r\n        \"quality\": \"offline_hash_not_semantic_model\",\r\n        \"do_not_overclaim\": true\r\n      },\r\n      \"counterevidence\": [],\r\n      \"notes\": {\r\n        \"rrf_dedup\": true,\r\n        \"hash_not_hq_embedding\": true,\r\n        \"counterevidence_independent\": true,\r\n        \"postfilter_mandatory\": true,\r\n        \"candidate_similarity_is_not_fact\": true\r\n      }\r\n    }\r\n  }\r\n]\r\nD:\\HuaweiMoveData\\Users\\残月Y\\Desktop\\桌宠\\dsh-mnemosyne\\service\\.venv\\lib\\site-packages\\fastapi\\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.\r\n  from starlette.testclient import TestClient as TestClient  # noqa\r\n"
+  },
+  {
+    "name": "original-dsh-counterexamples",
+    "cmd": [
+      "node",
+      "D:\\HuaweiMoveData\\Users\\残月Y\\Desktop\\桌宠\\dsh-mnemosyne\\service\\reports\\three-package-recheck-2026-11-01\\reproduce_dsh.mjs"
+    ],
+    "exit": 0,
+    "seconds": 4.94,
+    "tail": "{\n  \"first_action\": \"migrated\",\n  \"first_data_skipped\": true,\n  \"retry_action\": \"data_continued\",\n  \"retry_has_data_result\": true,\n  \"unrelated_original_source_path\": \"D:/fixtures/dsh-cognitive-memory/archive.txt\",\n  \"unrelated_source_path_preserved\": true,\n  \"unrelated_source_path_after\": \"sourcePath: D:/fixtures/dsh-cognitive-memory/archive.txt\",\n  \"only_isolated_profile_used\": true\n}\n"
+  },
+  {
+    "name": "pack-list",
+    "cmd": [
+      "npm.cmd",
+      "pack",
+      "--dry-run",
+      "--json",
+      "--ignore-scripts"
+    ],
+    "exit": 0,
+    "seconds": 2.3,
+    "tail": "     {\n        \"path\": \"service/tests/unit/test_state_history_and_governance.py\",\n        \"size\": 5794,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"service/tests/unit/test_text_book_anchors.py\",\n        \"size\": 1865,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"service/tests/unit/test_theory_loops.py\",\n        \"size\": 22105,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"service/tests/unit/test_upgrade_compatibility.py\",\n        \"size\": 2963,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"service/tests/unit/test_worker_fencing.py\",\n        \"size\": 1950,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"src/agent-preset.js\",\n        \"size\": 9357,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"src/config-schema.js\",\n        \"size\": 1917,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"src/index.js\",\n        \"size\": 14472,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"src/mcp-gateway.js\",\n        \"size\": 8953,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"src/memory-client.js\",\n        \"size\": 6775,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"src/memory-process.js\",\n        \"size\": 7539,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"src/preset-guard.js\",\n        \"size\": 1558,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"src/settings.js\",\n        \"size\": 7641,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"src/test/answer-selection.test.mjs\",\n        \"size\": 2317,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"src/test/host-compat-021.mjs\",\n        \"size\": 1989,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"src/test/install-dsh.test.mjs\",\n        \"size\": 4494,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"src/test/mcp.test.mjs\",\n        \"size\": 5106,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"src/test/migrate-dsh.test.mjs\",\n        \"size\": 6679,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"src/test/preset-guard.test.mjs\",\n        \"size\": 1547,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"src/test/preset.test.mjs\",\n        \"size\": 3199,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"src/test/settings.test.mjs\",\n        \"size\": 5390,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"src/tool-spec.js\",\n        \"size\": 5916,\n        \"mode\": 420\n      }\n    ],\n    \"entryCount\": 905,\n    \"bundled\": []\n  }\n]\n"
+  }
+]

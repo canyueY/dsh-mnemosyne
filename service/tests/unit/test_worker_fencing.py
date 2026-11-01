@@ -9,6 +9,9 @@ import unittest
 from cognitive_memory.bootstrap import build_context
 from cognitive_memory.cognition import consolidate as consolidate_mod
 from cognitive_memory.cognition.consolidate import enable_background_consolidation
+from cognitive_memory.domain.models import ObservationIn, SourceKind, TaskCreateIn
+from cognitive_memory.events.bus import EventBus
+from cognitive_memory.jobs.dispatcher import BackgroundRuntime
 from cognitive_memory.strategy.fencing import FencingError, WorkerLeaseManager
 
 
@@ -37,6 +40,45 @@ class WorkerFencingTests(unittest.TestCase):
             artifact={"x": 2},
         )
         self.assertTrue(ok["ok"])
+
+    def test_stale_worker_cannot_write_memory_after_takeover(self) -> None:
+        """F11/C02: takeover inside the real consolidation write window."""
+        obs = self.ctx.service.capture_observation(
+            ObservationIn(
+                source_kind=SourceKind.SYSTEM,
+                content="takeover window: consolidated candidate must not land",
+                producer="test",
+            )
+        )
+        task = self.ctx.service.create_task(
+            TaskCreateIn(
+                task_type="memory.consolidation",
+                payload={"observation_id": obs.id},
+            )
+        )
+        rt = BackgroundRuntime(
+            self.ctx.db, EventBus(), self.ctx.service, poll_interval_ms=50
+        )
+        original = self.ctx.service.propose_memory
+
+        def takeover(body, **kwargs):
+            # A second worker takes the lease exactly before the real insert.
+            self.leases.acquire(worker_id="w2")
+            return original(body, **kwargs)
+
+        self.ctx.service.propose_memory = takeover
+        rt.run_tasks_once()
+        rt.stop()
+
+        evidence = self.ctx.db.connect().execute(
+            "SELECT COUNT(*) AS n FROM memory_evidence WHERE observation_id=?",
+            (obs.id,),
+        ).fetchone()["n"]
+        self.assertEqual(evidence, 0, "stale worker left a real Memory behind")
+        row = self.ctx.db.connect().execute(
+            "SELECT status FROM tasks WHERE id=?", (task.id,)
+        ).fetchone()
+        self.assertIn(row["status"], {"pending", "dead"})
 
     def test_background_consolidation_gate(self) -> None:
         consolidate_mod.BACKGROUND_CONSOLIDATION_ENABLED = False

@@ -2,9 +2,9 @@
   "schema_version": "1.0",
   "current_task": "E15",
   "next_task": null,
-  "updated_at": "2026-11-01T16:30:00+08:00",
+  "updated_at": "2026-11-01T17:15:00+08:00",
   "implementation_state": "complete",
-  "review_fixes": "engineering/review-fixes F00–F12 done; post-fix pytest 437 / npm 34 / diff-check clean",
+  "review_fixes": "engineering/review-fixes F00–F12 + recheck C01–C05 done; pytest 441 / npm 37 / diff-check clean",
   "tasks": [
     {
       "id": "E00",

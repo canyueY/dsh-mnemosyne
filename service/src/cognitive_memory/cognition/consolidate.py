@@ -12,7 +12,7 @@ import sqlite3
 import threading
 import uuid
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Callable
 
 from cognitive_memory.core.service import MemoryService
 from cognitive_memory.domain.models import MemoryProposeIn, MemoryStatus, MemoryType, SourceKind
@@ -34,7 +34,12 @@ def _now() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def consolidate_observation(service: MemoryService, observation_id: str) -> str | None:
+def consolidate_observation(
+    service: MemoryService,
+    observation_id: str,
+    *,
+    write_guard: Callable[[], None] | None = None,
+) -> str | None:
     from cognitive_memory.governance.workspace import assert_workspace_authorized
 
     if not observation_id:
@@ -105,7 +110,8 @@ def consolidate_observation(service: MemoryService, observation_id: str) -> str 
             source_ids=[observation_id],
             metadata=meta,
             idempotency_key=f"consol:{observation_id}",
-        )
+        ),
+        write_guard=write_guard,
     )
     return mem.id
 

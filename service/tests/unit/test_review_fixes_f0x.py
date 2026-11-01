@@ -109,6 +109,65 @@ class ReviewFixesPythonTests(unittest.TestCase):
         self.assertEqual(budget.get("measurement"), "estimated")
         self.assertFalse(budget.get("hard_limit_verified"))
 
+    def test_c01_sourceless_claim_not_chosen_but_sourced_claim_is(self) -> None:
+        sourceless = self.claims.propose_from_text("C喜欢咖啡")
+        body = self.client.post(
+            "/api/v1/cognition/answers/select",
+            headers=self.admin,
+            json={"target": {"subject_id": "C", "predicate": "喜欢"}},
+        ).json()
+        self.assertNotEqual(body.get("status"), "chosen", body)
+        self.assertEqual(body.get("selected") or [], [])
+        self.assertIn("source_missing", body.get("reason_codes") or [])
+
+        source = self.ctx.service.propose_memory(
+            MemoryProposeIn(content="C01 fixture source")
+        )
+        self.claims.propose_from_text(
+            "D喜欢咖啡", source_memory_id=source.id
+        )
+        sourced = self.client.post(
+            "/api/v1/cognition/answers/select",
+            headers=self.admin,
+            json={"target": {"subject_id": "D", "predicate": "喜欢"}},
+        ).json()
+        self.assertEqual(sourced.get("status"), "chosen", sourced)
+        self.assertEqual(len(sourced.get("selected") or []), 1)
+        self.assertNotEqual(sourced["selected"][0]["claim_id"], sourceless["claim_id"])
+
+    def test_c03_nested_envelope_tokenizer_flags_ignored(self) -> None:
+        for envelope in (
+            {"accurate_tokenizer": True},
+            {"measurement": "measured"},
+        ):
+            body = self.client.post(
+                "/api/v1/contexts/build",
+                headers=self.admin,
+                json={"query": "probe", "token_budget": 256, "envelope": envelope},
+            ).json()
+            self.assertEqual(body.get("measurement"), "estimated", body)
+            self.assertFalse(body.get("hard_limit_verified"), body)
+
+    def test_c04_mixed_filtered_context_does_not_leak_expired_record(self) -> None:
+        safe = self.ctx.service.propose_memory(
+            MemoryProposeIn(content="mixedreview active safe record")
+        )
+        expired = self.ctx.service.propose_memory(
+            MemoryProposeIn(
+                content="mixedreview expired unsafe record",
+                metadata={"validity_to": "2000-01-01T00:00:00Z"},
+            )
+        )
+        retrieval = run_retrieve(
+            self.ctx.service, query="mixedreview", force=True, semantic_assist=False
+        )
+        ids = [x["id"] for x in retrieval.get("items") or []]
+        self.assertIn(safe.id, ids)
+        self.assertNotIn(expired.id, ids)
+        fragment_ids = [f.get("id") for f in retrieval.get("fragments") or []]
+        self.assertNotIn(expired.id, fragment_ids)
+        self.assertNotIn("expired unsafe record", retrieval.get("brief") or "")
+
     def test_fa14_expired_not_restored_by_fusion_fallback(self) -> None:
         memory = self.ctx.service.propose_memory(
             MemoryProposeIn(

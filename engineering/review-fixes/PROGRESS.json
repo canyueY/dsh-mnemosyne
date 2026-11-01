@@ -16,6 +16,6 @@
     "F11": "done",
     "F12": "done"
   },
-  "updated_at": "2026-11-01T16:45:00+08:00",
-  "notes": "R01–R10 fixed and re-verified; research/external models remain disabled/not_measured. F04 verified against real DSH 0.2.1-rc.3 in an isolated DSH_HOME: agentPresets/list shows mnemosyne broken=null (including mnemosyne-tool-guard), and session/create succeeds. D03/F11 settings verified with real settings/describe+update+restart. Remaining caveat: preset tool execution is unit-tested at the guard callback and loaded in real composition; not exercised via a real model turn."
+  "updated_at": "2026-11-01T17:15:00+08:00",
+  "notes": "R01–R10 fixed and re-verified; research/external models remain disabled/not_measured. Recheck C01–C05 closed: source-readiness gate, write-transaction fencing for consolidation, nested envelope tokenizer ignored, context brief/fragments filtered to safe items, and owned-row-only migration rewrite with quoted/CRLF fixtures. Current pytest 441 / npm 37 / check + diff clean. F04 real DSH 0.2.1-rc.3 list/create/settings verified; preset tool execution is unit-tested at guard callback and loaded in real composition, not exercised via a real model turn."
 }

@@ -106,24 +106,54 @@ function backupProfile(profilePath, kind = 'migrate') {
 }
 
 function rewriteCordis(text) {
-  // Only rewrite owned id/name fields for this plugin — never global string replace
-  // (other plugins may embed OLD_NAME inside sourcePath / comments / configs).
+  // Only rewrite the top-level plugin row owned by this package. A regex over
+  // `id:`/`name:` anywhere in the file changes other plugins' nested config and
+  // misses quoted YAML values; both were reproducible review defects.
   if (!text) return { text: text || '', changed: false };
+  const nl = String(text).includes('\r\n') ? '\r\n' : '\n';
+  const endsWithNl = /\r?\n$/.test(String(text));
+  const lines = String(text).split(/\r?\n/);
+  if (endsWithNl) lines.pop();
+
   let changed = false;
-  const next = String(text).replace(
-    /^([ \t]*-?[ \t]*(?:id|name):\s*)dsh-cognitive-memory(\s*)$/gm,
-    (_, prefix, suffix) => {
+  const rowRe = /^([ \t]*)-\s*id:\s*(['"]?)(dsh-cognitive-memory|dsh-mnemosyne)\2(\s*(?:#.*)?)$/;
+  for (let i = 0; i < lines.length; i += 1) {
+    const row = lines[i].match(rowRe);
+    if (!row) continue;
+    const indent = row[1];
+    const quote = row[2];
+    const value = row[3];
+    if (value === OLD_NAME) {
+      lines[i] = `${indent}- id: ${quote}${NEW_NAME}${quote}${row[4] || ''}`;
       changed = true;
-      return `${prefix}${NEW_NAME}${suffix}`;
-    },
-  );
-  let out = next;
-  const hasOwned =
-    /(^|\n)[ \t]*-?[ \t]*id:\s*dsh-mnemosyne(\s|$)/.test(out) ||
-    /(^|\n)[ \t]*-?[ \t]*id:\s*dsh-cognitive-memory(\s|$)/.test(out);
+    }
+    // Only the row's immediate child `name:` is a sibling field. Nested
+    // `config.name` / `config.id` belong to somebody else and must stay byte-
+    // identical, even when their value equals OLD_NAME.
+    let childIndent = null;
+    for (let j = i + 1; j < lines.length; j += 1) {
+      const raw = lines[j];
+      if (!raw.trim() || /^\s*#/.test(raw)) continue;
+      const ind = (raw.match(/^[ \t]*/) || [''])[0];
+      if (ind.length <= indent.length) break;
+      if (childIndent === null) childIndent = ind.length;
+      if (ind.length !== childIndent) continue;
+      const name = raw.match(/^([ \t]*)name:\s*(['"]?)dsh-cognitive-memory\2(\s*(?:#.*)?)$/);
+      if (name) {
+        const q = name[2] || quote;
+        lines[j] = `${name[1]}name: ${q}${NEW_NAME}${q}${name[3] || ''}`;
+        changed = true;
+        break;
+      }
+    }
+  }
+
+  let out = lines.join(nl);
+  if (endsWithNl) out += nl;
+  const hasOwned = lines.some((line) => rowRe.test(line));
   if (!hasOwned) {
-    const block = `- insert:\n    - id: ${NEW_NAME}\n      name: ${NEW_NAME}\n`;
-    out = out.trimEnd() ? `${out.trimEnd()}\n${block}` : block;
+    const block = `- insert:${nl}    - id: ${NEW_NAME}${nl}      name: ${NEW_NAME}`;
+    out = out.trimEnd() ? `${out.trimEnd()}${nl}${block}${nl}` : `${block}${nl}`;
     changed = true;
   }
   return { text: out, changed: changed || out !== text };

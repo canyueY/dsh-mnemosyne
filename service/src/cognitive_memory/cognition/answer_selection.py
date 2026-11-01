@@ -504,7 +504,11 @@ class AnswerSelectionService:
         merged_scope = {**ast_scope, **meta_scope}
         if merged_scope.get("self_report") or merged_scope.get("epistemic") == "self_report":
             epistemic = "self_report"
-        # 自述例外必须可追溯（显式 scope），不因 preference 语法自动洗成 self_report
+        # 自述例外必须可追溯（显式 scope），不因 preference 语法自动洗成 self_report。
+        # 来源资格：没有 source_memory_id / evidence / verification evidence 的候选
+        # 不能进入确定选择；仅声明 wrote_verified=false 不能替代来源检查。
+        if not self._has_traceable_source(claim):
+            return None
 
         role = "counter" if (want_negation is False and negated) else "support"
         return {
@@ -523,6 +527,47 @@ class AnswerSelectionService:
             "predicate": atom.predicate,
             "arguments": list(atom.arguments),
         }
+
+    def _has_traceable_source(self, claim: dict[str, Any]) -> bool:
+        """A claim is eligible for chosen only when its provenance is traceable.
+
+        This is deliberately narrower than "content is true": a user self-report
+        with an explicit source/evidence can still be chosen; a sourceless
+        proposed claim cannot.
+        """
+        source_id = str(claim.get("source_memory_id") or "").strip()
+        if source_id:
+            try:
+                row = self.service.db.connect().execute(
+                    "SELECT status FROM memories WHERE id=?", (source_id,)
+                ).fetchone()
+                if row is not None and str(row["status"]) != "invalidated":
+                    return True
+            except Exception:
+                pass
+        claim_id = str(claim.get("id") or "")
+        if not claim_id:
+            return False
+        from cognitive_memory.evidence.object_store import EvidenceObjectStore
+
+        store = EvidenceObjectStore(self.service.db)
+        try:
+            refs = [e["evidence_ref"] for e in self.claims.list_evidence(claim_id)]
+        except Exception:
+            refs = []
+        try:
+            rec = self.claims._ver_store.latest_for_claim(claim_id)
+            if rec is not None:
+                refs.extend(getattr(rec, "evidence_refs", None) or [])
+        except Exception:
+            pass
+        for ref in set(refs):
+            try:
+                if store.get(ref):
+                    return True
+            except Exception:
+                continue
+        return False
 
     def _enforce_call_budget(
         self,

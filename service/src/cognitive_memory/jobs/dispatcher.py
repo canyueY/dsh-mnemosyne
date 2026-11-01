@@ -255,14 +255,23 @@ class BackgroundRuntime:
         from cognitive_memory.strategy.fencing import assert_lease_writable
 
         lease = payload.get("_lease") or self._lease
+        guard = None
         if lease:
-            assert_lease_writable(
-                self.db,
-                fencing_token=str(lease.get("fencing_token") or ""),
-                expected_generation=int(lease.get("generation") or 0),
-                resource=str(lease.get("resource") or "consolidation"),
-            )
-        consolidate_observation(self.service, payload.get("observation_id") or "")
+            def guard() -> None:
+                assert_lease_writable(
+                    self.db,
+                    fencing_token=str(lease.get("fencing_token") or ""),
+                    expected_generation=int(lease.get("generation") or 0),
+                    resource=str(lease.get("resource") or "consolidation"),
+                )
+            # Close the window between handler entry and the real Memory insert:
+            # the same guard runs inside propose_memory's write transaction.
+            guard()
+        consolidate_observation(
+            self.service,
+            payload.get("observation_id") or "",
+            write_guard=guard,
+        )
 
     def _handle_promote(self, payload: dict[str, Any]) -> None:
         from cognitive_memory.cognition.promote import maybe_promote

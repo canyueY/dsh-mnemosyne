@@ -1,0 +1,11 @@
+{
+  "name": "sdk-build",
+  "cmd": [
+    "npm.cmd",
+    "run",
+    "build"
+  ],
+  "exit": 0,
+  "seconds": 1.14,
+  "tail": "\n> @mnemosyne/client@2.0.0 build\n> tsc -p tsconfig.json\n\n"
+}

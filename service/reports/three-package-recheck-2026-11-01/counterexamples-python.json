@@ -1,0 +1,56 @@
+[
+  {
+    "case": "target_arguments_ignored",
+    "http": 200,
+    "requested_arguments": [
+      "茶"
+    ],
+    "status": "unknown",
+    "selected": []
+  },
+  {
+    "case": "rejected_claim_chosen",
+    "status": "unknown",
+    "selected": []
+  },
+  {
+    "case": "cross_bank_checkpoint_overwrite",
+    "agent_granted_banks": [
+      "personal"
+    ],
+    "overwrite_http": 403,
+    "stored_row_bank": "projects",
+    "stored_goal": "original-project-goal",
+    "manifest_bank": "projects"
+  },
+  {
+    "case": "client_flag_makes_heuristic_measured",
+    "measurement": "estimated",
+    "hard_limit_verified": false
+  },
+  {
+    "case": "expired_fusion_result_restored",
+    "status": "NO_MATCH",
+    "expired_id": "mem_1a1965382f64c428cd560",
+    "returned_ids": [],
+    "fusion": {
+      "status": "unknown",
+      "reason_codes": [
+        "no_safe_items"
+      ],
+      "embedding_meta": {
+        "embedding_kind": "hash",
+        "quality": "offline_hash_not_semantic_model",
+        "do_not_overclaim": true
+      },
+      "counterevidence": [],
+      "notes": {
+        "rrf_dedup": true,
+        "hash_not_hq_embedding": true,
+        "counterevidence_independent": true,
+        "postfilter_mandatory": true,
+        "candidate_similarity_is_not_fact": true
+      }
+    }
+  }
+]

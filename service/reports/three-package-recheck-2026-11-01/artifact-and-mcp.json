@@ -1,0 +1,237 @@
+{
+  "pack_entry_count": 470,
+  "required_files": {
+    "scripts/install-dsh.mjs": true,
+    "scripts/migrate-dsh.mjs": true,
+    "dsh/agent-presets/mnemosyne/agent.cordis.yml": true,
+    "src/preset-guard.js": true
+  },
+  "checks": [
+    {
+      "case": "install-dsh.mjs --help from tarball",
+      "exit": 0,
+      "output": "Usage: node scripts/install-dsh.mjs [--local|--tag <ver>] [--profile <name>]\n  --accept-version-risk   allow-version when engines.dsh mismatches local CLI\n  --dry-run               resolve without mutating\n  --dsh-home <path>       override DSH_HOME\n  --skip-post-check       skip npm check / host-compat\nEnv: DSH_HOME, DSH_PROFILE, DSH_CLI\n"
+    },
+    {
+      "case": "migrate-dsh.mjs --help from tarball",
+      "exit": 0,
+      "output": "Usage: node scripts/migrate-dsh.mjs --profile <name> [--rollback] [--skip-data] [--data-dir <bank>]\nEnv: DSH_HOME, DSH_PROFILE, MNEMOSYNE_MEMORY_BANK\n"
+    },
+    {
+      "case": "load preset from tarball",
+      "exit": 0,
+      "preset": {
+        "id": "mnemosyne",
+        "name": "Mnemosyne Memory",
+        "description": "",
+        "persona": "You may use Mnemosyne memory tools when helpful:\n- memory_search / memory_get / memory_context for recall\n- memory_observe / memory_propose for durable notes (confirm required)\n- memory_feedback / memory_update / memory_forget for corrections\n- memory_select_answer when current vs historical answers matter\nDo not invent memories. Do not require a memory tool on every turn.\nRefuse local shell/file/process/plugin-admin tools — this preset is memory-only.",
+        "tools": {
+          "allow": [
+            "memory_health",
+            "memory_search",
+            "memory_get",
+            "memory_context",
+            "memory_select_answer",
+            "memory_observe",
+            "memory_propose",
+            "memory_feedback",
+            "memory_update",
+            "memory_forget",
+            "memory_task_status",
+            "ask_user_question",
+            "todo_write"
+          ],
+          "deny_prefixes": [
+            "bash",
+            "shell",
+            "pwsh",
+            "terminal",
+            "fs_",
+            "file_",
+            "process",
+            "plugin",
+            "exec"
+          ],
+          "deny_exact": [
+            "local_execute",
+            "run_terminal",
+            "write_file",
+            "read_file",
+            "manage_plugin"
+          ],
+          "fail_closed": true
+        },
+        "session": {
+          "creatable": true,
+          "default": false
+        },
+        "path": "D:\\HuaweiMoveData\\Users\\残月Y\\Desktop\\桌宠\\.mnemosyne-recheck-temp-20261101\\unpacked-v_qvn7_j\\package\\dsh\\agent-presets\\mnemosyne\\agent.cordis.yml",
+        "insert_id": "dsh-mnemosyne-agent-preset"
+      }
+    },
+    {
+      "case": "packed MCP stdio to actual HTTP fixture",
+      "exit": 0,
+      "replies": [
+        {
+          "jsonrpc": "2.0",
+          "id": 1,
+          "result": {
+            "protocolVersion": "2025-06-18",
+            "serverInfo": {
+              "name": "mnemosyne",
+              "version": "2.0.0"
+            },
+            "capabilities": {
+              "tools": {}
+            }
+          }
+        },
+        {
+          "jsonrpc": "2.0",
+          "id": 2,
+          "result": {
+            "tools": [
+              {
+                "name": "mcp__mnemosyne__health",
+                "aliases": [
+                  "memory_health"
+                ],
+                "description": "Node health",
+                "inputSchema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              {
+                "name": "mcp__mnemosyne__search",
+                "aliases": [
+                  "memory_search"
+                ],
+                "description": "Search memories",
+                "inputSchema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              {
+                "name": "mcp__mnemosyne__get",
+                "aliases": [
+                  "memory_get"
+                ],
+                "description": "Get memory by id",
+                "inputSchema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              {
+                "name": "mcp__mnemosyne__context",
+                "aliases": [
+                  "memory_context"
+                ],
+                "description": "Build context envelope",
+                "inputSchema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              {
+                "name": "mcp__mnemosyne__observe",
+                "aliases": [
+                  "memory_observe"
+                ],
+                "description": "Write observation",
+                "inputSchema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              {
+                "name": "mcp__mnemosyne__propose",
+                "aliases": [
+                  "memory_propose"
+                ],
+                "description": "Propose memory",
+                "inputSchema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              {
+                "name": "mcp__mnemosyne__feedback",
+                "aliases": [
+                  "memory_feedback"
+                ],
+                "description": "Feedback on memory",
+                "inputSchema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              {
+                "name": "mcp__mnemosyne__update",
+                "aliases": [
+                  "memory_update"
+                ],
+                "description": "Update memory",
+                "inputSchema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              {
+                "name": "mcp__mnemosyne__forget",
+                "aliases": [
+                  "memory_forget"
+                ],
+                "description": "Forget memory",
+                "inputSchema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              {
+                "name": "mcp__mnemosyne__task_status",
+                "aliases": [
+                  "memory_task_status"
+                ],
+                "description": "Task status",
+                "inputSchema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            ]
+          }
+        },
+        {
+          "jsonrpc": "2.0",
+          "id": 3,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"ok\":true,\"service\":\"isolated-review-http-fixture\"}"
+              }
+            ],
+            "structuredContent": {
+              "ok": true,
+              "service": "isolated-review-http-fixture"
+            },
+            "transport": "rest",
+            "opened_sqlite": false
+          }
+        }
+      ],
+      "http_requests": [
+        {
+          "method": "GET",
+          "path": "/api/v1/health",
+          "auth_correct": true
+        }
+      ],
+      "limit": "Local HTTP fixture, not production Node or real DSH session"
+    }
+  ]
+}

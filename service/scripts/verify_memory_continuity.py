@@ -90,8 +90,8 @@ def run_continuity(data_dir: Path) -> dict:
 
         # 3 recall / select (service AnswerSelection)
         claims = ClaimStore(ctx.db)
-        old = claims.propose_from_text("A喜欢咖啡")
-        new = claims.propose_from_text("A喜欢茶")
+        old = claims.propose_from_text("A喜欢咖啡", source_memory_id=mem.id)
+        new = claims.propose_from_text("A喜欢茶", source_memory_id=mem.id)
         _set_validity(ctx.db, old["claim_id"], vf="2026-01-01T00:00:00Z", vt="2026-06-01T00:00:00Z")
         _set_validity(ctx.db, new["claim_id"], vf="2026-06-01T00:00:00Z", vt=None)
         sel = AnswerSelectionService(ctx.service).select_answer(

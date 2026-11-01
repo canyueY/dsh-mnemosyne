@@ -10,6 +10,7 @@ import unittest
 from cognitive_memory.bootstrap import build_context
 from cognitive_memory.claims.store import ClaimStore
 from cognitive_memory.cognition.answer_selection import AnswerSelectionService
+from cognitive_memory.domain.models import MemoryProposeIn
 
 
 class AnswerSelectionTests(unittest.TestCase):
@@ -18,6 +19,9 @@ class AnswerSelectionTests(unittest.TestCase):
         self.ctx = build_context(data_dir=self.tmp.name, token="e03-token")
         self.claims = ClaimStore(self.ctx.db)
         self.sel = AnswerSelectionService(self.ctx.service)
+        self.source = self.ctx.service.propose_memory(
+            MemoryProposeIn(content="answer-selection fixture source")
+        )
 
     def tearDown(self) -> None:
         self.ctx.db.close()
@@ -29,6 +33,13 @@ class AnswerSelectionTests(unittest.TestCase):
                 "UPDATE claims SET validity_from=?, validity_to=? WHERE id=?",
                 (vf, vt, claim_id),
             )
+
+    def _propose(self, text: str) -> dict:
+        # Unit fixtures model a traceable source; selection now rejects
+        # sourceless claims instead of treating them as determinate.
+        return self.claims.propose_from_text(
+            text, source_memory_id=self.source.id
+        )
 
     def _set_scope(self, claim_id: str, scope: dict) -> None:
         pack = self.claims.get(claim_id, follow_redirect=False)
@@ -55,8 +66,8 @@ class AnswerSelectionTests(unittest.TestCase):
 
     def test_ac10(self) -> None:
         """A 到 t2 失效，B 从 t2 生效 → t1 选 A，t3 选 B。"""
-        a = self.claims.propose_from_text("A喜欢咖啡")
-        b = self.claims.propose_from_text("A喜欢茶")
+        a = self._propose("A喜欢咖啡")
+        b = self._propose("A喜欢茶")
         self._set_validity(a["claim_id"], vf="2026-01-01T00:00:00Z", vt="2026-06-01T00:00:00Z")
         self._set_validity(b["claim_id"], vf="2026-06-01T00:00:00Z", vt=None)
 
@@ -82,10 +93,10 @@ class AnswerSelectionTests(unittest.TestCase):
 
     def test_ac11(self) -> None:
         """较旧事件晚入库 → 不按接收时间覆盖新状态。"""
-        newer = self.claims.propose_from_text("A喜欢茶")
+        newer = self._propose("A喜欢茶")
         self._set_validity(newer["claim_id"], vf="2026-06-01T00:00:00Z", vt=None)
         # 迟到的旧事实
-        older = self.claims.propose_from_text("A喜欢咖啡")
+        older = self._propose("A喜欢咖啡")
         self._set_validity(older["claim_id"], vf="2026-01-01T00:00:00Z", vt="2026-06-01T00:00:00Z")
 
         cur = self.sel.select_answer(
@@ -98,8 +109,8 @@ class AnswerSelectionTests(unittest.TestCase):
 
     def test_ac12(self) -> None:
         """A 否定与作者 B 观点不合并。"""
-        a = self.claims.propose_from_text("A不喜欢咖啡")
-        b = self.claims.propose_from_text("作者B喜欢咖啡")
+        a = self._propose("A不喜欢咖啡")
+        b = self._propose("作者B喜欢咖啡")
         out = self.sel.select_answer(
             target={"subject_id": "A", "predicate": "喜欢"},
             mode="current",
@@ -113,7 +124,7 @@ class AnswerSelectionTests(unittest.TestCase):
 
     def test_ac13(self) -> None:
         """仅晚上声明 → 问白天永久则未知。"""
-        c = self.claims.propose_from_text("我晚上不喜欢咖啡")
+        c = self._propose("我晚上不喜欢咖啡")
         out = self.sel.select_answer(
             target={"subject_id": "我晚上", "predicate": "喜欢"},
             context={"query_scope": "daytime_permanent"},
@@ -126,9 +137,9 @@ class AnswerSelectionTests(unittest.TestCase):
 
     def test_ac14(self) -> None:
         """预算耗尽且反证未检查完 → unknown/partial + budget_exhausted。"""
-        self.claims.propose_from_text("A喜欢咖啡")
+        self._propose("A喜欢咖啡")
         for i in range(6):
-            self.claims.propose_from_text(f"A不喜欢咖啡变体{i}")
+            self._propose(f"A不喜欢咖啡变体{i}")
         out = self.sel.select_answer(
             target={"subject_id": "A", "predicate": "喜欢", "negated": False},
             budget={"max_candidates": 1, "max_steps": 3},
@@ -140,7 +151,7 @@ class AnswerSelectionTests(unittest.TestCase):
 
     def test_ac15(self) -> None:
         """自述偏好可引用，但不写客观 verified。"""
-        c = self.claims.propose_from_text("我喜欢夜航星")
+        c = self._propose("我喜欢夜航星")
         self._set_scope(c["claim_id"], {"self_report": True})
         out = self.sel.select_answer(
             target={"subject_id": "我", "predicate": "喜欢"},

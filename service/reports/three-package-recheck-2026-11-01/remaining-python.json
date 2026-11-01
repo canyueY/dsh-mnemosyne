@@ -1,0 +1,198 @@
+[
+  {
+    "case": "envelope_tokenizer_bypass",
+    "http": 200,
+    "request_envelope": {
+      "accurate_tokenizer": true
+    },
+    "measurement": "measured",
+    "hard_limit_verified": true
+  },
+  {
+    "case": "envelope_tokenizer_bypass",
+    "http": 200,
+    "request_envelope": {
+      "accurate_tokenizer": true,
+      "measurement": "measured"
+    },
+    "measurement": "measured",
+    "hard_limit_verified": true
+  },
+  {
+    "case": "unverified_sourceless_claim",
+    "stored": {
+      "lifecycle": "proposed",
+      "verification_status": "unverified",
+      "source_memory_id": null
+    },
+    "result": {
+      "decision_id": "ans_5718fa7e98dd",
+      "status": "chosen",
+      "selected": [
+        {
+          "ref_type": "claim",
+          "ref": "clm_a0ed23f32f63",
+          "claim_id": "clm_a0ed23f32f63",
+          "lifecycle": "proposed",
+          "epistemic_tag": "claim",
+          "negated": false,
+          "surface": "C喜欢咖啡",
+          "validity_from": null,
+          "validity_to": null,
+          "applicability": {
+            "validity_from": null,
+            "validity_to": null,
+            "negated": false,
+            "conditional": false,
+            "situation": null
+          },
+          "role": "support",
+          "subject": "C",
+          "predicate": "喜欢",
+          "arguments": [
+            "咖啡"
+          ]
+        }
+      ],
+      "alternatives": [],
+      "evidence_refs": [
+        "clm_a0ed23f32f63"
+      ],
+      "counterevidence_refs": [],
+      "source_revisions": [],
+      "applicability": {
+        "validity_from": null,
+        "validity_to": null,
+        "negated": false,
+        "conditional": false,
+        "situation": null
+      },
+      "checks_complete": true,
+      "reason_codes": [
+        "selected"
+      ],
+      "budget_usage": {
+        "steps": 2,
+        "candidates": 1
+      },
+      "trace_id": "tr_163b26a1d7",
+      "wrote_verified": false,
+      "meta": {
+        "target": {
+          "subject_id": "C",
+          "predicate": "喜欢",
+          "negated": null,
+          "arguments": [
+            "咖啡"
+          ]
+        },
+        "self_report": false,
+        "wrote_verified": false,
+        "mode": "current",
+        "at": "2026-11-01T08:59:02Z"
+      },
+      "extras": {
+        "target": {
+          "subject_id": "C",
+          "predicate": "喜欢",
+          "negated": null,
+          "arguments": [
+            "咖啡"
+          ]
+        },
+        "self_report": false,
+        "wrote_verified": false,
+        "mode": "current",
+        "at": "2026-11-01T08:59:02Z"
+      },
+      "_actor": "node:admin"
+    }
+  },
+  {
+    "case": "mixed_filtered_context",
+    "safe_id": "mem_1a196556a7932f4b282d7",
+    "expired_id": "mem_1a196556a7af3406b79c9",
+    "item_ids": [
+      "mem_1a196556a7932f4b282d7"
+    ],
+    "fragment_ids": [
+      "mem_1a196556a7932f4b282d7",
+      "mem_1a196556a7af3406b79c9"
+    ],
+    "brief": "【认知记忆·仅供参考】\n- [semantic|unverified_record] mixedreview active safe record\n- [semantic|unverified_record] mixedreview expired unsafe record"
+  },
+  {
+    "case": "stale_worker_real_write",
+    "observation_id": "obs_1a196556a7e2c7fe5b905",
+    "replacement_acquired": true,
+    "written_memories": [
+      {
+        "id": "mem_1a196556a8a57d60f5ade",
+        "type": "episodic",
+        "status": "candidate",
+        "content": "actual stale worker observation",
+        "source_ids": [
+          "obs_1a196556a7e2c7fe5b905"
+        ],
+        "created_at": "2026-11-01T08:59:02Z",
+        "updated_at": "2026-11-01T08:59:02Z",
+        "last_confirmed_at": null,
+        "version": 1,
+        "confidence": null,
+        "expires_at": null,
+        "metadata": {
+          "consolidation": "rule_v1",
+          "source_kind": "system",
+          "epistemic": "summary",
+          "original_observation_id": "obs_1a196556a7e2c7fe5b905",
+          "lossy": false,
+          "source_role": "derived_summary",
+          "spatiotemporal": {
+            "schemaVersion": 1,
+            "temporal": {
+              "kind": "unknown",
+              "recordedAt": "2026-11-01T08:59:02Z",
+              "status": "unknown",
+              "timePrecision": "approximate",
+              "occurredAt": "2026-11-01T08:59:02Z"
+            }
+          },
+          "bank_id": "personal"
+        },
+        "bank_id": "personal"
+      }
+    ],
+    "tasks": [
+      {
+        "id": "task_1a196556a79f43bd0ac89",
+        "task_type": "memory.promote_check",
+        "status": "done",
+        "last_error": ""
+      },
+      {
+        "id": "task_1a196556a7a302bda6910",
+        "task_type": "memory.promote_check",
+        "status": "done",
+        "last_error": ""
+      },
+      {
+        "id": "task_1a196556a7e51c41daf0c",
+        "task_type": "memory.consolidation",
+        "status": "pending",
+        "last_error": "stale worker token rejected at write layer"
+      },
+      {
+        "id": "task_1a196556a7e25faf1f251",
+        "task_type": "memory.change_detect",
+        "status": "done",
+        "last_error": ""
+      },
+      {
+        "id": "task_1a196556a8a31c712f381",
+        "task_type": "memory.promote_check",
+        "status": "pending",
+        "last_error": ""
+      }
+    ]
+  }
+]

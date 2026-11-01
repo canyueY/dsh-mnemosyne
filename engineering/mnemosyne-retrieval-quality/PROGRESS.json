@@ -1,8 +1,8 @@
 {
   "schema_version": "1.0",
   "implementation_status": "complete",
-  "updated_at": "2026-11-01T16:30:00+08:00",
-  "review_fixes": "engineering/review-fixes closed R01–R03/R08–R09; py 437",
+  "updated_at": "2026-11-01T17:15:00+08:00",
+  "review_fixes": "engineering/review-fixes closed R01–R03/R08–R09 + recheck C01/C03/C04; py 441",
   "tasks": {
     "M00": { "status": "done", "report": "reports/M00.md", "notes": "baseline 413; MA01" },
     "M01": { "status": "done", "report": "reports/M01.md", "notes": "MA02-04; target arguments enforced (F02)" },
@@ -11,6 +11,6 @@
     "M04": { "status": "done", "report": "reports/M04.md", "notes": "MA11-13" },
     "M05": { "status": "done", "report": "reports/M05.md", "notes": "MA14-15; client tokenizer flag ignored (F09)" },
     "M06": { "status": "done", "report": "reports/M06.md", "notes": "MA16-18; cross-bank checkpoint deny (F01)" },
-    "M07": { "status": "done", "report": "reports/M07.md", "notes": "review-fixes F12: 437 py / 34 node; external models disabled/not_measured" }
+    "M07": { "status": "done", "report": "reports/M07.md", "notes": "review-fixes F12 + recheck C01/C03/C04: 441 py / 37 node; external models disabled/not_measured" }
   }
 }

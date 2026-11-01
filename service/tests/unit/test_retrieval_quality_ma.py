@@ -10,6 +10,7 @@ from cognitive_memory.bootstrap import build_context
 from cognitive_memory.cognition.answer_selection import AnswerSelectionService
 from cognitive_memory.cognition.consolidate import consolidate_session
 from cognitive_memory.claims.store import ClaimStore
+from cognitive_memory.domain.models import MemoryProposeIn
 from cognitive_memory.evidence.object_store import EvidenceObjectStore
 from cognitive_memory.retrieval.context_budget import build_context_envelope
 from cognitive_memory.retrieval.fusion import fuse_channels
@@ -25,6 +26,9 @@ class RetrievalQualityMATests(unittest.TestCase):
         self.sel = AnswerSelectionService(self.ctx.service)
         self.claims = ClaimStore(self.ctx.db)
         self.estore = EvidenceObjectStore(self.ctx.db)
+        self.source = self.ctx.service.propose_memory(
+            MemoryProposeIn(content="retrieval-quality fixture source")
+        )
 
     def tearDown(self) -> None:
         self.ctx.db.close()
@@ -37,8 +41,14 @@ class RetrievalQualityMATests(unittest.TestCase):
                 (vf, vt, claim_id),
             )
 
+    def _propose(self, text: str) -> dict:
+        # Selection requires traceable provenance; these fixtures model a source.
+        return self.claims.propose_from_text(
+            text, source_memory_id=self.source.id
+        )
+
     def test_ma02(self) -> None:
-        c = self.claims.propose_from_text("A喜欢咖啡")
+        c = self._propose("A喜欢咖啡")
         out = self.sel.select_answer(
             target={"subject_id": "A", "predicate": "喜欢"}, mode="current"
         )
@@ -57,9 +67,9 @@ class RetrievalQualityMATests(unittest.TestCase):
         )
 
     def test_ma04(self) -> None:
-        self.claims.propose_from_text("A喜欢咖啡")
+        self._propose("A喜欢咖啡")
         for i in range(6):
-            self.claims.propose_from_text(f"A不喜欢咖啡变体{i}")
+            self._propose(f"A不喜欢咖啡变体{i}")
         out = self.sel.select_answer(
             target={"subject_id": "A", "predicate": "喜欢", "negated": False},
             budget={"max_candidates": 1, "max_steps": 3},
@@ -87,7 +97,7 @@ class RetrievalQualityMATests(unittest.TestCase):
         self.assertEqual(a["evidence"]["id"], b["evidence"]["id"])
 
     def test_ma06(self) -> None:
-        c = self.claims.propose_from_text("A喜欢咖啡")
+        c = self._propose("A喜欢咖啡")
         self._set_validity(c["claim_id"], vf="2020-01-01T00:00:00Z", vt="2021-01-01T00:00:00Z")
         out = self.sel.select_answer(
             target={"subject_id": "A", "predicate": "喜欢"},
@@ -97,8 +107,8 @@ class RetrievalQualityMATests(unittest.TestCase):
         self.assertEqual(out["status"], "unknown", out)
 
     def test_ma07(self) -> None:
-        a = self.claims.propose_from_text("A喜欢咖啡")
-        b = self.claims.propose_from_text("A喜欢茶")
+        a = self._propose("A喜欢咖啡")
+        b = self._propose("A喜欢茶")
         self.claims.transition(a["claim_id"], "retracted", reason="withdraw")
         pack_b = self.claims.get(b["claim_id"], follow_redirect=False)
         self.assertIsNotNone(pack_b)

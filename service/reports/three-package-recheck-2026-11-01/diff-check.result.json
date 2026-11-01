@@ -1,0 +1,13 @@
+{
+  "name": "diff-check",
+  "cmd": [
+    "git",
+    "diff",
+    "--check",
+    "HEAD~1",
+    "HEAD"
+  ],
+  "exit": 2,
+  "seconds": 0.11,
+  "tail": "s/2.0/audits/domain-cognition-audit.md:256: trailing whitespace.\n+- [x] 识别真实仓库与 Remote / HEAD / dirty  \nservice/docs/2.0/audits/domain-cognition-audit.md:257: trailing whitespace.\n+- [x] 区分计划功能与代码实现  \nservice/docs/2.0/audits/domain-cognition-audit.md:258: trailing whitespace.\n+- [x] 能力矩阵（有文件位置级别证据）  \nservice/docs/2.0/audits/domain-cognition-audit.md:259: trailing whitespace.\n+- [x] P0.5 provenance 门禁重申  \nservice/docs/2.0/audits/domain-cognition-audit.md:260: trailing whitespace.\n+- [x] Music Domain 可复用范式确认  \nservice/docs/2.0/audits/domain-cognition-audit.md:261: trailing whitespace.\n+- [x] Fanqie Missing 明确列出  \nservice/docs/2.0/audits/domain-cognition-audit.md:262: trailing whitespace.\n+- [x] 权威仓 Archive 冲突上报  \nservice/docs/2.0/audits/domain-cognition-audit.md:263: trailing whitespace.\n+- [ ] 人工确认权威仓与 Claim 合流策略（**未完成，阻塞完整 Book Claim**）  \nservice/docs/2.0/audits/domain-cognition-audit.md:273: trailing whitespace.\n+1. 确认权威仓选项 A/B/C（见 `docs/domain-cognition/AUTHORITY_AND_CLAIM_PLAN.md`）。  \nservice/docs/2.0/audits/domain-cognition-audit.md:274: trailing whitespace.\n+2. 完整 clone `mnemosyne-memory-bank` 后按 `memory-bank-contracts/SYNC_CHECKLIST.md` 开契约 PR。  \nservice/docs/2.0/audits/domain-cognition-audit.md:275: trailing whitespace.\n+3. 提供或授权创建真实 `dsh-fanqie-shelf-memory` 后进入 Phase 3 实现。  \nservice/docs/2.0/audits/domain-cognition-audit.md:276: trailing whitespace.\n+4. **不创建** Fanqie 空壳仓冒充 E2E。  \nservice/docs/2.0/audits/domain-cognition-audit.md:280: trailing whitespace.\n+**审计人：** Composer（Agent）  \nservice/docs/2.0/audits/domain-cognition-audit.md:281: trailing whitespace.\n+**本文件路径：** `mnemosyne/docs/audits/domain-cognition-audit.md`  \nservice/reports/three-package-review-2026-11-01/diff-check.log:2: trailing whitespace.\n++`auto_start`、`service_root`、`data_dir`、`python`、`base_url`、`token`(secret)、`auto_capture`。  \nservice/reports/three-package-review-2026-11-01/diff-check.log:4: trailing whitespace.\n++**状态：** Phase 1 Implemented（2026-10-30）；E08 健康探针（2026-11-01）  \nservice/reports/three-package-review-2026-11-01/node-check.log:4: new blank line at EOF.\nservice/reports/three-package-review-2026-11-01/node-full.log:39: new blank line at EOF.\nservice/reports/three-package-review-2026-11-01/python-full.log:14: new blank line at EOF.\nservice/reports/three-package-review-2026-11-01/sdk-build.log:4: new blank line at EOF.\nservice/sdk-ts/.gitignore:3: new blank line at EOF.\n"
+}

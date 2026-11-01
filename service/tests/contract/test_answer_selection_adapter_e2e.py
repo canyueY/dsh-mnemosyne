@@ -12,6 +12,7 @@ from fastapi.testclient import TestClient
 from cognitive_memory.adapters.dsh_http import DshHttpAdapter
 from cognitive_memory.bootstrap import build_context
 from cognitive_memory.claims.store import ClaimStore
+from cognitive_memory.domain.models import MemoryProposeIn
 from cognitive_memory.sdk import MnemosyneClient
 from cognitive_memory.sdk.client import MnemosyneClientError
 
@@ -39,8 +40,11 @@ class AnswerSelectionAdapterE2ETests(unittest.TestCase):
 
     def test_ac20(self) -> None:
         """Top1 搜索过时项存在时，选择服务交付当前项与适用范围。"""
-        old = self.claims.propose_from_text("A喜欢咖啡")
-        new = self.claims.propose_from_text("A喜欢茶")
+        source = self.ctx.service.propose_memory(
+            MemoryProposeIn(content="adapter e2e fixture source")
+        )
+        old = self.claims.propose_from_text("A喜欢咖啡", source_memory_id=source.id)
+        new = self.claims.propose_from_text("A喜欢茶", source_memory_id=source.id)
         self._set_validity(old["claim_id"], vf="2026-01-01T00:00:00Z", vt="2026-06-01T00:00:00Z")
         self._set_validity(new["claim_id"], vf="2026-06-01T00:00:00Z", vt=None)
 
