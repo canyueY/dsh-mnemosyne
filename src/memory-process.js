@@ -28,9 +28,6 @@ function resolveServiceRoot(explicit) {
 
   if (explicit) push(explicit);
   if (process.env.DSH_MNEMOSYNE_ROOT) {
-    push(process.env.DSH_MNEMOSYNE_ROOT);
-  }
-  if (process.env.DSH_MNEMOSYNE_ROOT) {
     // Legacy env var from dsh-cognitive-memory; kept for one migration cycle.
     push(process.env.DSH_MNEMOSYNE_ROOT);
   }

@@ -794,8 +794,14 @@ https://github.com/canyueY/dsh-mnemosyne
 安装：
 
 ```bash
+# 远程
 dsh plugin --profile web add github:canyueY/dsh-mnemosyne#main
+
+# 本地仓库自安装
+dsh plugin --profile web add "file:<dsh-mnemosyne 绝对路径>"
 ```
+
+完整安装步骤、DSH 接口适配清单、卸载/回滚与故障排查见 [DSH_INTEGRATION.md](DSH_INTEGRATION.md)。
 
 目前可通过插件入口使用记忆能力，例如：
 

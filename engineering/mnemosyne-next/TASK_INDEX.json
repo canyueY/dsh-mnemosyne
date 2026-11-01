@@ -1,0 +1,675 @@
+{
+  "schema_version": "1.0",
+  "execution_order": [
+    "E00",
+    "E01",
+    "E02",
+    "E03",
+    "E04",
+    "E05",
+    "E06",
+    "E07",
+    "E08",
+    "E09",
+    "E10",
+    "E11",
+    "E12",
+    "E13",
+    "E14",
+    "E15"
+  ],
+  "tasks": [
+    {
+      "id": "E00",
+      "title": "建立可复现基线",
+      "priority": "P0",
+      "depends_on": [],
+      "file": "tasks/E00.md",
+      "read_first": [
+        "service/pyproject.toml",
+        "package.json",
+        "service/docs/ENGINEERING_CONSTRAINTS.md",
+        "service/docs/2.0/THEORY_IMPLEMENTATION_2026_11_01.md"
+      ],
+      "existing_python_tests": [],
+      "required_python_tests": [],
+      "required_node_tests": [],
+      "acceptance_ids": [],
+      "expected_changes": [
+        "engineering/mnemosyne-next/reports/",
+        "engineering/mnemosyne-next/PROGRESS.json"
+      ],
+      "scope_note": "候选范围，不是权限白名单；必要共享契约/迁移/API/SDK/测试可联动，记录原因，不重写无关模块。"
+    },
+    {
+      "id": "E01",
+      "title": "来源、覆盖与信任契约",
+      "priority": "P0",
+      "depends_on": [
+        "E00"
+      ],
+      "file": "tasks/E01.md",
+      "read_first": [
+        "service/src/cognitive_memory/domain/models.py",
+        "service/src/cognitive_memory/evidence/object_store.py",
+        "service/src/cognitive_memory/ingestion",
+        "service/src/cognitive_memory/governance/policy.py"
+      ],
+      "existing_python_tests": [
+        "tests/unit/test_p3_evidence_objects.py",
+        "tests/security/test_policy_enforcement.py",
+        "tests/unit/test_access_enforcement.py"
+      ],
+      "required_python_tests": [
+        "tests/unit/test_source_coverage_contract.py"
+      ],
+      "required_node_tests": [],
+      "acceptance_ids": [
+        "AC01",
+        "AC02",
+        "AC03",
+        "AC04"
+      ],
+      "expected_changes": [
+        "service/src/cognitive_memory/ingestion/",
+        "service/src/cognitive_memory/evidence/",
+        "service/src/cognitive_memory/core/service.py",
+        "service/src/cognitive_memory/governance/",
+        "service/src/cognitive_memory/domain/models.py"
+      ],
+      "scope_note": "候选范围，不是权限白名单；必要共享契约/迁移/API/SDK/测试可联动，记录原因，不重写无关模块。"
+    },
+    {
+      "id": "E02",
+      "title": "来源修订与派生失效",
+      "priority": "P0",
+      "depends_on": [
+        "E01"
+      ],
+      "file": "tasks/E02.md",
+      "read_first": [
+        "service/src/cognitive_memory/evidence/object_store.py",
+        "service/src/cognitive_memory/tms",
+        "service/src/cognitive_memory/cognition/loops.py",
+        "service/src/cognitive_memory/storage/migrations.py"
+      ],
+      "existing_python_tests": [
+        "tests/unit/test_p4_tms.py",
+        "tests/unit/test_change_plan.py",
+        "tests/unit/test_theory_loops.py"
+      ],
+      "required_python_tests": [
+        "tests/unit/test_derived_freshness.py"
+      ],
+      "required_node_tests": [],
+      "acceptance_ids": [
+        "AC05",
+        "AC06",
+        "AC07",
+        "AC08",
+        "AC09"
+      ],
+      "expected_changes": [
+        "service/src/cognitive_memory/evidence/",
+        "service/src/cognitive_memory/tms/",
+        "service/src/cognitive_memory/cognition/",
+        "service/src/cognitive_memory/retrieval/"
+      ],
+      "scope_note": "候选范围，不是权限白名单；必要共享契约/迁移/API/SDK/测试可联动，记录原因，不重写无关模块。"
+    },
+    {
+      "id": "E03",
+      "title": "当前答案选择服务与接口",
+      "priority": "P0",
+      "depends_on": [
+        "E02"
+      ],
+      "file": "tasks/E03.md",
+      "read_first": [
+        "service/src/cognitive_memory/cognition/loops.py",
+        "service/src/cognitive_memory/claims/ast.py",
+        "service/src/cognitive_memory/verification/engine.py",
+        "service/src/cognitive_memory/api/app.py",
+        "service/src/cognitive_memory/sdk/client.py",
+        "service/sdk-ts/src"
+      ],
+      "existing_python_tests": [
+        "tests/unit/test_claim_temporal.py",
+        "tests/unit/test_p1_visibility_verification.py",
+        "tests/unit/test_theory_loops.py",
+        "tests/contract/test_openapi_contract.py"
+      ],
+      "required_python_tests": [
+        "tests/unit/test_answer_selection.py",
+        "tests/contract/test_answer_selection_api.py"
+      ],
+      "required_node_tests": [],
+      "acceptance_ids": [
+        "AC10",
+        "AC11",
+        "AC12",
+        "AC13",
+        "AC14",
+        "AC15",
+        "AC16"
+      ],
+      "expected_changes": [
+        "service/src/cognitive_memory/cognition/answer_selection.py (proposed)",
+        "service/src/cognitive_memory/api/app.py",
+        "service/src/cognitive_memory/sdk/client.py",
+        "service/sdk-ts/src/",
+        "service/schemas/openapi.v1.yaml"
+      ],
+      "scope_note": "候选范围，不是权限白名单；必要共享契约/迁移/API/SDK/测试可联动，记录原因，不重写无关模块。"
+    },
+    {
+      "id": "E04",
+      "title": "完整上下文预算",
+      "priority": "P0",
+      "depends_on": [
+        "E03"
+      ],
+      "file": "tasks/E04.md",
+      "read_first": [
+        "service/src/cognitive_memory/retrieval/pipeline.py",
+        "service/src/cognitive_memory/domain/models.py",
+        "service/src/cognitive_memory/node_config.py",
+        "src/index.js"
+      ],
+      "existing_python_tests": [
+        "tests/unit/test_retrieval_planner.py",
+        "tests/unit/test_audit_regressions.py"
+      ],
+      "required_python_tests": [
+        "tests/unit/test_context_envelope_budget.py"
+      ],
+      "required_node_tests": [],
+      "acceptance_ids": [
+        "AC17",
+        "AC18",
+        "AC19"
+      ],
+      "expected_changes": [
+        "service/src/cognitive_memory/retrieval/",
+        "service/src/cognitive_memory/domain/models.py",
+        "service/src/cognitive_memory/node_config.py",
+        "src/index.js"
+      ],
+      "scope_note": "候选范围，不是权限白名单；必要共享契约/迁移/API/SDK/测试可联动，记录原因，不重写无关模块。"
+    },
+    {
+      "id": "E05",
+      "title": "DSH 主链路接入当前选择",
+      "priority": "P0",
+      "depends_on": [
+        "E03",
+        "E04"
+      ],
+      "file": "tasks/E05.md",
+      "read_first": [
+        "src/index.js",
+        "src/memory-client.js",
+        "src/tool-spec.js",
+        "src/test/host-compat-021.mjs",
+        "service/tests/contract/test_dsh_adapter_thin_e2e.py"
+      ],
+      "existing_python_tests": [
+        "tests/contract/test_dsh_adapter_thin_e2e.py"
+      ],
+      "required_python_tests": [
+        "tests/contract/test_answer_selection_adapter_e2e.py"
+      ],
+      "required_node_tests": [
+        "src/test/answer-selection.test.mjs"
+      ],
+      "acceptance_ids": [
+        "AC20",
+        "AC21"
+      ],
+      "expected_changes": [
+        "src/index.js",
+        "src/memory-client.js",
+        "src/tool-spec.js",
+        "src/test/",
+        "service/tests/contract/"
+      ],
+      "scope_note": "候选范围，不是权限白名单；必要共享契约/迁移/API/SDK/测试可联动，记录原因，不重写无关模块。"
+    },
+    {
+      "id": "E06",
+      "title": "会话账本与任务恢复",
+      "priority": "P0",
+      "depends_on": [
+        "E05"
+      ],
+      "file": "tasks/E06.md",
+      "read_first": [
+        "src/index.js",
+        "service/src/cognitive_memory/events",
+        "service/src/cognitive_memory/core/service.py",
+        "service/src/cognitive_memory/jobs",
+        "service/src/cognitive_memory/api/app.py"
+      ],
+      "existing_python_tests": [
+        "tests/unit/test_experience_loop.py",
+        "tests/recovery/test_outbox_recovery.py"
+      ],
+      "required_python_tests": [
+        "tests/unit/test_session_checkpoint.py",
+        "tests/contract/test_session_recovery_e2e.py"
+      ],
+      "required_node_tests": [],
+      "acceptance_ids": [
+        "AC22",
+        "AC23",
+        "AC24",
+        "AC25"
+      ],
+      "expected_changes": [
+        "service/src/cognitive_memory/events/",
+        "service/src/cognitive_memory/cognition/",
+        "service/src/cognitive_memory/core/service.py",
+        "service/src/cognitive_memory/api/app.py",
+        "src/index.js"
+      ],
+      "scope_note": "候选范围，不是权限白名单；必要共享契约/迁移/API/SDK/测试可联动，记录原因，不重写无关模块。"
+    },
+    {
+      "id": "E07",
+      "title": "调用预算与成本账本",
+      "priority": "P0",
+      "depends_on": [
+        "E04",
+        "E06"
+      ],
+      "file": "tasks/E07.md",
+      "read_first": [
+        "service/src/cognitive_memory/tracing/models.py",
+        "service/src/cognitive_memory/strategy/task_queue.py",
+        "service/src/cognitive_memory/node_config.py",
+        "src/index.js"
+      ],
+      "existing_python_tests": [
+        "tests/unit/test_meta_task_queue.py",
+        "tests/unit/test_judgment_contracts.py"
+      ],
+      "required_python_tests": [
+        "tests/unit/test_runtime_cost_ledger.py"
+      ],
+      "required_node_tests": [],
+      "acceptance_ids": [
+        "AC26",
+        "AC27",
+        "AC28"
+      ],
+      "expected_changes": [
+        "service/src/cognitive_memory/tracing/",
+        "service/src/cognitive_memory/strategy/",
+        "service/src/cognitive_memory/node_config.py",
+        "src/index.js"
+      ],
+      "scope_note": "候选范围，不是权限白名单；必要共享契约/迁移/API/SDK/测试可联动，记录原因，不重写无关模块。"
+    },
+    {
+      "id": "E08",
+      "title": "健康探针与最小发布闭环",
+      "priority": "P0",
+      "depends_on": [
+        "E02",
+        "E05",
+        "E06",
+        "E07"
+      ],
+      "file": "tasks/E08.md",
+      "read_first": [
+        "service/src/cognitive_memory/onboarding.py",
+        "service/src/cognitive_memory/api/app.py",
+        "service/src/cognitive_memory/tracing",
+        "service/manifest",
+        "service/docs/MNEMOSYNE_NODE_OPERATIONS.md"
+      ],
+      "existing_python_tests": [
+        "tests/unit/test_bootstrap_lifecycle.py",
+        "tests/unit/test_upgrade_compatibility.py",
+        "tests/contract/test_standalone_consumer_e2e.py"
+      ],
+      "required_python_tests": [
+        "tests/unit/test_cognitive_health_probes.py",
+        "tests/contract/test_clean_bank_lifecycle.py"
+      ],
+      "required_node_tests": [],
+      "acceptance_ids": [
+        "AC29",
+        "AC30",
+        "AC31"
+      ],
+      "expected_changes": [
+        "service/src/cognitive_memory/onboarding.py",
+        "service/src/cognitive_memory/api/app.py",
+        "service/src/cognitive_memory/tracing/",
+        "service/manifest/",
+        "service/docs/"
+      ],
+      "scope_note": "候选范围，不是权限白名单；必要共享契约/迁移/API/SDK/测试可联动，记录原因，不重写无关模块。"
+    },
+    {
+      "id": "E09",
+      "title": "词法与多路召回融合",
+      "priority": "P1",
+      "depends_on": [
+        "E03",
+        "E07",
+        "E08"
+      ],
+      "file": "tasks/E09.md",
+      "read_first": [
+        "service/src/cognitive_memory/retrieval",
+        "service/tests/retrieval",
+        "service/src/cognitive_memory/core/service.py"
+      ],
+      "existing_python_tests": [
+        "tests/unit/test_retrieval_planner.py",
+        "tests/unit/test_p3_semantic_sidepath.py",
+        "tests/unit/test_p3_live_eval.py"
+      ],
+      "required_python_tests": [
+        "tests/unit/test_retrieval_fusion.py"
+      ],
+      "required_node_tests": [],
+      "acceptance_ids": [
+        "AC32",
+        "AC33",
+        "AC34"
+      ],
+      "expected_changes": [
+        "service/src/cognitive_memory/retrieval/",
+        "service/src/cognitive_memory/core/service.py",
+        "service/tests/retrieval/",
+        "service/scripts/"
+      ],
+      "scope_note": "候选范围，不是权限白名单；必要共享契约/迁移/API/SDK/测试可联动，记录原因，不重写无关模块。"
+    },
+    {
+      "id": "E10",
+      "title": "会话巩固与用途视图",
+      "priority": "P1",
+      "depends_on": [
+        "E02",
+        "E06",
+        "E07",
+        "E08"
+      ],
+      "file": "tasks/E10.md",
+      "read_first": [
+        "service/src/cognitive_memory/cognition/consolidate.py",
+        "service/src/cognitive_memory/jobs/dispatcher.py",
+        "service/src/cognitive_memory/strategy/task_queue.py",
+        "service/src/cognitive_memory/identity"
+      ],
+      "existing_python_tests": [
+        "tests/unit/test_identity_ingestion.py",
+        "tests/unit/test_cognitive_core.py",
+        "tests/unit/test_meta_task_queue.py"
+      ],
+      "required_python_tests": [
+        "tests/unit/test_session_consolidation.py"
+      ],
+      "required_node_tests": [],
+      "acceptance_ids": [
+        "AC35",
+        "AC36",
+        "AC37"
+      ],
+      "expected_changes": [
+        "service/src/cognitive_memory/cognition/consolidate.py",
+        "service/src/cognitive_memory/jobs/",
+        "service/src/cognitive_memory/strategy/",
+        "service/src/cognitive_memory/identity/"
+      ],
+      "scope_note": "候选范围，不是权限白名单；必要共享契约/迁移/API/SDK/测试可联动，记录原因，不重写无关模块。"
+    },
+    {
+      "id": "E11",
+      "title": "消费水位与租约写保护",
+      "priority": "P1",
+      "depends_on": [
+        "E10"
+      ],
+      "file": "tasks/E11.md",
+      "read_first": [
+        "service/src/cognitive_memory/strategy/task_queue.py",
+        "service/src/cognitive_memory/jobs/dispatcher.py",
+        "service/src/cognitive_memory/storage/db.py",
+        "service/src/cognitive_memory/storage/migrations.py"
+      ],
+      "existing_python_tests": [
+        "tests/unit/test_meta_task_queue.py",
+        "tests/recovery/test_outbox_recovery.py"
+      ],
+      "required_python_tests": [
+        "tests/recovery/test_consumer_watermarks.py",
+        "tests/unit/test_worker_fencing.py"
+      ],
+      "required_node_tests": [],
+      "acceptance_ids": [
+        "AC38",
+        "AC39",
+        "AC40"
+      ],
+      "expected_changes": [
+        "service/src/cognitive_memory/strategy/task_queue.py",
+        "service/src/cognitive_memory/jobs/",
+        "service/src/cognitive_memory/storage/"
+      ],
+      "scope_note": "候选范围，不是权限白名单；必要共享契约/迁移/API/SDK/测试可联动，记录原因，不重写无关模块。"
+    },
+    {
+      "id": "E12",
+      "title": "执行与效果回执",
+      "priority": "P1",
+      "depends_on": [
+        "E06",
+        "E07",
+        "E08"
+      ],
+      "file": "tasks/E12.md",
+      "read_first": [
+        "service/src/cognitive_memory/cognition/loops.py",
+        "service/src/cognitive_memory/cognition/loop_models.py",
+        "service/src/cognitive_memory/sdk/client.py",
+        "service/src/cognitive_memory/api/app.py"
+      ],
+      "existing_python_tests": [
+        "tests/unit/test_theory_loops.py",
+        "tests/unit/test_agent_grants.py"
+      ],
+      "required_python_tests": [
+        "tests/unit/test_execution_receipts.py",
+        "tests/contract/test_execution_outcome_e2e.py"
+      ],
+      "required_node_tests": [],
+      "acceptance_ids": [
+        "AC41",
+        "AC42",
+        "AC43"
+      ],
+      "expected_changes": [
+        "service/src/cognitive_memory/cognition/",
+        "service/src/cognitive_memory/api/app.py",
+        "service/src/cognitive_memory/sdk/",
+        "service/sdk-ts/src/"
+      ],
+      "scope_note": "候选范围，不是权限白名单；必要共享契约/迁移/API/SDK/测试可联动，记录原因，不重写无关模块。"
+    },
+    {
+      "id": "E13",
+      "title": "分类反馈接入有限策略学习",
+      "priority": "P1",
+      "depends_on": [
+        "E03",
+        "E12"
+      ],
+      "file": "tasks/E13.md",
+      "read_first": [
+        "service/src/cognitive_memory/cognition/loops.py",
+        "service/src/cognitive_memory/cognition/loop_models.py",
+        "service/src/cognitive_memory/strategy",
+        "service/src/cognitive_memory/verification"
+      ],
+      "existing_python_tests": [
+        "tests/unit/test_theory_loops.py",
+        "tests/unit/test_feedback_promote_loop.py",
+        "tests/unit/test_off_policy_evaluation.py"
+      ],
+      "required_python_tests": [
+        "tests/unit/test_attributed_feedback_learning.py"
+      ],
+      "required_node_tests": [],
+      "acceptance_ids": [
+        "AC44",
+        "AC45",
+        "AC46"
+      ],
+      "expected_changes": [
+        "service/src/cognitive_memory/cognition/",
+        "service/src/cognitive_memory/strategy/",
+        "service/src/cognitive_memory/verification/"
+      ],
+      "scope_note": "候选范围，不是权限白名单；必要共享契约/迁移/API/SDK/测试可联动，记录原因，不重写无关模块。"
+    },
+    {
+      "id": "E14",
+      "title": "渐进迁移与一个内容领域适配",
+      "priority": "P1",
+      "depends_on": [
+        "E01",
+        "E02",
+        "E08",
+        "E09"
+      ],
+      "file": "tasks/E14.md",
+      "read_first": [
+        "service/src/cognitive_memory/migration",
+        "service/src/cognitive_memory/adapters",
+        "service/src/cognitive_memory/domains",
+        "service/src/cognitive_memory/components"
+      ],
+      "existing_python_tests": [
+        "tests/unit/test_staging_dedupe_rollback.py",
+        "tests/unit/test_migration_engine.py",
+        "tests/contract/test_storage_provider_boundary.py"
+      ],
+      "required_python_tests": [
+        "tests/contract/test_staged_content_import.py",
+        "tests/unit/test_text_book_anchors.py"
+      ],
+      "required_node_tests": [],
+      "acceptance_ids": [
+        "AC47",
+        "AC48",
+        "AC49",
+        "AC50"
+      ],
+      "expected_changes": [
+        "service/src/cognitive_memory/migration/",
+        "service/src/cognitive_memory/adapters/",
+        "service/src/cognitive_memory/domains/",
+        "service/src/cognitive_memory/components/"
+      ],
+      "scope_note": "候选范围，不是权限白名单；必要共享契约/迁移/API/SDK/测试可联动，记录原因，不重写无关模块。"
+    },
+    {
+      "id": "E15",
+      "title": "全链路验收与交付",
+      "priority": "FINAL",
+      "depends_on": [
+        "E00",
+        "E01",
+        "E02",
+        "E03",
+        "E04",
+        "E05",
+        "E06",
+        "E07",
+        "E08",
+        "E09",
+        "E10",
+        "E11",
+        "E12",
+        "E13",
+        "E14"
+      ],
+      "file": "tasks/E15.md",
+      "read_first": [
+        "service/tests",
+        "src/test",
+        "service/scripts/verify_theory_loops.py"
+      ],
+      "existing_python_tests": [],
+      "required_python_tests": [
+        "tests/contract/test_memory_continuity_e2e.py"
+      ],
+      "required_node_tests": [],
+      "acceptance_ids": [
+        "AC01",
+        "AC02",
+        "AC03",
+        "AC04",
+        "AC05",
+        "AC06",
+        "AC07",
+        "AC08",
+        "AC09",
+        "AC10",
+        "AC11",
+        "AC12",
+        "AC13",
+        "AC14",
+        "AC15",
+        "AC16",
+        "AC17",
+        "AC18",
+        "AC19",
+        "AC20",
+        "AC21",
+        "AC22",
+        "AC23",
+        "AC24",
+        "AC25",
+        "AC26",
+        "AC27",
+        "AC28",
+        "AC29",
+        "AC30",
+        "AC31",
+        "AC32",
+        "AC33",
+        "AC34",
+        "AC35",
+        "AC36",
+        "AC37",
+        "AC38",
+        "AC39",
+        "AC40",
+        "AC41",
+        "AC42",
+        "AC43",
+        "AC44",
+        "AC45",
+        "AC46",
+        "AC47",
+        "AC48",
+        "AC49",
+        "AC50"
+      ],
+      "expected_changes": [
+        "service/tests/",
+        "src/test/",
+        "service/scripts/verify_memory_continuity.py (proposed)",
+        "service/docs/",
+        "engineering/mnemosyne-next/reports/"
+      ],
+      "scope_note": "候选范围，不是权限白名单；必要共享契约/迁移/API/SDK/测试可联动，记录原因，不重写无关模块。"
+    }
+  ]
+}

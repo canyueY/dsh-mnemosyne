@@ -1,0 +1,121 @@
+{
+  "schema_version": "1.0",
+  "current_task": "E00",
+  "next_task": "E00",
+  "updated_at": null,
+  "implementation_state": "not_started",
+  "tasks": [
+    {
+      "id": "E00",
+      "status": "pending",
+      "report": null,
+      "case_results": [],
+      "notes": "尚未实施或运行项目验证"
+    },
+    {
+      "id": "E01",
+      "status": "pending",
+      "report": null,
+      "case_results": [],
+      "notes": "尚未实施或运行项目验证"
+    },
+    {
+      "id": "E02",
+      "status": "pending",
+      "report": null,
+      "case_results": [],
+      "notes": "尚未实施或运行项目验证"
+    },
+    {
+      "id": "E03",
+      "status": "pending",
+      "report": null,
+      "case_results": [],
+      "notes": "尚未实施或运行项目验证"
+    },
+    {
+      "id": "E04",
+      "status": "pending",
+      "report": null,
+      "case_results": [],
+      "notes": "尚未实施或运行项目验证"
+    },
+    {
+      "id": "E05",
+      "status": "pending",
+      "report": null,
+      "case_results": [],
+      "notes": "尚未实施或运行项目验证"
+    },
+    {
+      "id": "E06",
+      "status": "pending",
+      "report": null,
+      "case_results": [],
+      "notes": "尚未实施或运行项目验证"
+    },
+    {
+      "id": "E07",
+      "status": "pending",
+      "report": null,
+      "case_results": [],
+      "notes": "尚未实施或运行项目验证"
+    },
+    {
+      "id": "E08",
+      "status": "pending",
+      "report": null,
+      "case_results": [],
+      "notes": "尚未实施或运行项目验证"
+    },
+    {
+      "id": "E09",
+      "status": "pending",
+      "report": null,
+      "case_results": [],
+      "notes": "尚未实施或运行项目验证"
+    },
+    {
+      "id": "E10",
+      "status": "pending",
+      "report": null,
+      "case_results": [],
+      "notes": "尚未实施或运行项目验证"
+    },
+    {
+      "id": "E11",
+      "status": "pending",
+      "report": null,
+      "case_results": [],
+      "notes": "尚未实施或运行项目验证"
+    },
+    {
+      "id": "E12",
+      "status": "pending",
+      "report": null,
+      "case_results": [],
+      "notes": "尚未实施或运行项目验证"
+    },
+    {
+      "id": "E13",
+      "status": "pending",
+      "report": null,
+      "case_results": [],
+      "notes": "尚未实施或运行项目验证"
+    },
+    {
+      "id": "E14",
+      "status": "pending",
+      "report": null,
+      "case_results": [],
+      "notes": "尚未实施或运行项目验证"
+    },
+    {
+      "id": "E15",
+      "status": "pending",
+      "report": null,
+      "case_results": [],
+      "notes": "尚未实施或运行项目验证"
+    }
+  ]
+}

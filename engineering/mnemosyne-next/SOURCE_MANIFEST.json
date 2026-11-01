@@ -1,0 +1,67 @@
+{
+  "created_at": "2026-11-01",
+  "repo_head_at_authoring": "772e56d8d44eaaeea4d9550bfb22aae7861ea990",
+  "source_plan": {
+    "file": "Mnemosyne_综合改进方案_2026-11-01.md",
+    "sha256": "5be8661f4f1817ba69eddbc61d32e332c33fc3bb6ce5e1e8ed47e6c163fd4c99",
+    "snapshot": "REFERENCE_PLAN.md"
+  },
+  "source_texts": [
+    {
+      "file": "与BaiShou-Next.txt",
+      "sha256": "3eb3ec618f045ae32bebe13c3616eb16191c4746ee0fc43ff5ae9f6ed0ea314a",
+      "original_path": "D:/HuaweiMoveData/Users/残月Y/Desktop/DSH更新素材集/Mnemosyne/与其他项目的分析结果/与BaiShou-Next.txt"
+    },
+    {
+      "file": "与dsh-agent-soul.txt",
+      "sha256": "0cca5a3c9e9bab851d0a60421eb3f692d12ab248d6186774c8a86f8e6b3f6746",
+      "original_path": "D:/HuaweiMoveData/Users/残月Y/Desktop/DSH更新素材集/Mnemosyne/与其他项目的分析结果/与dsh-agent-soul.txt"
+    },
+    {
+      "file": "与dsh-bibi-humanism.txt",
+      "sha256": "97a1262a6f8a548939bf729655f812d100ea0c1c8ce9b669db2bf2b8508b2e30",
+      "original_path": "D:/HuaweiMoveData/Users/残月Y/Desktop/DSH更新素材集/Mnemosyne/与其他项目的分析结果/与dsh-bibi-humanism.txt"
+    },
+    {
+      "file": "与dsh-memory-core.txt",
+      "sha256": "62b395729b90f272e1729cf649f1d08100e8cd9752f6a6c2cd74b35e1b9f072b",
+      "original_path": "D:/HuaweiMoveData/Users/残月Y/Desktop/DSH更新素材集/Mnemosyne/与其他项目的分析结果/与dsh-memory-core.txt"
+    },
+    {
+      "file": "与dsh-meow-memory.txt",
+      "sha256": "b774e1e05e05c8c7763dd5e3866705d84fc5f7aa36f2796a2d04141b8c8eccee",
+      "original_path": "D:/HuaweiMoveData/Users/残月Y/Desktop/DSH更新素材集/Mnemosyne/与其他项目的分析结果/与dsh-meow-memory.txt"
+    },
+    {
+      "file": "与dsh-plastic-memory.txt",
+      "sha256": "e665380010d5e2874e796319120eb4244f3863d1afc2f5731725f3abf48d7e96",
+      "original_path": "D:/HuaweiMoveData/Users/残月Y/Desktop/DSH更新素材集/Mnemosyne/与其他项目的分析结果/与dsh-plastic-memory.txt"
+    },
+    {
+      "file": "与Returning Tide.txt",
+      "sha256": "520c0bb45c6987503f240e0c5ad9200292914e02d6b4b0e21498f8c6f3f304ab",
+      "original_path": "D:/HuaweiMoveData/Users/残月Y/Desktop/DSH更新素材集/Mnemosyne/与其他项目的分析结果/与Returning Tide.txt"
+    },
+    {
+      "file": "与ssamurias-dish-fish.txt",
+      "sha256": "f4fcc3ad5528540860b9307ddf4e20f623a5e1b2ff5ceec2786ca3e52801ebec",
+      "original_path": "D:/HuaweiMoveData/Users/残月Y/Desktop/DSH更新素材集/Mnemosyne/与其他项目的分析结果/与ssamurias-dish-fish.txt"
+    },
+    {
+      "file": "与surfcore-life.txt",
+      "sha256": "b216e00a005e48a44f0c2287594a6fc5a56153a1d1e92299fbf14cb39dad5402",
+      "original_path": "D:/HuaweiMoveData/Users/残月Y/Desktop/DSH更新素材集/Mnemosyne/与其他项目的分析结果/与surfcore-life.txt"
+    },
+    {
+      "file": "对比评论的改进方案.txt",
+      "sha256": "a6eb41540564b8e7949bff4d2fc8a28a9787a1ae7018da2259bfd325e802f5ca",
+      "original_path": "D:/HuaweiMoveData/Users/残月Y/Desktop/DSH更新素材集/Mnemosyne/与其他项目的分析结果/对比评论的改进方案.txt"
+    },
+    {
+      "file": "相比这九个项目Mnemosyne的优势.txt",
+      "sha256": "cfc3218023bca39c058125199a3441289145a5b410cd156469e413ac181c035a",
+      "original_path": "D:/HuaweiMoveData/Users/残月Y/Desktop/DSH更新素材集/Mnemosyne/与其他项目的分析结果/相比这九个项目Mnemosyne的优势.txt"
+    }
+  ],
+  "warning": "HEAD 仅为编制快照，不是运行后的基线；未重审外部仓库。"
+}
