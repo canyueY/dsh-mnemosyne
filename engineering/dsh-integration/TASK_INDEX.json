@@ -1,0 +1,83 @@
+{
+  "schema_version": "1.0",
+  "execution_order": ["D00", "D01", "D02", "D03", "D04", "D05", "D06"],
+  "tasks": [
+    {
+      "id": "D00",
+      "title": "建立 DSH 安装/迁移基线",
+      "priority": "P0",
+      "depends_on": [],
+      "file": "tasks/D00.md",
+      "read_first": ["package.json", "dsh.plugin.json", "cordis.patch.yml", "src/index.js", "src/memory-process.js"],
+      "existing_tests": ["src/test/host-compat-021.mjs"],
+      "acceptance_ids": ["DA01"],
+      "expected_changes": ["engineering/dsh-integration/reports/D00.md", "engineering/dsh-integration/PROGRESS.json"]
+    },
+    {
+      "id": "D01",
+      "title": "稳定自安装（profile 识别 + 幂等 + 回滚）",
+      "priority": "P0",
+      "depends_on": ["D00"],
+      "file": "tasks/D01.md",
+      "read_first": ["package.json", "dsh.plugin.json", "scripts/install-dsh.mjs"],
+      "existing_tests": [],
+      "acceptance_ids": ["DA02", "DA03", "DA04"],
+      "expected_changes": ["scripts/install-dsh.mjs", "scripts/install-dsh.ps1", "package.json"]
+    },
+    {
+      "id": "D02",
+      "title": "稳定迁移与回滚",
+      "priority": "P0",
+      "depends_on": ["D01"],
+      "file": "tasks/D02.md",
+      "read_first": ["scripts/migrate-dsh.mjs", "service/src/cognitive_memory/node_cli.py", "service/docs/HOST_INTEGRATION.md"],
+      "existing_tests": ["service/tests/unit/test_memory_bank_paths.py"],
+      "acceptance_ids": ["DA05", "DA06", "DA07"],
+      "expected_changes": ["scripts/migrate-dsh.mjs", "scripts/migrate-dsh.ps1"]
+    },
+    {
+      "id": "D03",
+      "title": "DSH 设置页 namespace",
+      "priority": "P0",
+      "depends_on": ["D01"],
+      "file": "tasks/D03.md",
+      "read_first": ["src/index.js", "dsh.plugin.json", "cordis.patch.yml", "service/docs/DSH_INTEGRATION.md"],
+      "existing_tests": [],
+      "acceptance_ids": ["DA08", "DA09", "DA10"],
+      "expected_changes": ["src/index.js", "dsh.plugin.json", "cordis.patch.yml", "src/test/settings.test.mjs"]
+    },
+    {
+      "id": "D04",
+      "title": "Agent preset（memory 工具白名单 + 系统提示）",
+      "priority": "P1",
+      "depends_on": ["D03"],
+      "file": "tasks/D04.md",
+      "read_first": ["dsh/agent-presets/", "cordis.patch.yml", "src/index.js"],
+      "existing_tests": [],
+      "acceptance_ids": ["DA11", "DA12"],
+      "expected_changes": ["dsh/agent-presets/mnemosyne/", "cordis.patch.yml", "src/test/preset.test.mjs"]
+    },
+    {
+      "id": "D05",
+      "title": "MCP 接口（memory 工具 stdio gateway）",
+      "priority": "P1",
+      "depends_on": ["D01"],
+      "file": "tasks/D05.md",
+      "read_first": ["service/src/cognitive_memory/mcp/", "service/src/cognitive_memory/api/app.py", "src/memory-client.js"],
+      "existing_tests": ["service/tests/contract/test_dsh_adapter_thin_e2e.py"],
+      "acceptance_ids": ["DA13", "DA14", "DA15"],
+      "expected_changes": ["service/src/cognitive_memory/mcp/", "src/test/mcp.test.mjs"]
+    },
+    {
+      "id": "D06",
+      "title": "全链路验收与文档收口",
+      "priority": "FINAL",
+      "depends_on": ["D00", "D01", "D02", "D03", "D04", "D05"],
+      "file": "tasks/D06.md",
+      "read_first": ["DSH_INTEGRATION.md", "engineering/dsh-integration/VERIFICATION.md"],
+      "existing_tests": [],
+      "acceptance_ids": ["DA01", "DA02", "DA03", "DA04", "DA05", "DA06", "DA07", "DA08", "DA09", "DA10", "DA11", "DA12", "DA13", "DA14", "DA15"],
+      "expected_changes": ["DSH_INTEGRATION.md", "engineering/dsh-integration/reports/D06.md"]
+    }
+  ]
+}

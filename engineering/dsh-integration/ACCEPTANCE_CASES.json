@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+  "cases": [
+    {"id": "DA01", "given": "干净临时 DSH_HOME 与 web profile", "when": "dsh plugin --profile web add file:<仓库绝对路径>", "expected": "dsh.profile.bundles 追加 dsh-mnemosyne；npm run check 通过"},
+    {"id": "DA02", "given": "已装同版本", "when": "再次运行 install-dsh.mjs --local", "expected": "幂等跳过，不重复修改，返回 ok"},
+    {"id": "DA03", "given": "profile 已有其他 bundle/MCP/preset", "when": "运行 install-dsh.mjs --local", "expected": "其他条目逐字节保留，仅新增 dsh-mnemosyne"},
+    {"id": "DA04", "given": "DSH_CLI 缺失或 profile 不存在", "when": "运行 install-dsh.mjs", "expected": "返回 {ok:false, code, error, hint}，不静默成功"},
+    {"id": "DA05", "given": "临时 profile 依赖旧 dsh-cognitive-memory", "when": "运行 migrate-dsh.mjs", "expected": "bundle/dependency 迁移为 dsh-mnemosyne，其他条目不变"},
+    {"id": "DA06", "given": "已迁移", "when": "migrate-dsh.mjs --rollback", "expected": "恢复备份，package.json/cordis.patch.yml 与迁移前一致"},
+    {"id": "DA07", "given": "迁移中途失败", "when": "再次运行 migrate-dsh.mjs", "expected": "可重入，数据目录不删除，临时 Bank 不变"},
+    {"id": "DA08", "given": "DSH settings namespace", "when": "settings.describe", "expected": "列出 dsh-mnemosyne 及其字段 schema"},
+    {"id": "DA09", "given": "settings.update 写入 token", "when": "读回配置", "expected": "token 脱敏 ********，不落日志，实际存储生效"},
+    {"id": "DA10", "given": "auto_start=false 且无 base_url/token", "when": "apply(ctx)", "expected": "拒绝并给出可诊断错误，不静默拉起"},
+    {"id": "DA11", "given": "agentPresets/list", "when": "查询", "expected": "含 mnemosyne；session/create 可用该 preset"},
+    {"id": "DA12", "given": "preset 工具白名单", "when": "请求本地执行/文件/进程工具", "expected": "fail-closed 拒绝，未知工具名不静默放行"},
+    {"id": "DA13", "given": "MCP initialize 后 tools/list", "when": "调用", "expected": "返回 memory_* 工具列表"},
+    {"id": "DA14", "given": "MCP tools/call 合法工具", "when": "调用", "expected": "结构化返回；非法参数 -32602；未知工具 -32601"},
+    {"id": "DA15", "given": "MCP gateway", "when": "调用任意 memory 工具", "expected": "走 Node REST，不直连 SQLite，不泄漏内部路径/密钥"}
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "implementation_status": "not_started",
+  "tasks": {
+    "D00": "pending",
+    "D01": "pending",
+    "D02": "pending",
+    "D03": "pending",
+    "D04": "pending",
+    "D05": "pending",
+    "D06": "pending"
+  }
+}
