@@ -1,0 +1,53 @@
+{
+  "exit": 0,
+  "result": {
+    "ok": true,
+    "action": "migrated",
+    "profile": "web",
+    "backup": {
+      "backupRoot": "D:\\HuaweiMoveData\\Users\\残月Y\\Desktop\\桌宠\\dsh-mnemosyne\\service\\reports\\three-package-finalcheck-329f8ff\\nested-variant-51FC0X\\profiles\\web\\_backups\\migrate-2026-11-01T09-25-34-412Z",
+      "saved": [
+        "package.json",
+        "cordis.patch.yml"
+      ]
+    },
+    "had_old_dependency": true,
+    "had_old_bundle": true,
+    "bundles": [
+      "keep-other",
+      "dsh-mnemosyne"
+    ],
+    "preserved_other_bundles": [
+      "keep-other"
+    ],
+    "cordis_changed": true,
+    "data": {
+      "skipped": true,
+      "reason": "skip_data"
+    },
+    "data_before": {
+      "path": null,
+      "exists": false,
+      "files": []
+    },
+    "data_after": {
+      "path": null,
+      "exists": false,
+      "files": []
+    },
+    "data_dir_deleted": false,
+    "reentrant": true,
+    "phases": {
+      "profile_done": true,
+      "data_pending": true,
+      "data_done": false
+    },
+    "rollback": {
+      "command": "node scripts/migrate-dsh.mjs --profile web --dsh-home D:\\HuaweiMoveData\\Users\\残月Y\\Desktop\\桌宠\\dsh-mnemosyne\\service\\reports\\three-package-finalcheck-329f8ff\\nested-variant-51FC0X --rollback",
+      "backup": "D:\\HuaweiMoveData\\Users\\残月Y\\Desktop\\桌宠\\dsh-mnemosyne\\service\\reports\\three-package-finalcheck-329f8ff\\nested-variant-51FC0X\\profiles\\web\\_backups\\migrate-2026-11-01T09-25-34-412Z"
+    }
+  },
+  "unrelated_nested_list_preserved": true,
+  "before": "- insert:\r\n    - id: keep-other\r\n      name: keep-other\r\n      config:\r\n        sources:\r\n          - id: dsh-cognitive-memory\r\n            name: dsh-cognitive-memory\r\n",
+  "after": "- insert:\r\n    - id: keep-other\r\n      name: keep-other\r\n      config:\r\n        sources:\r\n          - id: dsh-cognitive-memory\r\n            name: dsh-cognitive-memory\r\n- insert:\r\n    - id: 'dsh-mnemosyne'\r\n      name: 'dsh-mnemosyne'\r\n"
+}

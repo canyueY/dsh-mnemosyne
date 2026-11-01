@@ -1,0 +1,93 @@
+[
+  {
+    "name": "python-full",
+    "cmd": [
+      "D:\\HuaweiMoveData\\Users\\残月Y\\Desktop\\桌宠\\dsh-mnemosyne\\service\\.venv\\Scripts\\python.exe",
+      "-m",
+      "pytest",
+      "tests",
+      "-q"
+    ],
+    "exit": 0,
+    "seconds": 87.44,
+    "tail": "........................................................................ [ 16%]\r\n........................................................................ [ 32%]\r\n........................................................................ [ 48%]\r\n........................................................................ [ 65%]\r\n........................................................................ [ 81%]\r\n........................................................................ [ 97%]\r\n.........                                                                [100%]\r\n============================== warnings summary ===============================\r\n.venv\\lib\\site-packages\\fastapi\\testclient.py:1\r\n  D:\\HuaweiMoveData\\Users\\残月Y\\Desktop\\桌宠\\dsh-mnemosyne\\service\\.venv\\lib\\site-packages\\fastapi\\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.\r\n    from starlette.testclient import TestClient as TestClient  # noqa\r\n\r\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\r\n441 passed, 1 warning in 83.60s (0:01:23)\r\n"
+  },
+  {
+    "name": "node-check",
+    "cmd": [
+      "npm.cmd",
+      "run",
+      "check"
+    ],
+    "exit": 0,
+    "seconds": 0.81,
+    "tail": "\n> dsh-mnemosyne@2.0.0 check\n> node --check src/index.js && node --check src/memory-client.js && node --check src/memory-process.js && node --check src/tool-spec.js && node --check src/settings.js && node --check src/config-schema.js && node --check src/agent-preset.js && node --check src/preset-guard.js && node --check src/mcp-gateway.js\n\n"
+  },
+  {
+    "name": "sdk-build",
+    "cmd": [
+      "npm.cmd",
+      "run",
+      "build"
+    ],
+    "exit": 0,
+    "seconds": 0.81,
+    "tail": "\n> @mnemosyne/client@2.0.0 build\n> tsc -p tsconfig.json\n\n"
+  },
+  {
+    "name": "diff-check",
+    "cmd": [
+      "git",
+      "diff",
+      "--check",
+      "HEAD~1",
+      "HEAD"
+    ],
+    "exit": 0,
+    "seconds": 0.05,
+    "tail": ""
+  },
+  {
+    "name": "original-python-counterexamples",
+    "cmd": [
+      "D:\\HuaweiMoveData\\Users\\残月Y\\Desktop\\桌宠\\dsh-mnemosyne\\service\\.venv\\Scripts\\python.exe",
+      "D:\\HuaweiMoveData\\Users\\残月Y\\Desktop\\桌宠\\dsh-mnemosyne\\service\\reports\\three-package-finalcheck-329f8ff\\reproduce_review.py"
+    ],
+    "exit": 0,
+    "seconds": 1.16,
+    "tail": "[\r\n  {\r\n    \"case\": \"target_arguments_ignored\",\r\n    \"http\": 200,\r\n    \"requested_arguments\": [\r\n      \"茶\"\r\n    ],\r\n    \"status\": \"unknown\",\r\n    \"selected\": []\r\n  },\r\n  {\r\n    \"case\": \"rejected_claim_chosen\",\r\n    \"status\": \"unknown\",\r\n    \"selected\": []\r\n  },\r\n  {\r\n    \"case\": \"cross_bank_checkpoint_overwrite\",\r\n    \"agent_granted_banks\": [\r\n      \"personal\"\r\n    ],\r\n    \"overwrite_http\": 403,\r\n    \"stored_row_bank\": \"projects\",\r\n    \"stored_goal\": \"original-project-goal\",\r\n    \"manifest_bank\": \"projects\"\r\n  },\r\n  {\r\n    \"case\": \"client_flag_makes_heuristic_measured\",\r\n    \"measurement\": \"estimated\",\r\n    \"hard_limit_verified\": false\r\n  },\r\n  {\r\n    \"case\": \"expired_fusion_result_restored\",\r\n    \"status\": \"NO_MATCH\",\r\n    \"expired_id\": \"mem_1a19666aa156613ad6c14\",\r\n    \"returned_ids\": [],\r\n    \"fusion\": {\r\n      \"status\": \"unknown\",\r\n      \"reason_codes\": [\r\n        \"no_safe_items\"\r\n      ],\r\n      \"embedding_meta\": {\r\n        \"embedding_kind\": \"hash\",\r\n        \"quality\": \"offline_hash_not_semantic_model\",\r\n        \"do_not_overclaim\": true\r\n      },\r\n      \"counterevidence\": [],\r\n      \"notes\": {\r\n        \"rrf_dedup\": true,\r\n        \"hash_not_hq_embedding\": true,\r\n        \"counterevidence_independent\": true,\r\n        \"postfilter_mandatory\": true,\r\n        \"candidate_similarity_is_not_fact\": true\r\n      }\r\n    }\r\n  }\r\n]\r\nD:\\HuaweiMoveData\\Users\\残月Y\\Desktop\\桌宠\\dsh-mnemosyne\\service\\.venv\\lib\\site-packages\\fastapi\\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.\r\n  from starlette.testclient import TestClient as TestClient  # noqa\r\n"
+  },
+  {
+    "name": "original-dsh-counterexamples",
+    "cmd": [
+      "node",
+      "D:\\HuaweiMoveData\\Users\\残月Y\\Desktop\\桌宠\\dsh-mnemosyne\\service\\reports\\three-package-finalcheck-329f8ff\\reproduce_dsh.mjs"
+    ],
+    "exit": 0,
+    "seconds": 17.64,
+    "tail": "{\n  \"first_action\": \"migrated\",\n  \"first_data_skipped\": true,\n  \"retry_action\": \"data_continued\",\n  \"retry_has_data_result\": true,\n  \"unrelated_original_source_path\": \"D:/fixtures/dsh-cognitive-memory/archive.txt\",\n  \"unrelated_source_path_preserved\": true,\n  \"unrelated_source_path_after\": \"sourcePath: D:/fixtures/dsh-cognitive-memory/archive.txt\",\n  \"only_isolated_profile_used\": true\n}\n"
+  },
+  {
+    "name": "node-full",
+    "cmd": [
+      "npm.cmd",
+      "test"
+    ],
+    "exit": 0,
+    "seconds": 3.75,
+    "tail": "oundaries (0.387ms)\n✔ unavailableSelection does not invent Top1 fact (0.8376ms)\n✔ MemoryClient.selectAnswer maps transport failure to unavailable (27.0946ms)\n✔ package.json declares engines.dsh for 0.2.1 admission (2.8575ms)\n✔ tool output schemas are 0.2.1 JsonSchemaNode-safe (0.8724ms)\n✔ DA04: missing DSH CLI returns structured failure (90.0406ms)\n✔ DA04: missing profile returns structured failure (64.4383ms)\n✔ DA02/DA03: install preserves other bundles and second run is idempotent (3022.548ms)\n✔ DA13: tools/list returns memory tools after initialize (1.3043ms)\n✔ DA14: tools/call success + invalid params -32602 + unknown -32601 (1.1241ms)\n✔ DA15: gateway uses injected REST client and never opens sqlite (0.5393ms)\n✔ FA11: stdio subprocess initialize/initialized/tools/list/tools/call (744.3001ms)\n✔ DA05: migrates old bundle/dependency and preserves others (93.3169ms)\n✔ DA06: rollback restores pre-migration package.json (128.6402ms)\n✔ DA07: interrupted migrate is re-entrant; data dir not deleted (132.9645ms)\n✔ missing profile fails visibly (65.858ms)\n✔ FA12: profile-only then retry continues data stage (not already_migrated without data) (1974.839ms)\n✔ FA18: unrelated plugin sourcePath containing old name is byte-preserved (347.178ms)\n✔ FA18b: quoted owned row changes; other plugin nested id/name is byte-preserved (283.3463ms)\n✔ DA12: guard allows memory/ask/todo and denies local/unknown tools (1.4497ms)\n✔ DA12: restrict failures do not disable the execution guard (0.2778ms)\n✔ DA11: agentPresets/list includes mnemosyne after host register; session/create accepts it (3.1295ms)\n✔ DA12: local execute / file / process tools denied; unknown fail-closed (1.2013ms)\n✔ preset shape has persona guidance and memory allowlist; cordis declares a real preset row (1.5631ms)\n✔ DA08: settings.describe lists dsh-mnemosyne namespace and field schema (1.4471ms)\n✔ DA09: settings.update persists token but describe redacts it; logs stay masked (0.6177ms)\n✔ DA09b: illegal field/type rejected (0.4481ms)\n✔ DA10: auto_start=false without base_url/token fails apply with diagnosable error (0.6684ms)\n✔ DA10b: assertRunnableConfig helper (0.1499ms)\n✔ redactSecrets never echoes plaintext token (0.8098ms)\n✔ FA19: settings persist to file and reload after process-store reset (restart) (2.9397ms)\nℹ tests 37\nℹ suites 0\nℹ pass 37\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 3310.985\n"
+  },
+  {
+    "name": "pack-list",
+    "cmd": [
+      "npm.cmd",
+      "pack",
+      "--dry-run",
+      "--json",
+      "--ignore-scripts"
+    ],
+    "exit": 0,
+    "seconds": 1.92,
+    "tail": "     {\n        \"path\": \"service/tests/unit/test_state_history_and_governance.py\",\n        \"size\": 5794,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"service/tests/unit/test_text_book_anchors.py\",\n        \"size\": 1865,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"service/tests/unit/test_theory_loops.py\",\n        \"size\": 22105,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"service/tests/unit/test_upgrade_compatibility.py\",\n        \"size\": 2963,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"service/tests/unit/test_worker_fencing.py\",\n        \"size\": 3680,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"src/agent-preset.js\",\n        \"size\": 9357,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"src/config-schema.js\",\n        \"size\": 1917,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"src/index.js\",\n        \"size\": 14472,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"src/mcp-gateway.js\",\n        \"size\": 8953,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"src/memory-client.js\",\n        \"size\": 6775,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"src/memory-process.js\",\n        \"size\": 7539,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"src/preset-guard.js\",\n        \"size\": 1558,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"src/settings.js\",\n        \"size\": 7641,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"src/test/answer-selection.test.mjs\",\n        \"size\": 2317,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"src/test/host-compat-021.mjs\",\n        \"size\": 1989,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"src/test/install-dsh.test.mjs\",\n        \"size\": 4494,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"src/test/mcp.test.mjs\",\n        \"size\": 5106,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"src/test/migrate-dsh.test.mjs\",\n        \"size\": 7809,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"src/test/preset-guard.test.mjs\",\n        \"size\": 1547,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"src/test/preset.test.mjs\",\n        \"size\": 3199,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"src/test/settings.test.mjs\",\n        \"size\": 5390,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"src/tool-spec.js\",\n        \"size\": 5916,\n        \"mode\": 420\n      }\n    ],\n    \"entryCount\": 518,\n    \"bundled\": []\n  }\n]\n"
+  }
+]

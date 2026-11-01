@@ -13,6 +13,7 @@ from cognitive_memory.bootstrap import build_context
 from cognitive_memory.claims.store import ClaimStore
 from cognitive_memory.cognition.session_checkpoint import SessionLedger
 from cognitive_memory.domain.models import MemoryProposeIn
+from cognitive_memory.evidence.object_store import EvidenceObjectStore
 from cognitive_memory.jobs.dispatcher import BackgroundRuntime
 from cognitive_memory.retrieval.pipeline import run_retrieve
 from cognitive_memory.strategy.fencing import FencingError, WorkerLeaseManager
@@ -134,6 +135,60 @@ class ReviewFixesPythonTests(unittest.TestCase):
         self.assertEqual(sourced.get("status"), "chosen", sourced)
         self.assertEqual(len(sourced.get("selected") or []), 1)
         self.assertNotEqual(sourced["selected"][0]["claim_id"], sourceless["claim_id"])
+
+    def _evidence(self, ref: str, content: str, *, provenance: str | None = None, source_type: str = "doc") -> str:
+        created = EvidenceObjectStore(self.ctx.db).create(
+            source_type=source_type,
+            source_ref=ref,
+            producer="test",
+            content_for_fingerprint=content,
+            provenance_status=provenance,
+        )
+        return created["evidence"]["id"]
+
+    def test_b01_counterevidence_only_not_chosen_and_disclosed(self) -> None:
+        claim = self.claims.propose_from_text("E喜欢咖啡")
+        ev = self._evidence("doc:counter", "E does not like coffee")
+        self.assertTrue(self.claims.attach_evidence(claim["claim_id"], ev, role="counter").get("ok"))
+        body = self.client.post(
+            "/api/v1/cognition/answers/select",
+            headers=self.admin,
+            json={"target": {"subject_id": "E", "predicate": "喜欢"}},
+        ).json()
+        self.assertNotEqual(body.get("status"), "chosen", body)
+        self.assertEqual(body.get("selected") or [], [])
+        self.assertIn("counterevidence_only", body.get("reason_codes") or [])
+        self.assertIn(ev, body.get("counterevidence_refs") or [])
+
+    def test_b01_unknown_provenance_evidence_is_not_support(self) -> None:
+        claim = self.claims.propose_from_text("F喜欢咖啡")
+        ev = self._evidence(
+            "", "unknown provenance evidence",
+            provenance="unknown", source_type="unknown",
+        )
+        self.assertTrue(self.claims.attach_evidence(claim["claim_id"], ev, role="support").get("ok"))
+        body = self.client.post(
+            "/api/v1/cognition/answers/select",
+            headers=self.admin,
+            json={"target": {"subject_id": "F", "predicate": "喜欢"}},
+        ).json()
+        self.assertNotEqual(body.get("status"), "chosen", body)
+        self.assertIn("provenance_unknown", body.get("reason_codes") or [])
+
+    def test_b01_support_plus_counter_is_chosen_with_counter_reason(self) -> None:
+        claim = self.claims.propose_from_text("G喜欢咖啡")
+        support = self._evidence("doc:support", "G likes coffee")
+        counter = self._evidence("doc:counter2", "G does not like coffee")
+        self.assertTrue(self.claims.attach_evidence(claim["claim_id"], support, role="support").get("ok"))
+        self.assertTrue(self.claims.attach_evidence(claim["claim_id"], counter, role="counter").get("ok"))
+        body = self.client.post(
+            "/api/v1/cognition/answers/select",
+            headers=self.admin,
+            json={"target": {"subject_id": "G", "predicate": "喜欢"}},
+        ).json()
+        self.assertEqual(body.get("status"), "chosen", body)
+        self.assertIn("counterevidence_registered", body.get("reason_codes") or [])
+        self.assertIn(counter, body.get("counterevidence_refs") or [])
 
     def test_c03_nested_envelope_tokenizer_flags_ignored(self) -> None:
         for envelope in (

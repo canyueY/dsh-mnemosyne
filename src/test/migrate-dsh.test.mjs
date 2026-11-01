@@ -185,3 +185,33 @@ test('FA18b: quoted owned row changes; other plugin nested id/name is byte-prese
   assert.ok(patchAfter.includes("id: 'dsh-mnemosyne'"), patchAfter);
   assert.ok(patchAfter.includes('name: "dsh-mnemosyne"'), patchAfter);
 });
+
+test('FA18c: nested list and block scalar rows are not owned plugin rows', () => {
+  const home = mkdtempSync(join(tmpdir(), 'dsh-mig-fa18c-'));
+  const dir = seedLegacyProfile(home);
+  const foreign = [
+    '- insert:',
+    '    - id: keep-other',
+    '      name: keep-other',
+    '      config:',
+    '        sources:',
+    '          - id: dsh-cognitive-memory',
+    '            name: dsh-cognitive-memory',
+    '        notes: |',
+    '          - id: dsh-cognitive-memory',
+    '            name: dsh-cognitive-memory',
+  ].join('\r\n');
+  const owned = [
+    '- insert:',
+    "    - id: 'dsh-cognitive-memory'",
+    '      name: "dsh-cognitive-memory"',
+  ].join('\r\n');
+  writeFileSync(join(dir, 'cordis.patch.yml'), `${foreign}\r\n${owned}\r\n`, 'utf8');
+  const { status, json, text } = run(['--profile', 'web', '--dsh-home', home, '--skip-data']);
+  assert.equal(status, 0, text);
+  assert.equal(json.ok, true);
+  const patchAfter = readFileSync(join(dir, 'cordis.patch.yml'), 'utf8');
+  assert.ok(patchAfter.startsWith(foreign), patchAfter);
+  assert.ok(patchAfter.includes("id: 'dsh-mnemosyne'"), patchAfter);
+  assert.ok(patchAfter.includes('name: "dsh-mnemosyne"'), patchAfter);
+});

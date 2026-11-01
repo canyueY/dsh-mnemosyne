@@ -1,0 +1,114 @@
+[
+  {
+    "case": "envelope_tokenizer_bypass",
+    "http": 200,
+    "request_envelope": {
+      "accurate_tokenizer": true
+    },
+    "measurement": "estimated",
+    "hard_limit_verified": false
+  },
+  {
+    "case": "envelope_tokenizer_bypass",
+    "http": 200,
+    "request_envelope": {
+      "accurate_tokenizer": true,
+      "measurement": "measured"
+    },
+    "measurement": "estimated",
+    "hard_limit_verified": false
+  },
+  {
+    "case": "unverified_sourceless_claim",
+    "stored": {
+      "lifecycle": "proposed",
+      "verification_status": "unverified",
+      "source_memory_id": null
+    },
+    "result": {
+      "decision_id": "ans_5fe56aa48fa8",
+      "status": "unknown",
+      "selected": [],
+      "alternatives": [],
+      "evidence_refs": [],
+      "counterevidence_refs": [],
+      "source_revisions": [],
+      "applicability": {},
+      "checks_complete": true,
+      "reason_codes": [
+        "source_missing"
+      ],
+      "budget_usage": {
+        "steps": 2,
+        "candidates": 0
+      },
+      "trace_id": "tr_1228244268",
+      "wrote_verified": false,
+      "meta": {
+        "target": {
+          "subject_id": "C",
+          "predicate": "喜欢",
+          "negated": null,
+          "arguments": [
+            "咖啡"
+          ]
+        }
+      },
+      "extras": {
+        "target": {
+          "subject_id": "C",
+          "predicate": "喜欢",
+          "negated": null,
+          "arguments": [
+            "咖啡"
+          ]
+        }
+      },
+      "_actor": "node:admin"
+    }
+  },
+  {
+    "case": "mixed_filtered_context",
+    "safe_id": "mem_1a196670070c1f451a9d3",
+    "expired_id": "mem_1a1966700710edbfb7f65",
+    "item_ids": [
+      "mem_1a196670070c1f451a9d3"
+    ],
+    "fragment_ids": [
+      "mem_1a196670070c1f451a9d3"
+    ],
+    "brief": "【认知记忆·仅供参考】\n- [semantic|unverified_record] mixedreview active safe record"
+  },
+  {
+    "case": "stale_worker_real_write",
+    "observation_id": "obs_1a196670074dbbf836da6",
+    "replacement_acquired": true,
+    "written_memories": [],
+    "tasks": [
+      {
+        "id": "task_1a1966700717fb46243a0",
+        "task_type": "memory.promote_check",
+        "status": "done",
+        "last_error": ""
+      },
+      {
+        "id": "task_1a1966700716613af6298",
+        "task_type": "memory.promote_check",
+        "status": "done",
+        "last_error": ""
+      },
+      {
+        "id": "task_1a196670074018617cbc8",
+        "task_type": "memory.consolidation",
+        "status": "pending",
+        "last_error": "stale worker token rejected at write layer"
+      },
+      {
+        "id": "task_1a1966700753218ae8afe",
+        "task_type": "memory.change_detect",
+        "status": "done",
+        "last_error": ""
+      }
+    ]
+  }
+]

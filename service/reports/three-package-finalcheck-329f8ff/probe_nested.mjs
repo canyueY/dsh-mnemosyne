@@ -1,0 +1,17 @@
+import {mkdtempSync,mkdirSync,writeFileSync,readFileSync} from 'node:fs';
+import {join,resolve,dirname} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {spawnSync} from 'node:child_process';
+const here=dirname(fileURLToPath(import.meta.url));
+const repo=resolve(here,'../../..');
+const home=mkdtempSync(join(here,'nested-variant-'));
+const profile=join(home,'profiles','web');
+mkdirSync(profile,{recursive:true});
+writeFileSync(join(profile,'package.json'),JSON.stringify({dependencies:{'dsh-cognitive-memory':'file:synthetic'},dsh:{profile:{bundles:['keep-other','dsh-cognitive-memory']}}}));
+const unrelated=`- insert:\r\n    - id: keep-other\r\n      name: keep-other\r\n      config:\r\n        sources:\r\n          - id: dsh-cognitive-memory\r\n            name: dsh-cognitive-memory\r\n`;
+writeFileSync(join(profile,'cordis.patch.yml'),unrelated+`- insert:\r\n    - id: 'dsh-cognitive-memory'\r\n      name: 'dsh-cognitive-memory'\r\n`);
+const child=spawnSync(process.execPath,[join(repo,'scripts/migrate-dsh.mjs'),'--profile','web','--dsh-home',home,'--skip-data'],{encoding:'utf8',windowsHide:true});
+const after=readFileSync(join(profile,'cordis.patch.yml'),'utf8');
+const result={exit:child.status,result:JSON.parse(child.stdout),unrelated_nested_list_preserved:after.includes(unrelated),before:unrelated,after};
+writeFileSync(join(here,'boundary-migration.json'),JSON.stringify(result,null,2));
+console.log(JSON.stringify({exit:child.status,unrelated_nested_list_preserved:result.unrelated_nested_list_preserved,after},null,2));

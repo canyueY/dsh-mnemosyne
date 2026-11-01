@@ -16,6 +16,6 @@
     "F11": "done",
     "F12": "done"
   },
-  "updated_at": "2026-11-01T17:15:00+08:00",
-  "notes": "R01–R10 fixed and re-verified; research/external models remain disabled/not_measured. Recheck C01–C05 closed: source-readiness gate, write-transaction fencing for consolidation, nested envelope tokenizer ignored, context brief/fragments filtered to safe items, and owned-row-only migration rewrite with quoted/CRLF fixtures. Current pytest 441 / npm 37 / check + diff clean. F04 real DSH 0.2.1-rc.3 list/create/settings verified; preset tool execution is unit-tested at guard callback and loaded in real composition, not exercised via a real model turn."
+  "updated_at": "2026-11-01T17:28:00+08:00",
+  "notes": "R01–R10 fixed and re-verified; research/external models remain disabled/not_measured. Recheck C01–C05 + finalcheck B01–B02 closed: structured support/counter/unknown provenance, write-transaction fencing for consolidation, nested envelope tokenizer ignored, context brief/fragments filtered to safe items, and structure-aware owned-row migration rewrite. Current pytest 444 / npm 38 / check + diff clean. F04 real DSH 0.2.1-rc.3 list/create/settings verified; preset tool execution is unit-tested at guard callback and loaded in real composition, not exercised via a real model turn."
 }

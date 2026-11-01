@@ -1,0 +1,148 @@
+[
+  {
+    "case": "counter_only_source",
+    "attached": {
+      "ok": true,
+      "link_id": "cev_5c888d4e3450",
+      "evidence_id": "evd_07b6dc0c3811",
+      "evidence_ref": "evd_07b6dc0c3811",
+      "claim_id": "clm_1d99ce4c9995",
+      "role": "counter",
+      "trace_id": "jt_ebf749501d1069db"
+    },
+    "links": [
+      {
+        "id": "cev_5c888d4e3450",
+        "claim_id": "clm_1d99ce4c9995",
+        "evidence_ref": "evd_07b6dc0c3811",
+        "role": "counter",
+        "independent": false,
+        "created_at": "2026-11-01T09:25:34Z"
+      }
+    ],
+    "result": {
+      "decision_id": "ans_a7c9992516d9",
+      "status": "unknown",
+      "selected": [],
+      "alternatives": [
+        {
+          "_ineligible": true,
+          "ref": "clm_1d99ce4c9995",
+          "claim_id": "clm_1d99ce4c9995",
+          "block_reason": "counterevidence_only",
+          "counterevidence_refs": [
+            "evd_07b6dc0c3811"
+          ]
+        }
+      ],
+      "evidence_refs": [],
+      "counterevidence_refs": [
+        "evd_07b6dc0c3811"
+      ],
+      "source_revisions": [],
+      "applicability": {},
+      "checks_complete": true,
+      "reason_codes": [
+        "counterevidence_only"
+      ],
+      "budget_usage": {
+        "steps": 2,
+        "candidates": 0
+      },
+      "trace_id": "tr_1e1e15a816",
+      "wrote_verified": false,
+      "meta": {
+        "target": {
+          "subject_id": "D",
+          "predicate": "喜欢",
+          "negated": null,
+          "arguments": [
+            "咖啡"
+          ]
+        }
+      },
+      "extras": {
+        "target": {
+          "subject_id": "D",
+          "predicate": "喜欢",
+          "negated": null,
+          "arguments": [
+            "咖啡"
+          ]
+        }
+      },
+      "_actor": "node:admin"
+    }
+  },
+  {
+    "case": "unknown_provenance_object",
+    "evidence": {
+      "id": "evd_1ed9bc918e87",
+      "bank_id": "personal",
+      "source_type": "unknown",
+      "source_ref": "",
+      "fingerprint": "4786b9a77a0c9dd8425de266a4bf996868c341ad6ea4000dbf2ebdd95ebf3b34",
+      "provenance_status": "unknown",
+      "independence_key": "9ed1e851d25b028146e79fd5a980e2ca",
+      "root_source_id": "",
+      "producer": "",
+      "role_hint": "support",
+      "validation_state": "unverified",
+      "security": {},
+      "chain": [],
+      "metadata": {},
+      "legacy_memory_id": null,
+      "created_at": "2026-11-01T09:25:34Z",
+      "updated_at": "2026-11-01T09:25:34Z"
+    },
+    "result": {
+      "decision_id": "ans_a55196d923b1",
+      "status": "unknown",
+      "selected": [],
+      "alternatives": [
+        {
+          "_ineligible": true,
+          "ref": "clm_6105d83b1a66",
+          "claim_id": "clm_6105d83b1a66",
+          "block_reason": "provenance_unknown",
+          "counterevidence_refs": []
+        }
+      ],
+      "evidence_refs": [],
+      "counterevidence_refs": [],
+      "source_revisions": [],
+      "applicability": {},
+      "checks_complete": true,
+      "reason_codes": [
+        "provenance_unknown"
+      ],
+      "budget_usage": {
+        "steps": 3,
+        "candidates": 0
+      },
+      "trace_id": "tr_8267092dbc",
+      "wrote_verified": false,
+      "meta": {
+        "target": {
+          "subject_id": "E",
+          "predicate": "喜欢",
+          "negated": null,
+          "arguments": [
+            "咖啡"
+          ]
+        }
+      },
+      "extras": {
+        "target": {
+          "subject_id": "E",
+          "predicate": "喜欢",
+          "negated": null,
+          "arguments": [
+            "咖啡"
+          ]
+        }
+      },
+      "_actor": "node:admin"
+    }
+  }
+]

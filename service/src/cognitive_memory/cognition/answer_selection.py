@@ -180,6 +180,7 @@ class AnswerSelectionService:
         steps = 1
         candidates_raw = self._list_bank_claims(bank_id=bank_id, limit=max(50, max_candidates * 4))
         matched: list[dict[str, Any]] = []
+        blocked: list[dict[str, Any]] = []
         counter_pending = 0
 
         for claim in candidates_raw:
@@ -200,6 +201,9 @@ class AnswerSelectionService:
                 target_arguments=target_arguments,
             )
             if pack is None:
+                continue
+            if pack.get("_ineligible"):
+                blocked.append(pack)
                 continue
             if pack.get("role") == "counter":
                 counter_pending += 1
@@ -239,7 +243,16 @@ class AnswerSelectionService:
             )
 
         if not matched:
-            reasons = ["source_missing"]
+            reasons: list[str] = []
+            for item in blocked:
+                reason = str(item.get("block_reason") or "source_missing")
+                if reason not in reasons:
+                    reasons.append(reason)
+            counter_refs = list(dict.fromkeys(
+                ref for item in blocked for ref in item.get("counterevidence_refs") or []
+            ))
+            if not reasons:
+                reasons = ["source_missing"]
             if ctx.get("require_daytime_permanent") or ctx.get("query_scope") == "daytime_permanent":
                 reasons = ["context_mismatch", "coverage_insufficient"]
             return self._result(
@@ -247,6 +260,9 @@ class AnswerSelectionService:
                 trace_id,
                 status="unknown",
                 reason_codes=reasons,
+                selected=[],
+                alternatives=blocked[:5],
+                counterevidence_refs=counter_refs,
                 budget_usage={"steps": steps, "candidates": 0},
                 checks_complete=True,
                 extras={"target": resolved_target},
@@ -293,12 +309,21 @@ class AnswerSelectionService:
         alternatives = matched_sorted[1:]
         self_report = primary.get("epistemic_tag") == "self_report"
         counter_refs = [m["ref"] for m in matched if m.get("role") == "counter"]
+        counter_refs.extend(
+            ref for m in matched for ref in (m.get("evidence_counter_refs") or [])
+        )
+        counter_refs = list(dict.fromkeys(counter_refs))
+        support_refs = list(dict.fromkeys(
+            ref for m in matched for ref in (m.get("evidence_support_refs") or [])
+        ))
 
         if budget_exhausted or counter_pending:
             status = "partial" if matched else "unknown"
             reasons = ["budget_exhausted"]
             if counter_pending:
                 reasons.append("counterevidence_pending")
+            if counter_refs:
+                reasons.append("counterevidence_registered")
             return self._result(
                 decision_id,
                 trace_id,
@@ -306,7 +331,7 @@ class AnswerSelectionService:
                 reason_codes=reasons,
                 selected=[primary] if status == "partial" else [],
                 alternatives=alternatives,
-                evidence_refs=[primary["ref"]],
+                evidence_refs=[primary["ref"], *support_refs],
                 counterevidence_refs=counter_refs,
                 budget_usage={
                     "steps": steps,
@@ -323,6 +348,8 @@ class AnswerSelectionService:
         reasons = ["selected"]
         if self_report:
             reasons.append("self_report")
+        if counter_refs:
+            reasons.append("counterevidence_registered")
         return self._result(
             decision_id,
             trace_id,
@@ -330,7 +357,7 @@ class AnswerSelectionService:
             reason_codes=reasons,
             selected=[primary],
             alternatives=alternatives,
-            evidence_refs=[primary["ref"]],
+            evidence_refs=[primary["ref"], *support_refs],
             counterevidence_refs=counter_refs,
             source_revisions=list(expected_source_revisions or []),
             budget_usage={"steps": steps, "candidates": len(matched)},
@@ -505,10 +532,16 @@ class AnswerSelectionService:
         if merged_scope.get("self_report") or merged_scope.get("epistemic") == "self_report":
             epistemic = "self_report"
         # 自述例外必须可追溯（显式 scope），不因 preference 语法自动洗成 self_report。
-        # 来源资格：没有 source_memory_id / evidence / verification evidence 的候选
-        # 不能进入确定选择；仅声明 wrote_verified=false 不能替代来源检查。
-        if not self._has_traceable_source(claim):
-            return None
+        # 来源资格：区分有效正向支持、已登记反证与未知来源；对象存在不等于可采信。
+        readiness = self._source_readiness(claim)
+        if not readiness["ok"]:
+            return {
+                "_ineligible": True,
+                "ref": claim["id"],
+                "claim_id": claim["id"],
+                "block_reason": readiness["reason"],
+                "counterevidence_refs": list(readiness["counter_refs"]),
+            }
 
         role = "counter" if (want_negation is False and negated) else "support"
         return {
@@ -526,15 +559,20 @@ class AnswerSelectionService:
             "subject": atom.subject,
             "predicate": atom.predicate,
             "arguments": list(atom.arguments),
+            "evidence_counter_refs": list(readiness["counter_refs"]),
+            "evidence_support_refs": list(readiness["support_refs"]),
         }
 
-    def _has_traceable_source(self, claim: dict[str, Any]) -> bool:
-        """A claim is eligible for chosen only when its provenance is traceable.
+    def _source_readiness(self, claim: dict[str, Any]) -> dict[str, Any]:
+        """Return structured provenance readiness for one Claim.
 
-        This is deliberately narrower than "content is true": a user self-report
-        with an explicit source/evidence can still be chosen; a sourceless
-        proposed claim cannot.
+        - support: a valid support Evidence or a live source Memory
+        - counter: explicitly registered counter Evidence (never eligible alone)
+        - unknown: an Evidence object with unknown/empty provenance (not support)
         """
+        support_refs: list[str] = []
+        counter_refs: list[str] = []
+        unknown_refs: list[str] = []
         source_id = str(claim.get("source_memory_id") or "").strip()
         if source_id:
             try:
@@ -542,32 +580,85 @@ class AnswerSelectionService:
                     "SELECT status FROM memories WHERE id=?", (source_id,)
                 ).fetchone()
                 if row is not None and str(row["status"]) != "invalidated":
-                    return True
+                    support_refs.append(f"memory:{source_id}")
             except Exception:
                 pass
-        claim_id = str(claim.get("id") or "")
-        if not claim_id:
-            return False
-        from cognitive_memory.evidence.object_store import EvidenceObjectStore
 
-        store = EvidenceObjectStore(self.service.db)
-        try:
-            refs = [e["evidence_ref"] for e in self.claims.list_evidence(claim_id)]
-        except Exception:
-            refs = []
-        try:
-            rec = self.claims._ver_store.latest_for_claim(claim_id)
-            if rec is not None:
-                refs.extend(getattr(rec, "evidence_refs", None) or [])
-        except Exception:
-            pass
-        for ref in set(refs):
+        claim_id = str(claim.get("id") or "")
+        if claim_id:
+            from cognitive_memory.evidence.object_store import EvidenceObjectStore
+
+            store = EvidenceObjectStore(self.service.db)
             try:
-                if store.get(ref):
-                    return True
+                links = self.claims.list_evidence(claim_id)
             except Exception:
-                continue
-        return False
+                links = []
+            for link in links:
+                ref = str(link.get("evidence_ref") or "")
+                role = str(link.get("role") or "support").lower()
+                ev = store.get(ref) if ref else None
+                if not ev:
+                    continue
+                valid = (
+                    str(ev.get("provenance_status") or "").lower() not in {"", "unknown"}
+                    and bool(str(ev.get("source_ref") or "").strip())
+                    and str(ev.get("source_type") or "").lower() != "unknown"
+                    and str(ev.get("validation_state") or "").lower()
+                    not in {"invalid", "rejected"}
+                )
+                if role in {"counter", "contradicts", "opposes", "against"}:
+                    counter_refs.append(str(ev.get("id") or ref))
+                elif role in {"support", "supports", "supporting"} and valid:
+                    support_refs.append(str(ev.get("id") or ref))
+                else:
+                    unknown_refs.append(str(ev.get("id") or ref))
+            try:
+                rec = self.claims._ver_store.latest_for_claim(claim_id)
+                for ref in getattr(rec, "evidence_refs", None) or []:
+                    ev = store.get(ref)
+                    if not ev:
+                        continue
+                    if (
+                        str(ev.get("provenance_status") or "").lower()
+                        not in {"", "unknown"}
+                        and str(ev.get("source_ref") or "").strip()
+                    ):
+                        support_refs.append(str(ev.get("id") or ref))
+                    else:
+                        unknown_refs.append(str(ev.get("id") or ref))
+            except Exception:
+                pass
+
+        support_refs = list(dict.fromkeys(support_refs))
+        counter_refs = list(dict.fromkeys(counter_refs))
+        unknown_refs = list(dict.fromkeys(unknown_refs))
+        if support_refs:
+            return {
+                "ok": True,
+                "reason": "counterevidence_registered" if counter_refs else None,
+                "support_refs": support_refs,
+                "counter_refs": counter_refs,
+            }
+        if counter_refs:
+            return {
+                "ok": False,
+                "reason": "counterevidence_only",
+                "support_refs": [],
+                "counter_refs": counter_refs,
+            }
+        if unknown_refs:
+            return {
+                "ok": False,
+                "reason": "provenance_unknown",
+                "support_refs": [],
+                "counter_refs": [],
+            }
+        return {
+            "ok": False,
+            "reason": "source_missing",
+            "support_refs": [],
+            "counter_refs": [],
+        }
 
     def _enforce_call_budget(
         self,

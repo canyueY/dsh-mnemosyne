@@ -116,13 +116,43 @@ function rewriteCordis(text) {
   if (endsWithNl) lines.pop();
 
   let changed = false;
-  const rowRe = /^([ \t]*)-\s*id:\s*(['"]?)(dsh-cognitive-memory|dsh-mnemosyne)\2(\s*(?:#.*)?)$/;
+  // Any plugin row (not only the owned one) establishes the row indentation;
+  // otherwise a nested `sources: - id: old-name` becomes the first match and
+  // is mistaken for a plugin row.
+  const anyRowRe = /^([ \t]*)-\s*id:\s*(['"]?)([^'"\s#]+)\2(\s*(?:#.*)?)$/;
+  const ownedRows = [];
+  let insertIndent = null;
+  let rowIndent = null;
   for (let i = 0; i < lines.length; i += 1) {
-    const row = lines[i].match(rowRe);
+    const raw = lines[i];
+    if (!raw.trim() || /^\s*#/.test(raw)) continue;
+    const ind = (raw.match(/^[ \t]*/) || [''])[0].length;
+    if (insertIndent !== null && ind <= insertIndent) {
+      insertIndent = null;
+      rowIndent = null;
+    }
+    if (/^[ \t]*-\s*insert:\s*$/.test(raw)) {
+      insertIndent = ind;
+      rowIndent = null;
+      continue;
+    }
+    const row = raw.match(anyRowRe);
     if (!row) continue;
+    if (insertIndent !== null) {
+      if (ind <= insertIndent) continue;
+      if (rowIndent === null) rowIndent = ind;
+      if (ind !== rowIndent) continue;
+    } else if (ind !== 0) {
+      continue;
+    }
+    ownedRows.push({ index: i, row });
+  }
+
+  for (const { index: i, row } of ownedRows) {
     const indent = row[1];
     const quote = row[2];
     const value = row[3];
+    if (value !== OLD_NAME && value !== NEW_NAME) continue;
     if (value === OLD_NAME) {
       lines[i] = `${indent}- id: ${quote}${NEW_NAME}${quote}${row[4] || ''}`;
       changed = true;
@@ -150,7 +180,9 @@ function rewriteCordis(text) {
 
   let out = lines.join(nl);
   if (endsWithNl) out += nl;
-  const hasOwned = lines.some((line) => rowRe.test(line));
+  const hasOwned = ownedRows.some(
+    ({ row }) => row[3] === OLD_NAME || row[3] === NEW_NAME,
+  );
   if (!hasOwned) {
     const block = `- insert:${nl}    - id: ${NEW_NAME}${nl}      name: ${NEW_NAME}`;
     out = out.trimEnd() ? `${out.trimEnd()}${nl}${block}${nl}` : `${block}${nl}`;
