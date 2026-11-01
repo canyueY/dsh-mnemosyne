@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0",
+  "cases": [
+    {"id": "FA01", "given": "复核报告与 reproduce 脚本", "when": "复跑全量检查", "expected": "基线失败映射到 F01—F11，不新增无关失败"},
+    {"id": "FA02", "given": "personal 权限 Agent 提交已知 projects checkpoint_id 且 body 声明 personal", "when": "REST 更新 checkpoint", "expected": "拒绝，不覆盖 projects 记录；同 Bank 正常更新成功"},
+    {"id": "FA03", "given": "仅存 A喜欢咖啡", "when": "选择 subject=A、predicate=喜欢、arguments=[茶]", "expected": "不返回 chosen(咖啡)；不同对象不匹配"},
+    {"id": "FA04", "given": "目标对象无命中", "when": "答案选择", "expected": "返回 partial/unknown，不给错误对象的 chosen"},
+    {"id": "FA05", "given": "B喜欢咖啡 已转 rejected", "when": "答案选择", "expected": "不返回 chosen，selected.lifecycle 不为 rejected"},
+    {"id": "FA06", "given": "retracted/expired 的 Claim", "when": "答案选择", "expected": "不进入 chosen；来源缺失返回 unknown"},
+    {"id": "FA07", "given": "临时 DSH_HOME 受支持版本", "when": "agentPresets/list 与 session/create", "expected": "preset 可见且可用，不再用模拟函数"},
+    {"id": "FA08", "given": "preset 工具白名单", "when": "真实会话请求本地执行/文件工具", "expected": "fail-closed 拒绝，允许 memory_* 与无害工具"},
+    {"id": "FA09", "given": "npm pack --dry-run", "when": "检查产物", "expected": "含 scripts/install-dsh.mjs、scripts/migrate-dsh.mjs、dsh/agent-presets/**"},
+    {"id": "FA10", "given": "打包产物干净目录", "when": "运行 install/migrate --help 与 preset 资源加载", "expected": "入口可用，不因缺文件失败"},
+    {"id": "FA11", "given": "node src/mcp-gateway.js stdin", "when": "发 initialize/initialized/tools/list/tools/call", "expected": "stdout 返回 JSON-RPC 结果，退出码正常"},
+    {"id": "FA12", "given": "profile 已迁移但 data 未完成", "when": "重跑 migrate 不带 skip-data", "expected": "继续数据迁移，不返回 already_migrated"},
+    {"id": "FA13", "given": "profile+data 均完成", "when": "再次运行 migrate", "expected": "幂等，不重复迁移"},
+    {"id": "FA14", "given": "记录 validity_to=2000-01-01", "when": "current 检索融合", "expected": "不恢复过期候选；安全过滤为空返回 unknown/no_safe_items"},
+    {"id": "FA15", "given": "普通 /retrieve", "when": "含过期/越权记录", "expected": "过期/越权被剔除，不带进结果"},
+    {"id": "FA16", "given": "客户端 has_accurate_tokenizer=true 但无真实 tokenizer", "when": "POST /contexts/build", "expected": "measurement 不为 measured，hard_limit_verified 不为 true"},
+    {"id": "FA17", "given": "接入真实 tokenizer", "when": "构建上下文", "expected": "measurement=measured 且标可信范围"},
+    {"id": "FA18", "given": "其他插件 config 含 dsh-cognitive-memory 字符串", "when": "运行 migrate-dsh", "expected": "该路径/注释/字符串逐字节保留"},
+    {"id": "FA19", "given": "settings 写入", "when": "重启后读取并运行", "expected": "配置持久化并驱动运行采用，不只进程内 Map"},
+    {"id": "FA20", "given": "jobs/dispatcher 主链路", "when": "任务提交/崩溃恢复/水位/旧 worker 写入", "expected": "WorkerLeaseManager 与 ConsumerWatermarkStore 实际生效"},
+    {"id": "FA21", "given": "checkpoint 记录 evidence_revisions", "when": "恢复时权威来源已更新", "expected": "主动查询当前修订并重核，不只检查字段存在"}
+  ]
+}

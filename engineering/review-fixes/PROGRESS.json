@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "implementation_status": "not_started",
+  "tasks": {
+    "F00": "pending",
+    "F01": "pending",
+    "F02": "pending",
+    "F03": "pending",
+    "F04": "pending",
+    "F05": "pending",
+    "F06": "pending",
+    "F07": "pending",
+    "F08": "pending",
+    "F09": "pending",
+    "F10": "pending",
+    "F11": "pending",
+    "F12": "pending"
+  }
+}
