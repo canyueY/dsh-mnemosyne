@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0",
+  "cases": [
+    {"id": "MA01", "given": "当前仓库", "when": "运行 Python 测试并核对 6 条距离对应接口", "expected": "基线成文，接口/主链路/故障用例逐项列出"},
+    {"id": "MA02", "given": "检索命中多条候选", "when": "select", "expected": "status 可为 chosen，但不写 verified；verified 只由 VerificationEngine 产生"},
+    {"id": "MA03", "given": "证据不足的查询", "when": "select", "expected": "status=unknown，reason_codes 含 source_missing/coverage_insufficient"},
+    {"id": "MA04", "given": "有反证待审", "when": "select", "expected": "status=partial，counterevidence_refs 非空，不给唯一确定答案"},
+    {"id": "MA05", "given": "同根源换 producer/导入格式", "when": "计算独立支持", "expected": "仍算一个支持根，不因计数膨胀"},
+    {"id": "MA06", "given": "已过期/未生效/被替代的 claim", "when": "applicability(at)", "expected": "expired/not_yet/superseded，不做当前事实"},
+    {"id": "MA07", "given": "撤回一条证据但有其他独立支持", "when": "重新核验", "expected": "关联 claim 保留并重验，不整体删除"},
+    {"id": "MA08", "given": "BM25 + lexical 多路结果", "when": "RRF 融合", "expected": "fusion_method=rrf，sources[] 记录各路 rank"},
+    {"id": "MA09", "given": "查询含否定/对比意图", "when": "规则反证召回", "expected": "counterevidence 与支持证据同进 select，不被正分淹没"},
+    {"id": "MA10", "given": "无真实 embedder", "when": "semantic 能力查询", "expected": "semantic_model=unavailable，只输出 candidate_similarity"},
+    {"id": "MA11", "given": "一批情节观察", "when": "分层巩固", "expected": "产出 semantic claims 与 derived_summary，含 importance_score 与 source_refs"},
+    {"id": "MA12", "given": "容量告警触发压缩", "when": "遗忘", "expected": "生成 lossy=true 摘要，保留来源，不删原始 append-only 记录"},
+    {"id": "MA13", "given": "长期整合候选", "when": "写入 Schema", "expected": "必须经 SCHEMA_MUTATION 治理，不因 confirm 解锁"},
+    {"id": "MA14", "given": "组装上下文", "when": "构建 budget_envelope", "expected": "包含 stable_prefix/tools_descriptions/history/memory_tags/output_reserve，各自 measurement 标注"},
+    {"id": "MA15", "given": "历史/工具描述过大", "when": "预算超限", "expected": "按硬上限截断，output_reserve 不被挤占"},
+    {"id": "MA16", "given": "同一请求 host+node 各记一次", "when": "UsageLedger", "expected": "按 correlation/attempt/provider/meter_scope 去重，reserved 与 actual 分开"},
+    {"id": "MA17", "given": "业务效果提交与 consumer 水位", "when": "消费", "expected": "同事务推进，重放不重复计效果"},
+    {"id": "MA18", "given": "过期 fencing_token / 旧 expected_version 写产物", "when": "提交", "expected": "拒绝写入，恢复重新核对来源新鲜度，不盲重试"}
+  ]
+}
