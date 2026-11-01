@@ -110,6 +110,11 @@ class MemoryService:
         self.emotion_write_enabled = bool(emotion_write_enabled)
         self.emotion_shadow_only = bool(emotion_shadow_only)
         self.emotion_retrieval_enabled = bool(emotion_retrieval_enabled)
+        self.call_budget_config = {
+            "max_external_calls": 8,
+            "max_retrieval_rounds": 4,
+            "max_duration_ms": 30000,
+        }
         self.db.ensure_schema()
 
     # ---------- helpers ----------
@@ -234,9 +239,18 @@ class MemoryService:
     # ---------- observations ----------
 
     def capture_observation(self, body: ObservationIn) -> Observation:
+        from cognitive_memory.evidence.source_contract import (
+            attach_source_contract,
+            normalize_coverage,
+            normalize_source_ref,
+        )
+        from cognitive_memory.governance.workspace import assert_workspace_authorized
         from cognitive_memory.ingestion.normalize import normalize_observation
 
         body = normalize_observation(body)
+        assert_workspace_authorized(
+            self.db, dict(body.metadata or {}), action="capture"
+        )
         with self.db.transaction() as conn:
             cached = self._idempotent_get(conn, body.idempotency_key, "observation")
             if cached:
@@ -245,6 +259,23 @@ class MemoryService:
             now = _now()
             occurred = body.occurred_at or now
             meta = dict(body.metadata or {})
+            # E01：若调用方声明了来源/覆盖，规范化写入元数据（不伪造未知页码）。
+            if meta.get("source_ref") or meta.get("coverage") or meta.get("revision"):
+                existing_src = meta.get("source_ref") if isinstance(meta.get("source_ref"), dict) else {}
+                sref = normalize_source_ref(
+                    source_id=str(existing_src.get("source_id") or oid),
+                    root_source_id=str(existing_src.get("root_source_id") or meta.get("root_source_id") or ""),
+                    revision=str(existing_src.get("revision") or meta.get("revision") or "0"),
+                    content=body.content,
+                    source_type=body.source_kind.value,
+                    source_role=existing_src.get("source_role") or meta.get("source_role"),
+                    bank_id=str(meta.get("bank_id") or "personal"),
+                    producer=body.producer,
+                    locator=existing_src.get("locator") if isinstance(existing_src.get("locator"), dict) else None,
+                    allow_self_attest=True,
+                )
+                cov = normalize_coverage(meta.get("coverage")) if meta.get("coverage") is not None else None
+                meta = attach_source_contract(meta, source_ref=sref, coverage=cov)
             if self.spatiotemporal_enable:
                 meta = attach_spatiotemporal(
                     meta,
@@ -393,9 +424,11 @@ class MemoryService:
     def propose_memory(self, body: MemoryProposeIn) -> Memory:
         from cognitive_memory.ingestion.pipeline import coerce_long_term_status
         from cognitive_memory.governance.policy import assert_allow_store
+        from cognitive_memory.governance.workspace import assert_workspace_authorized
 
         meta = dict(body.metadata or {})
         assert_allow_store(meta)
+        assert_workspace_authorized(self.db, meta, action="ingest")
 
         with self.db.transaction() as conn:
             cached = self._idempotent_get(conn, body.idempotency_key, "memory_propose")
@@ -588,7 +621,31 @@ class MemoryService:
         """软删除默认：invalidated；hard=True 时清理主表+FTS+证据（版本保留审计）。
 
         P4 R17：级联 Claim/Evidence tombstone + TMS invalidate（Claim 行保留）。
+        E02：登记 source_revision_tombstone，阻止重复导入复活。
         """
+        from cognitive_memory.evidence.derivation import DerivationStore
+        from cognitive_memory.evidence.source_contract import content_hash_of
+
+        content_hash = ""
+        root_source_id = f"mem:{memory_id}"
+        bank_id = "personal"
+        try:
+            existing = self.get_memory(memory_id)
+            if isinstance(existing, dict):
+                content_hash = content_hash_of(str(existing.get("content") or ""))
+                bank_id = str(existing.get("bank_id") or "personal")
+                meta = existing.get("metadata") if isinstance(existing.get("metadata"), dict) else {}
+                src = meta.get("source_ref") if isinstance(meta.get("source_ref"), dict) else {}
+                if src.get("root_source_id"):
+                    root_source_id = str(src["root_source_id"])
+                elif existing.get("source_ids"):
+                    root_source_id = str(existing["source_ids"][0])
+            elif existing is not None:
+                content_hash = content_hash_of(str(getattr(existing, "content", "") or ""))
+                bank_id = str(getattr(existing, "bank_id", None) or "personal")
+        except Exception:
+            pass
+
         if not hard:
             out = self.update_memory(
                 memory_id,
@@ -602,6 +659,25 @@ class MemoryService:
                 )
             except Exception as exc:  # noqa: BLE001 — cascade best-effort
                 out["cascade_error"] = str(exc)
+            try:
+                drv = DerivationStore(self.db)
+                out["source_tombstone"] = drv.record_tombstone(
+                    root_source_id=root_source_id,
+                    content_hash=content_hash,
+                    bank_id=bank_id,
+                    reason="authorized_forget",
+                    actor="forget_memory",
+                )
+                # 同时按 memory 根留下空 hash 标记，覆盖无 hash 的重复导入
+                drv.record_tombstone(
+                    root_source_id=root_source_id,
+                    content_hash="",
+                    bank_id=bank_id,
+                    reason="authorized_forget",
+                    actor="forget_memory",
+                )
+            except Exception as exc:  # noqa: BLE001
+                out["source_tombstone_error"] = str(exc)
             return out
         with self.db.transaction() as conn:
             row = conn.execute("SELECT * FROM memories WHERE id=?", (memory_id,)).fetchone()
@@ -621,6 +697,24 @@ class MemoryService:
             )
         except Exception as exc:  # noqa: BLE001
             pack["cascade_error"] = str(exc)
+        try:
+            drv = DerivationStore(self.db)
+            pack["source_tombstone"] = drv.record_tombstone(
+                root_source_id=root_source_id,
+                content_hash=content_hash,
+                bank_id=bank_id,
+                reason="authorized_hard_delete",
+                actor="forget_memory",
+            )
+            drv.record_tombstone(
+                root_source_id=root_source_id,
+                content_hash="",
+                bank_id=bank_id,
+                reason="authorized_hard_delete",
+                actor="forget_memory",
+            )
+        except Exception as exc:  # noqa: BLE001
+            pack["source_tombstone_error"] = str(exc)
         return pack
 
     def search(self, q: SearchQuery) -> list[Memory]:
@@ -806,7 +900,19 @@ class MemoryService:
         return out[:limit] if limit else out
 
     def build_context(self, body: ContextBuildIn) -> ContextBuildOut:
-        budget = body.token_budget or self.context_token_budget
+        from cognitive_memory.retrieval.context_budget import (
+            build_context_envelope,
+            estimate_tokens_chars,
+            normalize_budget_config,
+        )
+
+        budget_cfg = normalize_budget_config(
+            getattr(self, "context_budget_config", None)
+            or {"default_token_budget": self.context_token_budget}
+        )
+        budget = body.token_budget or int(
+            budget_cfg.get("default_token_budget") or self.context_token_budget
+        )
         # 先多取一些再时空/情绪重排截断，避免过期项占满限额
         fetch_n = max(body.limit, min(50, body.limit * 2))
         emo_rerank = bool(body.emotion_rerank) and bool(self.emotion_retrieval_enabled)
@@ -822,31 +928,48 @@ class MemoryService:
                 domain=getattr(body, "domain", None),
             )
         )
-        fragments: list[dict[str, Any]] = []
-        used = 0
-        lines: list[str] = ["【认知记忆·仅供参考】"]
+
+        envelope_in = body.envelope if isinstance(getattr(body, "envelope", None), dict) else {}
+        sections_in = envelope_in.get("sections") if isinstance(envelope_in.get("sections"), dict) else {}
+        stable_prefix = sections_in.get("stable_prefix") or "【认知记忆·仅供参考】"
+        tools = sections_in.get("tools") or ""
+        history = sections_in.get("history") or ""
+        header_tags = sections_in.get("header_tags") or "source|negation|expiry"
+        output_reserve = sections_in.get("output_reserve") or ""
+
+        candidates: list[dict[str, Any]] = []
         seen_ids: set[str] = set()
 
-        def _append(m: Memory, *, via: str | None = None) -> bool:
-            nonlocal used
-            if m.id in seen_ids or len(fragments) >= body.limit:
-                return False
-            est = max(1, len(m.content) // 2)
-            if used + est > budget:
-                return False
+        def _cand(m: Memory, *, via: str | None = None) -> dict[str, Any] | None:
+            if m.id in seen_ids:
+                return None
+            seen_ids.add(m.id)
             st = (m.metadata or {}).get("spatiotemporal") if isinstance(m.metadata, dict) else None
             mnemo = get_mnemosyne(m.metadata)
+            epistemic = (
+                "hypothesis"
+                if (m.metadata or {}).get("epistemic")
+                in {"inference", "inferred_signal", "summary", "generated"}
+                else "unverified_record"
+            )
+            tags = [m.type.value, epistemic]
+            if (m.metadata or {}).get("negated") or (m.metadata or {}).get("negation"):
+                tags.append("negated")
+            if m.expires_at:
+                tags.append("expiry")
+            if m.source_ids:
+                tags.append("sourced")
             frag = {
                 "id": m.id,
                 "type": m.type.value,
                 "status": m.status.value,
                 "content": m.content,
                 "version": m.version,
-                "source_ids": m.source_ids,
-                "token_estimate": est,
+                "source_ids": list(m.source_ids or []),
                 "expires_at": m.expires_at,
-                "epistemic_status": "hypothesis" if (m.metadata or {}).get("epistemic") in {"inference", "inferred_signal", "summary", "generated"} else "unverified_record",
+                "epistemic_status": epistemic,
                 "confidence_kind": "uncalibrated",
+                "tags": tags,
                 "spatiotemporal_score": spatiotemporal_score(
                     m.metadata, expires_at=m.expires_at, mode=body.mode
                 )
@@ -872,29 +995,81 @@ class MemoryService:
                         "association_level"
                     ),
                 }
-            fragments.append(frag)
-            seen_ids.add(m.id)
-            used += est
-            tag = f"{m.type.value}|{frag['epistemic_status']}"
-            if body.mode == "historical" and frag.get("spatiotemporal_score", 1) >= 1.0:
-                tag = f"{tag}|hist"
-            if emo_rerank and frag.get("emotion_score") and float(frag["emotion_score"]) > 1.05:
-                tag = f"{tag}|emo"
-            prefix = f"{tag}|rel" if via else tag
-            lines.append(f"- [{prefix}] {m.content}")
-            return True
+            return frag
 
         for m in hits:
-            _append(m)
-        # P3：补充关系边关联记忆
-        if self.spatiotemporal_enable and fragments:
+            item = _cand(m)
+            if item:
+                candidates.append(item)
+        if self.spatiotemporal_enable and candidates:
             for rm in self.query_related_for_context(list(seen_ids), limit=4):
-                _append(rm, via="relation")
+                item = _cand(rm, via="relation")
+                if item:
+                    candidates.append(item)
 
+        # 限额：只把前 limit 个候选交给信封裁剪
+        candidates = candidates[: max(1, int(body.limit))]
+
+        # measurement/hard_limit_verified 只认服务端真实计量器；客户端 bool 不得覆盖
+        accurate_tokenizer = bool(
+            envelope_in.get("accurate_tokenizer")
+            or budget_cfg.get("accurate_tokenizer")
+            or getattr(self, "has_accurate_tokenizer", False)
+        )
+        measurement_override = envelope_in.get("measurement")
+        if measurement_override not in {"measured", "estimated", "unknown", None}:
+            measurement_override = None
+        if measurement_override == "measured" and not accurate_tokenizer:
+            measurement_override = None
+        envelope = build_context_envelope(
+            token_budget=budget,
+            sections={
+                "stable_prefix": stable_prefix,
+                "tools": tools,
+                "history": history,
+                "header_tags": header_tags,
+                "output_reserve": output_reserve,
+            },
+            memory_candidates=candidates,
+            estimate_fn=estimate_tokens_chars,
+            measurement=measurement_override,
+            has_accurate_tokenizer=accurate_tokenizer,
+            config={**budget_cfg, **(envelope_in.get("budget_config") or {})},
+            preserve_tags=True,
+        )
+
+        fragments = list(envelope.get("memory_fragments") or [])
+        lines: list[str] = [str(stable_prefix)]
+        for frag in fragments:
+            tag = f"{frag.get('type')}|{frag.get('epistemic_status')}"
+            if frag.get("via_relation"):
+                tag = f"{tag}|rel"
+            if "negated" in (frag.get("tags") or []):
+                tag = f"{tag}|neg"
+            if frag.get("expires_at"):
+                tag = f"{tag}|exp"
+            lines.append(f"- [{tag}] {frag.get('content')}")
+
+        fits = envelope.get("fits")
+        status = str(envelope.get("status") or ("ok" if fits else "incompatible"))
+        brief = (
+            "【认知记忆】上下文固定开销已超预算，无法安全装入记忆"
+            if fits is False
+            else ("\n".join(lines) if fragments else "【认知记忆】暂无相关条目")
+        )
+        used = int(envelope.get("tokens_used") or 0)
+        # 不适配时按请求预算封顶报告，避免固定开销估算值“突破”调用方限额语义
+        token_estimate = min(used, int(budget)) if fits is False else used
         return ContextBuildOut(
-            fragments=fragments,
-            token_estimate=used,
-            brief="\n".join(lines) if fragments else "【认知记忆】暂无相关条目",
+            fragments=fragments if fits is not False else [],
+            token_estimate=token_estimate,
+            brief=brief,
+            fits=fits,
+            measurement=str(envelope.get("measurement") or "estimated"),
+            hard_limit_verified=bool(envelope.get("hard_limit_verified")),
+            budget_envelope=envelope,
+            reason_codes=list(envelope.get("reason_codes") or []),
+            status=status,
         )
 
     def feedback(self, body: FeedbackIn) -> dict[str, Any]:
@@ -1487,8 +1662,21 @@ class MemoryService:
             authority_state = get_authority(self.db).get("state")
         except Exception:
             authority_state = None
+        probes = None
+        try:
+            from cognitive_memory.tracing.health_probes import CognitiveHealthProbes
+
+            probes = CognitiveHealthProbes(self.db).probe(include_write_probe=False)
+        except Exception as exc:  # noqa: BLE001 — health must still return
+            probes = {
+                "overall": "UNKNOWN",
+                "all_green": False,
+                "error": str(exc),
+                "read_only": True,
+            }
+        overall = (probes or {}).get("overall") or "OK"
         return {
-            "ok": True,
+            "ok": overall in {"OK", "WARN"},
             "service": "cognitive-memory",
             "version": "2.0.0",
             "memories": mem_n,
@@ -1506,6 +1694,9 @@ class MemoryService:
             "banks": True,
             "authority": True,
             "authority_state": authority_state,
+            "probes": probes,
+            "overall": overall,
+            "all_green": bool((probes or {}).get("all_green")),
             "time": _now(),
         }
 

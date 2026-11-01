@@ -1,0 +1,114 @@
+{
+  "ok": true,
+  "query": "喜欢夜航星",
+  "baseline_ids": [
+    "a",
+    "b",
+    "c"
+  ],
+  "lexical_ids": [
+    "a",
+    "c",
+    "b"
+  ],
+  "fusion_ids": [
+    "a",
+    "c",
+    "b"
+  ],
+  "metrics": {
+    "baseline_vs_lexical_overlap": 1.0,
+    "lexical_vs_fusion_overlap": 1.0,
+    "baseline_vs_fusion_overlap": 1.0,
+    "candidate_n": 5,
+    "cost": {
+      "external_model_calls": 0,
+      "embedding_kind": "hash"
+    }
+  },
+  "fusion": {
+    "ok": true,
+    "status": "ok",
+    "items": [
+      {
+        "id": "a",
+        "content": "我喜欢夜航星",
+        "bank_id": "personal",
+        "metadata": {},
+        "fusion_score": 0.032787,
+        "lexical_score": 1.0,
+        "embedding_meta": {
+          "embedding_kind": "hash",
+          "quality": "offline_hash_not_semantic_model",
+          "do_not_overclaim": true
+        }
+      },
+      {
+        "id": "c",
+        "content": "喜欢听夜航星这首歌",
+        "bank_id": "personal",
+        "metadata": {},
+        "fusion_score": 0.032258,
+        "lexical_score": 0.8889,
+        "embedding_meta": {
+          "embedding_kind": "hash",
+          "quality": "offline_hash_not_semantic_model",
+          "do_not_overclaim": true
+        }
+      },
+      {
+        "id": "b",
+        "content": "今天天气不错",
+        "bank_id": "personal",
+        "metadata": {},
+        "fusion_score": 0.031746,
+        "lexical_score": 0.0,
+        "embedding_meta": {
+          "embedding_kind": "hash",
+          "quality": "offline_hash_not_semantic_model",
+          "do_not_overclaim": true
+        }
+      }
+    ],
+    "counterevidence": [],
+    "counterevidence_unchecked": [],
+    "dropped_prefilter": [
+      {
+        "id": "secret",
+        "content": "越权秘密",
+        "bank_id": "other",
+        "metadata": {},
+        "_drop_reason": "bank_denied"
+      }
+    ],
+    "blocked_postfilter": [],
+    "channels": [
+      {
+        "name": "lexical_nfkc",
+        "count": 4
+      },
+      {
+        "name": "vector",
+        "count": 4,
+        "embedding_kind": "hash",
+        "quality": "offline_hash_not_semantic_model",
+        "do_not_overclaim": true
+      }
+    ],
+    "mode": "current",
+    "reason_codes": [],
+    "embedding_meta": {
+      "embedding_kind": "hash",
+      "quality": "offline_hash_not_semantic_model",
+      "do_not_overclaim": true
+    },
+    "notes": {
+      "rrf_dedup": true,
+      "hash_not_hq_embedding": true,
+      "counterevidence_independent": true,
+      "postfilter_mandatory": true
+    }
+  },
+  "reproducible": true,
+  "offline_only": true
+}

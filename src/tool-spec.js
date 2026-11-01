@@ -10,6 +10,7 @@ export const FORGET_TOOL = 'memory_forget';
 export const TASK_TOOL = 'memory_task_status';
 export const OBSERVE_TOOL = 'memory_observe';
 export const HEALTH_TOOL = 'memory_health';
+export const SELECT_ANSWER_TOOL = 'memory_select_answer';
 
 /**
  * DSH 0.2.1 output.schema is enforced JsonSchemaNode.
@@ -49,12 +50,15 @@ export function getToolSpec() {
 }
 
 export function contextToolSpec() {
+  // envelope / has_accurate_tokenizer: E04 完整预算；无精确 tokenizer 时勿宣称 measured
   return {
     name: CONTEXT_TOOL,
-    description: '按 Token 预算组装当前对话可用的记忆上下文（快速通道）。',
+    description: '按 Token 预算组装当前对话可用的记忆上下文（快速通道）。完整信封先预留固定开销再裁剪记忆。',
     parameters: {
       query: { type: 'string', required: true },
       token_budget: { type: 'integer' },
+      envelope: { type: 'json', description: 'sections: stable_prefix/tools/history/header_tags/output_reserve' },
+      has_accurate_tokenizer: { type: 'boolean', description: '仅在确有实测 tokenizer 时为 true' },
     },
     output: {
       schema: { type: 'object', additionalProperties: true },
@@ -148,6 +152,25 @@ export function healthToolSpec() {
     name: HEALTH_TOOL,
     description: '检查外置演化记忆服务是否健康。',
     parameters: {},
+    output: jsonOut(),
+  };
+}
+
+export function selectAnswerToolSpec() {
+  return {
+    name: SELECT_ANSWER_TOOL,
+    description:
+      '显式调用 Node 当前答案选择（非普通 search Top1）。partial/unknown 带边界交付；故障返回 unavailable，不退回无标签旧事实。',
+    parameters: {
+      query: { type: 'string', description: '自然语言查询（需可被 parser 解析或配合 target）' },
+      target: { type: 'json', description: '{subject_id,predicate,negated?}' },
+      bank_id: { type: 'string' },
+      mode: { type: 'string', description: 'current|history' },
+      context: { type: 'json' },
+      at: { type: 'string' },
+      budget: { type: 'json' },
+      include_search_candidates: { type: 'boolean', description: '附带 search 候选供对照，不作事实权威' },
+    },
     output: jsonOut(),
   };
 }

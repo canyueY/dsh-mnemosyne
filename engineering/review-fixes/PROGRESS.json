@@ -1,19 +1,21 @@
 {
   "schema_version": "1.0",
-  "implementation_status": "not_started",
+  "implementation_status": "complete",
   "tasks": {
-    "F00": "pending",
-    "F01": "pending",
-    "F02": "pending",
-    "F03": "pending",
-    "F04": "pending",
-    "F05": "pending",
-    "F06": "pending",
-    "F07": "pending",
-    "F08": "pending",
-    "F09": "pending",
-    "F10": "pending",
-    "F11": "pending",
-    "F12": "pending"
-  }
+    "F00": "done",
+    "F01": "done",
+    "F02": "done",
+    "F03": "done",
+    "F04": "done",
+    "F05": "done",
+    "F06": "done",
+    "F07": "done",
+    "F08": "done",
+    "F09": "done",
+    "F10": "done",
+    "F11": "done",
+    "F12": "done"
+  },
+  "updated_at": "2026-11-01T16:45:00+08:00",
+  "notes": "R01–R10 fixed and re-verified; research/external models remain disabled/not_measured. F04 verified against real DSH 0.2.1-rc.3 in an isolated DSH_HOME: agentPresets/list shows mnemosyne broken=null (including mnemosyne-tool-guard), and session/create succeeds. D03/F11 settings verified with real settings/describe+update+restart. Remaining caveat: preset tool execution is unit-tested at the guard callback and loaded in real composition; not exercised via a real model turn."
 }

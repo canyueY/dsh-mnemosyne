@@ -1,0 +1,148 @@
+[
+  {
+    "id": "R01",
+    "priority": "P1",
+    "packages": [
+      "E06",
+      "M06"
+    ],
+    "title": "Checkpoint 更新可跨 Bank 覆盖已有记录",
+    "file": "service/src/cognitive_memory/cognition/session_checkpoint.py",
+    "line": 231,
+    "proof": "counterexamples-python.json / cross_bank_checkpoint_overwrite",
+    "detail": "只获 personal 读写权限的 Agent，提交已知 projects checkpoint_id，同时在 body 声明 personal，接口返回 200。表行仍属于 projects，但 manifest.goal 被覆盖为该 Agent 的内容。入口只检查新 body.bank_id，UPSERT 未校验既有记录所属 Bank/会话。",
+    "impact": "持有某 Bank 写权限的调用方可篡改其他 Bank 的任务状态；这不是单纯的报告或界面缺口。前提是知道目标 checkpoint_id，不能把 ID 不易猜测当授权。",
+    "fix": "更新前在同一事务核对既有 checkpoint 的 Bank、会话及版本，禁止更换所属范围；SQL 更新条件绑定已授权范围，并对跨 Bank 冲突返回拒绝。补实际 REST 的两个 principal/Bank 反例。"
+  },
+  {
+    "id": "R02",
+    "priority": "P1",
+    "packages": [
+      "E03",
+      "M01"
+    ],
+    "title": "答案选择忽略目标 arguments，茶与咖啡会错配",
+    "file": "service/src/cognitive_memory/cognition/answer_selection.py",
+    "line": 173,
+    "proof": "counterexamples-python.json / target_arguments_ignored",
+    "detail": "仅存 A喜欢咖啡；通过 REST 请求 subject=A、predicate=喜欢、arguments=[茶]，返回 chosen，选中的 arguments 却是咖啡。_resolve_target 保存 arguments，但调用 _match_claim 时没有传入和比较它。",
+    "impact": "同主体同谓词的不同命题被当成同一个问题，破坏当前答案选择最基本的目标正确性。",
+    "fix": "将完整目标 Atom（包含 arguments、否定及作用域）传入匹配；不支持精确比较时返回限定或未知。补同主体/谓词而对象不同、对象无命中及多对象回归。"
+  },
+  {
+    "id": "R03",
+    "priority": "P1",
+    "packages": [
+      "E03",
+      "M02"
+    ],
+    "title": "已 rejected 的 Claim 仍被返回 chosen",
+    "file": "service/src/cognitive_memory/cognition/answer_selection.py",
+    "line": 406,
+    "proof": "counterexamples-python.json / rejected_claim_chosen",
+    "detail": "将 B喜欢咖啡 经现有生命周期接口转成 rejected 后调用选择，仍返回 chosen，selected.lifecycle=rejected。过滤仅明确排除 retracted/部分过期替代状态；lifecycle 排名靠后也无法在唯一候选时阻止采用。",
+    "impact": "已否决知识能重新进入确定选择；没有写数据库 verified 不能证明判断已正确或已核验。当前 _match_claim 也没有据关联 Evidence/Verification 对所选认识做完整就绪检查。",
+    "fix": "按认识状态和当前有效验证结果决定资格，拒绝 rejected/retracted；争议或不充分信息带明确边界。自述例外仍需可追溯且正确的类型与范围，不能以 preference 语法自动洗成自述。测试状态撤回、来源缺失及反证。"
+  },
+  {
+    "id": "R04",
+    "priority": "P1",
+    "packages": [
+      "D04"
+    ],
+    "title": "Agent preset 的验收仍停留在模拟函数",
+    "file": "src/agent-preset.js",
+    "line": 117,
+    "proof": "静态调用链；src/test/preset.test.mjs；cordis.patch.yml",
+    "detail": "createSessionWithPreset 明确注释 Simulate，直接生成 sess_mnemosyne_<时间戳> 返回成功；listAgentPresets 也是本地列表。src/index.js、安装脚本和 bundle 没有接入该 preset 注册或工具授权函数。YAML 声称通过 dsh-mnemosyne-agent-preset insert 注册，但 cordis.patch.yml 实际只有主插件 insert 和说明注释。",
+    "impact": "本地函数返回 session_id，不代表真实 DSH agentPresets/list 可见或 session/create 成功；工具白名单检查未证明实际会话会执行。",
+    "fix": "使用目标 DSH 的真实 preset 注册/加载契约，挂载实际工具策略。用临时 DSH_HOME 启动受支持版本，走真实 list/create 并验证会话工具可见范围，不能再直接测试模拟函数代替。"
+  },
+  {
+    "id": "R05",
+    "priority": "P1",
+    "packages": [
+      "D01",
+      "D04"
+    ],
+    "title": "发布包漏掉安装脚本和 preset 文件",
+    "file": "package.json",
+    "line": 29,
+    "proof": "npm-pack-audit.json",
+    "detail": "npm pack --dry-run --json --ignore-scripts 显示 scripts/install-dsh.mjs、scripts/migrate-dsh.mjs、dsh/agent-presets/mnemosyne/agent.cordis.yml 均未打包；但 package scripts 和 src/agent-preset.js 引用它们。本地 file 源测试能访问完整仓库，从而掩盖缺文件。",
+    "impact": "拿打包产物安装的用户无法使用声明的安装/迁移命令，preset loader 也会缺资源。本结论针对所检查 npm 打包产物，不把本地安装成功当发布包成功。",
+    "fix": "补齐 files 白名单及对应文档资源；在真正打包产物的干净目录验证安装命令 --help、迁移入口和 preset 资源加载，再做临时 profile 集成。"
+  },
+  {
+    "id": "R06",
+    "priority": "P1",
+    "packages": [
+      "D05"
+    ],
+    "title": "新增 MCP REST 网关没有 stdio 运行入口",
+    "file": "src/mcp-gateway.js",
+    "line": 51,
+    "proof": "mcp-stdio-audit.json",
+    "detail": "向 node src/mcp-gateway.js 的 stdin 发送 initialize，进程退出码 0、stdout 为空。文件仅导出类和进程内 handle，没有 stdin/stdout 循环；package/scripts 也没有连接该类的 stdio 启动入口。现有 D05 测试直接调用 handle 并注入客户端。",
+    "impact": "新增网关不能作为所承诺的 stdio MCP 服务器使用。Node 服务内部既有 Python MCP 是另一条路径，其存在不能替代本工程承诺的 REST 宿主网关交付。",
+    "fix": "提供真实启动入口、JSON-RPC 读写/生命周期/错误处理和明确配置方式；用子进程测试 initialize、initialized、tools/list、tools/call，而不是仅测试 handle。"
+  },
+  {
+    "id": "R07",
+    "priority": "P1",
+    "packages": [
+      "D02"
+    ],
+    "title": "Profile 迁完后重跑会跳过尚未完成的数据迁移",
+    "file": "scripts/migrate-dsh.mjs",
+    "line": 299,
+    "proof": "counterexamples-dsh.json",
+    "detail": "临时 profile 第一次 --skip-data 完成改名；第二次不带 --skip-data，返回 already_migrated，连 data 结果都没有。代码在旧 bundle 消失后直接返回，早于 runMigrateLegacy；首次数据迁移失败也已经改完 profile，重跑同样会走这条分支。",
+    "impact": "“修复数据问题后重跑”的提示无法兑现，元数据迁移完成被误当作整个迁移完成。",
+    "fix": "持久记录 profile_done/data_pending/data_done 等阶段，重跑核对完成状态并继续未完成的数据阶段。增加部分完成、数据阶段失败再重试和完成后幂等的独立测试。"
+  },
+  {
+    "id": "R08",
+    "priority": "P2",
+    "packages": [
+      "E09",
+      "M03"
+    ],
+    "title": "融合过滤清空结果后又恢复过期候选",
+    "file": "service/src/cognitive_memory/retrieval/pipeline.py",
+    "line": 226,
+    "proof": "counterexamples-python.json / expired_fusion_result_restored",
+    "detail": "记录 metadata.validity_to=2000-01-01，current 检索中融合返回 unknown/no_safe_items，但流水线通过过滤结果 or items 恢复原候选，最终 PARTIAL 仍携带该过期记录。",
+    "impact": "后过滤本应强制生效，却在安全结果为空时失效；状态写 partial 并不能替代过滤。",
+    "fix": "区分通道不可用与安全过滤为空，禁止对后者回退原始候选；携带完整时间信息并补普通 /retrieve 的过期/越权/全量剔除链路测试。"
+  },
+  {
+    "id": "R09",
+    "priority": "P2",
+    "packages": [
+      "E04",
+      "M05"
+    ],
+    "title": "客户端布尔值能把字符估算标为精确硬上限",
+    "file": "service/src/cognitive_memory/core/service.py",
+    "line": 1023,
+    "proof": "counterexamples-python.json / client_flag_makes_heuristic_measured",
+    "detail": "POST /contexts/build 仅设 has_accurate_tokenizer=true，返回 measurement=measured、hard_limit_verified=true；实际仍固定传 estimate_fn=estimate_tokens_chars，未接入对应 tokenizer。",
+    "impact": "违反不把 token 估算当精确硬上限的契约，宿主可能据此错误规划上下文。",
+    "fix": "measurement 与硬验证状态由实际计量器和完整请求覆盖决定；没有真实 tokenizer 时忽略该声明或返回不支持。宿主提供计量须单独标可信范围，不能用一个 bool 覆盖全部片段。"
+  },
+  {
+    "id": "R10",
+    "priority": "P2",
+    "packages": [
+      "D02"
+    ],
+    "title": "迁移全局字符串替换会改动其他插件配置",
+    "file": "scripts/migrate-dsh.mjs",
+    "line": 114,
+    "proof": "counterexamples-dsh.json",
+    "detail": "与本插件无关的 keep-other.config.sourcePath=D:/fixtures/dsh-cognitive-memory/archive.txt，被改成 D:/fixtures/dsh-mnemosyne/archive.txt。rewriteCordis 对全文 split/join，未限定 owned insert 行。",
+    "impact": "违反其他配置逐字节保留的要求，可能把其他插件指向错误资源。",
+    "fix": "只修改已解析且属于本插件的 id/name/owned 字段，或做保留其他字节的限定补丁。测试其他插件的路径、字符串和注释包含旧名称时保持不变。"
+  }
+]

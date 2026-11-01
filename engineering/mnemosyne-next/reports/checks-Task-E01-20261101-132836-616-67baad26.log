@@ -1,0 +1,15 @@
+CHECK pack structure | cwd=D:\HuaweiMoveData\Users\残月Y\Desktop\桌宠\dsh-mnemosyne
+{
+  "kind": "engineering_spec_validation",
+  "ok": true,
+  "tasks": 16,
+  "public_cases": 50,
+  "source_documents": 11,
+  "implementation_status": "not_started",
+  "failures": [],
+  "limits": "Checks specification and reporting structure only, not business behavior or test authenticity."
+}
+EXIT 0 | pack structure
+CHECK python version | cwd=D:\HuaweiMoveData\Users\残月Y\Desktop\桌宠\dsh-mnemosyne
+Python 3.11.15
+EXIT 0 | python version

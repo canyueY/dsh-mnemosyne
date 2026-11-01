@@ -1,121 +1,637 @@
 {
   "schema_version": "1.0",
-  "current_task": "E00",
-  "next_task": "E00",
-  "updated_at": null,
-  "implementation_state": "not_started",
+  "current_task": "E15",
+  "next_task": null,
+  "updated_at": "2026-11-01T16:30:00+08:00",
+  "implementation_state": "complete",
+  "review_fixes": "engineering/review-fixes F00–F12 done; post-fix pytest 437 / npm 34 / diff-check clean",
   "tasks": [
     {
       "id": "E00",
-      "status": "pending",
-      "report": null,
+      "status": "done",
+      "report": "reports/E00.md",
       "case_results": [],
-      "notes": "尚未实施或运行项目验证"
+      "notes": "Baseline green: pytest 352, node 7, theory ok. service/.venv created for isolated deps. See BASELINE.md + IMPLEMENTATION_MAP.md."
     },
     {
       "id": "E01",
-      "status": "pending",
-      "report": null,
-      "case_results": [],
-      "notes": "尚未实施或运行项目验证"
+      "status": "done",
+      "report": "reports/E01.md",
+      "case_results": [
+        {
+          "id": "AC01",
+          "status": "passed",
+          "test": "tests/unit/test_source_coverage_contract.py::SourceCoverageContractTests::test_ac01"
+        },
+        {
+          "id": "AC02",
+          "status": "passed",
+          "test": "tests/unit/test_source_coverage_contract.py::SourceCoverageContractTests::test_ac02"
+        },
+        {
+          "id": "AC03",
+          "status": "passed",
+          "test": "tests/unit/test_source_coverage_contract.py::SourceCoverageContractTests::test_ac03"
+        },
+        {
+          "id": "AC04",
+          "status": "passed",
+          "test": "tests/unit/test_source_coverage_contract.py::SourceCoverageContractTests::test_ac04"
+        }
+      ],
+      "notes": "SourceRef/Coverage + workspace gates wired; 25 passed on Task E01 checks."
     },
     {
       "id": "E02",
-      "status": "pending",
-      "report": null,
-      "case_results": [],
-      "notes": "尚未实施或运行项目验证"
+      "status": "done",
+      "report": "reports/E02.md",
+      "case_results": [
+        {
+          "id": "AC05",
+          "status": "passed",
+          "test": "tests/unit/test_derived_freshness.py::DerivedFreshnessTests::test_ac05"
+        },
+        {
+          "id": "AC06",
+          "status": "passed",
+          "test": "tests/unit/test_derived_freshness.py::DerivedFreshnessTests::test_ac06"
+        },
+        {
+          "id": "AC07",
+          "status": "passed",
+          "test": "tests/unit/test_derived_freshness.py::DerivedFreshnessTests::test_ac07"
+        },
+        {
+          "id": "AC08",
+          "status": "passed",
+          "test": "tests/unit/test_derived_freshness.py::DerivedFreshnessTests::test_ac08"
+        },
+        {
+          "id": "AC09",
+          "status": "passed",
+          "test": "tests/unit/test_derived_freshness.py::DerivedFreshnessTests::test_ac09"
+        }
+      ],
+      "notes": "DerivationManifest + tombstone + lineage cycle; 63 passed on Task E02 checks."
     },
     {
       "id": "E03",
-      "status": "pending",
-      "report": null,
-      "case_results": [],
-      "notes": "尚未实施或运行项目验证"
+      "status": "done",
+      "report": "reports/E03.md",
+      "case_results": [
+        {
+          "id": "AC10",
+          "status": "passed",
+          "test": "tests/unit/test_answer_selection.py::AnswerSelectionTests::test_ac10"
+        },
+        {
+          "id": "AC11",
+          "status": "passed",
+          "test": "tests/unit/test_answer_selection.py::AnswerSelectionTests::test_ac11"
+        },
+        {
+          "id": "AC12",
+          "status": "passed",
+          "test": "tests/unit/test_answer_selection.py::AnswerSelectionTests::test_ac12"
+        },
+        {
+          "id": "AC13",
+          "status": "passed",
+          "test": "tests/unit/test_answer_selection.py::AnswerSelectionTests::test_ac13"
+        },
+        {
+          "id": "AC14",
+          "status": "passed",
+          "test": "tests/unit/test_answer_selection.py::AnswerSelectionTests::test_ac14"
+        },
+        {
+          "id": "AC15",
+          "status": "passed",
+          "test": "tests/unit/test_answer_selection.py::AnswerSelectionTests::test_ac15"
+        },
+        {
+          "id": "AC16",
+          "status": "passed",
+          "test": "tests/unit/test_answer_selection.py::AnswerSelectionTests::test_ac16"
+        }
+      ],
+      "notes": "AnswerSelection REST/SDK/OpenAPI; 78 passed + sdk-ts build."
     },
     {
       "id": "E04",
-      "status": "pending",
-      "report": null,
-      "case_results": [],
-      "notes": "尚未实施或运行项目验证"
+      "status": "done",
+      "report": "reports/E04.md",
+      "case_results": [
+        {
+          "id": "AC17",
+          "status": "passed",
+          "test": "tests/unit/test_context_envelope_budget.py::ContextEnvelopeBudgetTests::test_ac17"
+        },
+        {
+          "id": "AC18",
+          "status": "passed",
+          "test": "tests/unit/test_context_envelope_budget.py::ContextEnvelopeBudgetTests::test_ac18"
+        },
+        {
+          "id": "AC19",
+          "status": "passed",
+          "test": "tests/unit/test_context_envelope_budget.py::ContextEnvelopeBudgetTests::test_ac19"
+        }
+      ],
+      "notes": "Context envelope budget wired into build_context; 29 passed."
     },
     {
       "id": "E05",
-      "status": "pending",
-      "report": null,
-      "case_results": [],
-      "notes": "尚未实施或运行项目验证"
+      "status": "done",
+      "report": "reports/E05.md",
+      "case_results": [
+        {
+          "id": "AC20",
+          "status": "passed",
+          "test": "tests/contract/test_answer_selection_adapter_e2e.py::AnswerSelectionAdapterE2ETests::test_ac20"
+        },
+        {
+          "id": "AC21",
+          "status": "passed",
+          "test": "tests/contract/test_answer_selection_adapter_e2e.py::AnswerSelectionAdapterE2ETests::test_ac21"
+        }
+      ],
+      "notes": "Host selectAnswer tool + unavailable envelope; node 11 / py 4 passed."
     },
     {
       "id": "E06",
-      "status": "pending",
-      "report": null,
-      "case_results": [],
-      "notes": "尚未实施或运行项目验证"
+      "status": "done",
+      "report": "reports/E06.md",
+      "case_results": [
+        {
+          "id": "AC22",
+          "status": "passed",
+          "test": "tests/unit/test_session_checkpoint.py::SessionCheckpointTests::test_ac22"
+        },
+        {
+          "id": "AC23",
+          "status": "passed",
+          "test": "tests/unit/test_session_checkpoint.py::SessionCheckpointTests::test_ac23"
+        },
+        {
+          "id": "AC24",
+          "status": "passed",
+          "test": "tests/unit/test_session_checkpoint.py::SessionCheckpointTests::test_ac24"
+        },
+        {
+          "id": "AC25",
+          "status": "passed",
+          "test": "tests/unit/test_session_checkpoint.py::SessionCheckpointTests::test_ac25"
+        }
+      ],
+      "notes": "SessionLedger + ContextManifest/checkpoint/resume; host visible-only capture; py 12 / node 11."
     },
     {
       "id": "E07",
-      "status": "pending",
-      "report": null,
-      "case_results": [],
-      "notes": "尚未实施或运行项目验证"
+      "status": "done",
+      "report": "reports/E07.md",
+      "case_results": [
+        {
+          "id": "AC26",
+          "status": "passed",
+          "test": "tests/unit/test_runtime_cost_ledger.py::RuntimeCostLedgerTests::test_ac26"
+        },
+        {
+          "id": "AC27",
+          "status": "passed",
+          "test": "tests/unit/test_runtime_cost_ledger.py::RuntimeCostLedgerTests::test_ac27"
+        },
+        {
+          "id": "AC28",
+          "status": "passed",
+          "test": "tests/unit/test_runtime_cost_ledger.py::RuntimeCostLedgerTests::test_ac28"
+        }
+      ],
+      "notes": "UsageLedger + call_budget entry enforcement; py 13 passed."
     },
     {
       "id": "E08",
-      "status": "pending",
-      "report": null,
-      "case_results": [],
-      "notes": "尚未实施或运行项目验证"
+      "status": "done",
+      "report": "reports/E08.md",
+      "case_results": [
+        {
+          "id": "AC29",
+          "status": "passed",
+          "test": "tests/unit/test_cognitive_health_probes.py::CognitiveHealthProbesTests::test_ac29"
+        },
+        {
+          "id": "AC30",
+          "status": "passed",
+          "test": "tests/contract/test_clean_bank_lifecycle.py::CleanBankLifecycleTests::test_ac30"
+        },
+        {
+          "id": "AC31",
+          "status": "passed",
+          "test": "tests/unit/test_cognitive_health_probes.py::CognitiveHealthProbesTests::test_ac31"
+        }
+      ],
+      "notes": "Health probes OK/WARN/ERROR/PENDING/UNKNOWN + clean-bank lifecycle; py 11."
     },
     {
       "id": "E09",
-      "status": "pending",
-      "report": null,
-      "case_results": [],
-      "notes": "尚未实施或运行项目验证"
+      "status": "done",
+      "report": "reports/E09.md",
+      "case_results": [
+        {
+          "id": "AC32",
+          "status": "passed",
+          "test": "tests/unit/test_retrieval_fusion.py::RetrievalFusionTests::test_ac32"
+        },
+        {
+          "id": "AC33",
+          "status": "passed",
+          "test": "tests/unit/test_retrieval_fusion.py::RetrievalFusionTests::test_ac33"
+        },
+        {
+          "id": "AC34",
+          "status": "passed",
+          "test": "tests/unit/test_retrieval_fusion.py::RetrievalFusionTests::test_ac34"
+        }
+      ],
+      "notes": "NFKC lexical + RRF fusion + counterevidence channel; py 13."
     },
     {
       "id": "E10",
-      "status": "pending",
-      "report": null,
-      "case_results": [],
-      "notes": "尚未实施或运行项目验证"
+      "status": "done",
+      "report": "reports/E10.md",
+      "case_results": [
+        {
+          "id": "AC35",
+          "status": "passed",
+          "test": "tests/unit/test_session_consolidation.py::SessionConsolidationTests::test_ac35"
+        },
+        {
+          "id": "AC36",
+          "status": "passed",
+          "test": "tests/unit/test_session_consolidation.py::SessionConsolidationTests::test_ac36"
+        },
+        {
+          "id": "AC37",
+          "status": "passed",
+          "test": "tests/unit/test_session_consolidation.py::SessionConsolidationTests::test_ac37"
+        }
+      ],
+      "notes": "Session consolidation + utility view; background off until E11; py 12."
     },
     {
       "id": "E11",
-      "status": "pending",
-      "report": null,
-      "case_results": [],
-      "notes": "尚未实施或运行项目验证"
+      "status": "done",
+      "report": "reports/E11.md",
+      "case_results": [
+        {
+          "id": "AC38",
+          "status": "passed",
+          "test": "tests/recovery/test_consumer_watermarks.py::ConsumerWatermarkTests::test_ac38"
+        },
+        {
+          "id": "AC39",
+          "status": "passed",
+          "test": "tests/recovery/test_consumer_watermarks.py::ConsumerWatermarkTests::test_ac39"
+        },
+        {
+          "id": "AC40",
+          "status": "passed",
+          "test": "tests/recovery/test_consumer_watermarks.py::ConsumerWatermarkTests::test_ac40"
+        }
+      ],
+      "notes": "Independent watermarks + write-layer fencing; py 8."
     },
     {
       "id": "E12",
-      "status": "pending",
-      "report": null,
-      "case_results": [],
-      "notes": "尚未实施或运行项目验证"
+      "status": "done",
+      "report": "reports/E12.md",
+      "case_results": [
+        {
+          "id": "AC41",
+          "status": "passed",
+          "test": "tests/unit/test_execution_receipts.py::ExecutionReceiptTests::test_ac41"
+        },
+        {
+          "id": "AC42",
+          "status": "passed",
+          "test": "tests/unit/test_execution_receipts.py::ExecutionReceiptTests::test_ac42"
+        },
+        {
+          "id": "AC43",
+          "status": "passed",
+          "test": "tests/unit/test_execution_receipts.py::ExecutionReceiptTests::test_ac43"
+        }
+      ],
+      "notes": "ExecutionReceipt + FakeExecutor; py 55 + sdk-ts build."
     },
     {
       "id": "E13",
-      "status": "pending",
-      "report": null,
-      "case_results": [],
-      "notes": "尚未实施或运行项目验证"
+      "status": "done",
+      "report": "reports/E13.md",
+      "case_results": [
+        {
+          "id": "AC44",
+          "status": "passed",
+          "test": "tests/unit/test_attributed_feedback_learning.py::AttributedFeedbackLearningTests::test_ac44"
+        },
+        {
+          "id": "AC45",
+          "status": "passed",
+          "test": "tests/unit/test_attributed_feedback_learning.py::AttributedFeedbackLearningTests::test_ac45"
+        },
+        {
+          "id": "AC46",
+          "status": "passed",
+          "test": "tests/unit/test_attributed_feedback_learning.py::AttributedFeedbackLearningTests::test_ac46"
+        }
+      ],
+      "notes": "Attributed feedback + limited strategy learner; py 52."
     },
     {
       "id": "E14",
-      "status": "pending",
-      "report": null,
-      "case_results": [],
-      "notes": "尚未实施或运行项目验证"
+      "status": "done",
+      "report": "reports/E14.md",
+      "case_results": [
+        {
+          "id": "AC47",
+          "status": "passed",
+          "test": "tests/contract/test_staged_content_import.py::StagedContentImportTests::test_ac47"
+        },
+        {
+          "id": "AC48",
+          "status": "passed",
+          "test": "tests/unit/test_text_book_anchors.py::TextBookAnchorTests::test_ac48"
+        },
+        {
+          "id": "AC49",
+          "status": "passed",
+          "test": "tests/unit/test_text_book_anchors.py::TextBookAnchorTests::test_ac49"
+        },
+        {
+          "id": "AC50",
+          "status": "passed",
+          "test": "tests/contract/test_staged_content_import.py::StagedContentImportTests::test_ac50"
+        }
+      ],
+      "notes": "UTF-8 text book domain + staged import; py 18."
     },
     {
       "id": "E15",
-      "status": "pending",
-      "report": null,
-      "case_results": [],
-      "notes": "尚未实施或运行项目验证"
+      "status": "done",
+      "report": "reports/E15.md",
+      "case_results": [
+        {
+          "id": "AC01",
+          "status": "passed",
+          "test": "tests/unit/test_source_coverage_contract.py::SourceCoverageContractTests::test_ac01"
+        },
+        {
+          "id": "AC02",
+          "status": "passed",
+          "test": "tests/unit/test_source_coverage_contract.py::SourceCoverageContractTests::test_ac02"
+        },
+        {
+          "id": "AC03",
+          "status": "passed",
+          "test": "tests/unit/test_source_coverage_contract.py::SourceCoverageContractTests::test_ac03"
+        },
+        {
+          "id": "AC04",
+          "status": "passed",
+          "test": "tests/unit/test_source_coverage_contract.py::SourceCoverageContractTests::test_ac04"
+        },
+        {
+          "id": "AC05",
+          "status": "passed",
+          "test": "tests/unit/test_derived_freshness.py::DerivedFreshnessTests::test_ac05"
+        },
+        {
+          "id": "AC06",
+          "status": "passed",
+          "test": "tests/unit/test_derived_freshness.py::DerivedFreshnessTests::test_ac06"
+        },
+        {
+          "id": "AC07",
+          "status": "passed",
+          "test": "tests/unit/test_derived_freshness.py::DerivedFreshnessTests::test_ac07"
+        },
+        {
+          "id": "AC08",
+          "status": "passed",
+          "test": "tests/unit/test_derived_freshness.py::DerivedFreshnessTests::test_ac08"
+        },
+        {
+          "id": "AC09",
+          "status": "passed",
+          "test": "tests/unit/test_derived_freshness.py::DerivedFreshnessTests::test_ac09"
+        },
+        {
+          "id": "AC10",
+          "status": "passed",
+          "test": "tests/unit/test_answer_selection.py::AnswerSelectionTests::test_ac10"
+        },
+        {
+          "id": "AC11",
+          "status": "passed",
+          "test": "tests/unit/test_answer_selection.py::AnswerSelectionTests::test_ac11"
+        },
+        {
+          "id": "AC12",
+          "status": "passed",
+          "test": "tests/unit/test_answer_selection.py::AnswerSelectionTests::test_ac12"
+        },
+        {
+          "id": "AC13",
+          "status": "passed",
+          "test": "tests/unit/test_answer_selection.py::AnswerSelectionTests::test_ac13"
+        },
+        {
+          "id": "AC14",
+          "status": "passed",
+          "test": "tests/unit/test_answer_selection.py::AnswerSelectionTests::test_ac14"
+        },
+        {
+          "id": "AC15",
+          "status": "passed",
+          "test": "tests/unit/test_answer_selection.py::AnswerSelectionTests::test_ac15"
+        },
+        {
+          "id": "AC16",
+          "status": "passed",
+          "test": "tests/unit/test_answer_selection.py::AnswerSelectionTests::test_ac16"
+        },
+        {
+          "id": "AC17",
+          "status": "passed",
+          "test": "tests/unit/test_context_envelope_budget.py::ContextEnvelopeBudgetTests::test_ac17"
+        },
+        {
+          "id": "AC18",
+          "status": "passed",
+          "test": "tests/unit/test_context_envelope_budget.py::ContextEnvelopeBudgetTests::test_ac18"
+        },
+        {
+          "id": "AC19",
+          "status": "passed",
+          "test": "tests/unit/test_context_envelope_budget.py::ContextEnvelopeBudgetTests::test_ac19"
+        },
+        {
+          "id": "AC20",
+          "status": "passed",
+          "test": "tests/contract/test_answer_selection_adapter_e2e.py::AnswerSelectionAdapterE2ETests::test_ac20"
+        },
+        {
+          "id": "AC21",
+          "status": "passed",
+          "test": "tests/contract/test_answer_selection_adapter_e2e.py::AnswerSelectionAdapterE2ETests::test_ac21"
+        },
+        {
+          "id": "AC22",
+          "status": "passed",
+          "test": "tests/unit/test_session_checkpoint.py::SessionCheckpointTests::test_ac22"
+        },
+        {
+          "id": "AC23",
+          "status": "passed",
+          "test": "tests/unit/test_session_checkpoint.py::SessionCheckpointTests::test_ac23"
+        },
+        {
+          "id": "AC24",
+          "status": "passed",
+          "test": "tests/unit/test_session_checkpoint.py::SessionCheckpointTests::test_ac24"
+        },
+        {
+          "id": "AC25",
+          "status": "passed",
+          "test": "tests/unit/test_session_checkpoint.py::SessionCheckpointTests::test_ac25"
+        },
+        {
+          "id": "AC26",
+          "status": "passed",
+          "test": "tests/unit/test_runtime_cost_ledger.py::RuntimeCostLedgerTests::test_ac26"
+        },
+        {
+          "id": "AC27",
+          "status": "passed",
+          "test": "tests/unit/test_runtime_cost_ledger.py::RuntimeCostLedgerTests::test_ac27"
+        },
+        {
+          "id": "AC28",
+          "status": "passed",
+          "test": "tests/unit/test_runtime_cost_ledger.py::RuntimeCostLedgerTests::test_ac28"
+        },
+        {
+          "id": "AC29",
+          "status": "passed",
+          "test": "tests/unit/test_cognitive_health_probes.py::CognitiveHealthProbesTests::test_ac29"
+        },
+        {
+          "id": "AC30",
+          "status": "passed",
+          "test": "tests/contract/test_clean_bank_lifecycle.py::CleanBankLifecycleTests::test_ac30"
+        },
+        {
+          "id": "AC31",
+          "status": "passed",
+          "test": "tests/unit/test_cognitive_health_probes.py::CognitiveHealthProbesTests::test_ac31"
+        },
+        {
+          "id": "AC32",
+          "status": "passed",
+          "test": "tests/unit/test_retrieval_fusion.py::RetrievalFusionTests::test_ac32"
+        },
+        {
+          "id": "AC33",
+          "status": "passed",
+          "test": "tests/unit/test_retrieval_fusion.py::RetrievalFusionTests::test_ac33"
+        },
+        {
+          "id": "AC34",
+          "status": "passed",
+          "test": "tests/unit/test_retrieval_fusion.py::RetrievalFusionTests::test_ac34"
+        },
+        {
+          "id": "AC35",
+          "status": "passed",
+          "test": "tests/unit/test_session_consolidation.py::SessionConsolidationTests::test_ac35"
+        },
+        {
+          "id": "AC36",
+          "status": "passed",
+          "test": "tests/unit/test_session_consolidation.py::SessionConsolidationTests::test_ac36"
+        },
+        {
+          "id": "AC37",
+          "status": "passed",
+          "test": "tests/unit/test_session_consolidation.py::SessionConsolidationTests::test_ac37"
+        },
+        {
+          "id": "AC38",
+          "status": "passed",
+          "test": "tests/recovery/test_consumer_watermarks.py::ConsumerWatermarkTests::test_ac38"
+        },
+        {
+          "id": "AC39",
+          "status": "passed",
+          "test": "tests/recovery/test_consumer_watermarks.py::ConsumerWatermarkTests::test_ac39"
+        },
+        {
+          "id": "AC40",
+          "status": "passed",
+          "test": "tests/recovery/test_consumer_watermarks.py::ConsumerWatermarkTests::test_ac40"
+        },
+        {
+          "id": "AC41",
+          "status": "passed",
+          "test": "tests/unit/test_execution_receipts.py::ExecutionReceiptTests::test_ac41"
+        },
+        {
+          "id": "AC42",
+          "status": "passed",
+          "test": "tests/unit/test_execution_receipts.py::ExecutionReceiptTests::test_ac42"
+        },
+        {
+          "id": "AC43",
+          "status": "passed",
+          "test": "tests/unit/test_execution_receipts.py::ExecutionReceiptTests::test_ac43"
+        },
+        {
+          "id": "AC44",
+          "status": "passed",
+          "test": "tests/unit/test_attributed_feedback_learning.py::AttributedFeedbackLearningTests::test_ac44"
+        },
+        {
+          "id": "AC45",
+          "status": "passed",
+          "test": "tests/unit/test_attributed_feedback_learning.py::AttributedFeedbackLearningTests::test_ac45"
+        },
+        {
+          "id": "AC46",
+          "status": "passed",
+          "test": "tests/unit/test_attributed_feedback_learning.py::AttributedFeedbackLearningTests::test_ac46"
+        },
+        {
+          "id": "AC47",
+          "status": "passed",
+          "test": "tests/contract/test_staged_content_import.py::StagedContentImportTests::test_ac47"
+        },
+        {
+          "id": "AC48",
+          "status": "passed",
+          "test": "tests/unit/test_text_book_anchors.py::TextBookAnchorTests::test_ac48"
+        },
+        {
+          "id": "AC49",
+          "status": "passed",
+          "test": "tests/unit/test_text_book_anchors.py::TextBookAnchorTests::test_ac49"
+        },
+        {
+          "id": "AC50",
+          "status": "passed",
+          "test": "tests/contract/test_staged_content_import.py::StagedContentImportTests::test_ac50"
+        }
+      ],
+      "notes": "Final green: py 413, node 11, theory, sdk-ts, continuity, clean-install. See FINAL_REPORT.md + CASE_RESULTS.json."
     }
   ]
 }

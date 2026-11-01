@@ -1,0 +1,9 @@
+DSH_INTEGRATION.md:63: trailing whitespace.
++`auto_start`、`service_root`、`data_dir`、`python`、`base_url`、`token`(secret)、`auto_capture`。  
+service/docs/MNEMOSYNE_NODE_OPERATIONS.md:3: trailing whitespace.
++**状态：** Phase 1 Implemented（2026-10-30）；E08 健康探针（2026-11-01）  
+service/src/cognitive_memory/cognition/consolidate.py:344: new blank line at EOF.
+
+warning: in the working copy of 'DSH_INTEGRATION.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'engineering/dsh-integration/PROGRESS.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'engineering/mnemosyne-retrieval-quality/PROGRESS.json', LF will be replaced by CRLF the next time Git touches it

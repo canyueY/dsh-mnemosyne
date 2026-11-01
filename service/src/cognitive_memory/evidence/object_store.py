@@ -56,15 +56,85 @@ class EvidenceObjectStore:
         metadata: dict[str, Any] | None = None,
         legacy_memory_id: str | None = None,
         security: dict[str, Any] | None = None,
+        revision: str | None = None,
+        source_role: str | None = None,
+        coverage: dict[str, Any] | None = None,
+        apply_source_contract: bool = False,
+        certify_root: bool = False,
     ) -> dict[str, Any]:
         """Create Evidence. provenance_status defaults: no source → unknown; else partial."""
+        from cognitive_memory.evidence.source_contract import (
+            attach_source_contract,
+            count_independent_supports,
+            normalize_coverage,
+            normalize_source_ref,
+            support_identity_key,
+        )
+
         st = str(source_type or "").strip() or "unknown"
         ref = str(source_ref or "").strip()
+        meta = dict(metadata or {})
         if provenance_status is None:
             if not ref or st == "unknown":
                 provenance_status = "unknown"
             else:
                 provenance_status = "partial"  # never auto-complete without chain audit
+        # E01：可选写入 SourceRef/Coverage；默认不改变旧调用的 root 语义。
+        root_for_row = root_source_id or ref
+        content_hash_for_guard = ""
+        if apply_source_contract or revision is not None or coverage is not None or source_role or meta.get("source_ref") or meta.get("coverage"):
+            existing_src = meta.get("source_ref") if isinstance(meta.get("source_ref"), dict) else {}
+            rev = revision if revision is not None else existing_src.get("revision") or meta.get("revision") or "0"
+            req_root = root_source_id or existing_src.get("root_source_id") or ""
+            sref = normalize_source_ref(
+                source_id=ref or str(existing_src.get("source_id") or "") or "unknown",
+                root_source_id=str(req_root or ""),
+                revision=str(rev),
+                content=content_for_fingerprint,
+                source_type=st,
+                source_role=source_role or existing_src.get("source_role"),
+                bank_id=bank_id,
+                producer=producer,
+                locator=existing_src.get("locator") if isinstance(existing_src.get("locator"), dict) else None,
+                allow_self_attest=not certify_root,
+            )
+            cov_raw = coverage if coverage is not None else meta.get("coverage")
+            cov = normalize_coverage(cov_raw) if cov_raw is not None else None
+            meta = attach_source_contract(meta, source_ref=sref, coverage=cov)
+            root_for_row = sref.root_source_id
+            content_hash_for_guard = sref.content_hash
+            # 同源同修订副本：不形成新独立支持（返回既有条目）
+            twin = self.find_by_support_identity(
+                root_source_id=sref.root_source_id,
+                revision=sref.revision,
+                bank_id=bank_id,
+                content_hash=sref.content_hash,
+            )
+            if twin:
+                return {
+                    "ok": True,
+                    "deduped": True,
+                    "dedupe_reason": "same_root_revision",
+                    "evidence": twin,
+                    "independent_supports": count_independent_supports([twin]),
+                }
+        # E02：授权删除 tombstone 阻止重复导入复活
+        if root_for_row:
+            from cognitive_memory.evidence.derivation import DerivationStore
+
+            guard = DerivationStore(self.db).guard_reimport(
+                root_source_id=str(root_for_row),
+                content_hash=content_hash_for_guard,
+                bank_id=bank_id,
+            )
+            if not guard.get("allowed", True):
+                return {
+                    "ok": False,
+                    "deduped": False,
+                    "detail": guard.get("code") or "tombstone_blocks_reimport",
+                    "tombstone": guard.get("detail"),
+                    "note": "source_unverifiable_due_to_authorized_deletion",
+                }
         fp = fingerprint_of(
             source_type=st, source_ref=ref, content=content_for_fingerprint
         )
@@ -74,7 +144,7 @@ class EvidenceObjectStore:
         indep = independence_key_of(
             source_type=st,
             producer=producer,
-            root_source_id=root_source_id or ref,
+            root_source_id=root_for_row or ref,
         )
         eid = _new_id()
         now = _now()
@@ -96,19 +166,65 @@ class EvidenceObjectStore:
                     fp,
                     provenance_status,
                     indep,
-                    root_source_id or ref,
+                    root_for_row,
                     producer,
                     role_hint,
                     validation_state,
                     json.dumps(security or {}, ensure_ascii=False),
                     json.dumps(chain or [], ensure_ascii=False),
-                    json.dumps(metadata or {}, ensure_ascii=False),
+                    json.dumps(meta, ensure_ascii=False),
                     legacy_memory_id,
                     now,
                     now,
                 ),
             )
-        return {"ok": True, "deduped": False, "evidence": self.get(eid)}
+        ev = self.get(eid)
+        out: dict[str, Any] = {"ok": True, "deduped": False, "evidence": ev}
+        if ev and isinstance(ev.get("metadata"), dict) and ev["metadata"].get("source_ref"):
+            out["support_identity"] = support_identity_key(ev)
+        return out
+
+    def find_by_support_identity(
+        self,
+        *,
+        root_source_id: str,
+        revision: str = "0",
+        bank_id: str = "personal",
+        content_hash: str = "",
+    ) -> dict[str, Any] | None:
+        """按 root+revision（可选 content_hash）查找已有证据副本。"""
+        root = str(root_source_id or "").strip()
+        rev = str(revision or "0").strip() or "0"
+        if not root:
+            return None
+        with self.db.exclusive() as conn:
+            rows = conn.execute(
+                """
+                SELECT * FROM evidences
+                WHERE bank_id=? AND root_source_id=?
+                ORDER BY created_at ASC
+                """,
+                (bank_id, root),
+            ).fetchall()
+        for row in rows:
+            ev = self._row_to_dict(row)
+            meta = ev.get("metadata") if isinstance(ev.get("metadata"), dict) else {}
+            src = meta.get("source_ref") if isinstance(meta.get("source_ref"), dict) else {}
+            ev_rev = str(src.get("revision") or meta.get("revision") or "0")
+            if ev_rev != rev:
+                continue
+            if content_hash:
+                ch = str(src.get("content_hash") or "")
+                if ch and ch != content_hash:
+                    continue
+            return ev
+        return None
+
+    def independent_support_count(self, evidence_ids: list[str]) -> dict[str, Any]:
+        from cognitive_memory.evidence.source_contract import count_independent_supports
+
+        items = [self.get(eid) for eid in evidence_ids]
+        return count_independent_supports([e for e in items if e])
 
     def create_from_observation(
         self,
@@ -222,42 +338,71 @@ class EvidenceObjectStore:
         Unknown/cyclic/missing/cross-bank ancestry fails closed.
         """
         roots, visited, active = set(), set(), set()
+        reasons: list[str] = []
         origin = self.get(evidence_id)
-        def visit(eid):
+
+        def visit(eid: str) -> bool:
             if eid in active:
+                if "dependency_cycle" not in reasons:
+                    reasons.append("dependency_cycle")
                 return False
             if eid in visited:
                 return True
             if len(visited) >= max_nodes:
+                if "dependency_budget_exhausted" not in reasons:
+                    reasons.append("dependency_budget_exhausted")
                 return False
             ev = self.get(eid)
             if not ev or not origin or ev["bank_id"] != origin["bank_id"]:
+                if "dependency_missing_or_cross_bank" not in reasons:
+                    reasons.append("dependency_missing_or_cross_bank")
                 return False
             visited.add(eid)
             active.add(eid)
             if ev["provenance_status"] == "unknown" or not ev["source_ref"]:
+                if "provenance_unknown" not in reasons:
+                    reasons.append("provenance_unknown")
+                active.discard(eid)
                 return False
             if ev["validation_state"] in {"revoked", "invalidated", "expired", "rejected"}:
+                if "evidence_invalid" not in reasons:
+                    reasons.append("evidence_invalid")
+                active.discard(eid)
                 return False
             expiry = ev["metadata"].get("valid_until")
             if expiry:
                 try:
                     if datetime.fromisoformat(expiry.replace("Z", "+00:00")) <= datetime.now(timezone.utc):
+                        if "evidence_expired" not in reasons:
+                            reasons.append("evidence_expired")
+                        active.discard(eid)
                         return False
                 except (ValueError, TypeError, AttributeError):
+                    active.discard(eid)
                     return False
             parents = ev["metadata"].get("parent_evidence_ids", [])
             if not isinstance(parents, list) or any(not isinstance(p, str) for p in parents):
+                if "parent_evidence_malformed" not in reasons:
+                    reasons.append("parent_evidence_malformed")
+                active.discard(eid)
                 return False
             if parents:
                 if not all(visit(p) for p in parents):
+                    active.discard(eid)
                     return False
             else:
                 roots.add(ev["root_source_id"] or ev["source_ref"])
-            active.remove(eid)
+            active.discard(eid)
             return True
+
         ok = visit(evidence_id)
-        return {"ok": ok, "roots": sorted(roots), "evidence_ids": sorted(visited)}
+        return {
+            "ok": ok,
+            "roots": sorted(roots),
+            "evidence_ids": sorted(visited),
+            "reason_codes": reasons,
+            "verified_allowed": False if not ok else True,
+        }
 
     def assess(self, evidence_id: str, *, state: str, actor: str,
                provenance_chain: list[dict[str, Any]] | None = None) -> dict[str, Any]:

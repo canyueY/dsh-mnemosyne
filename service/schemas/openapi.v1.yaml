@@ -18,6 +18,104 @@ paths:
       responses:
         "200":
           description: OK
+  /cognition/health/probes:
+    get:
+      summary: 分级健康探针（默认只读；写探针仅隔离命名空间）
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: include_write_probe
+          in: query
+          schema: { type: boolean, default: false }
+        - name: write_probe_namespace
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK/WARN/ERROR/PENDING/UNKNOWN dimensions
+  /cognition/health/explain:
+    get:
+      summary: 结构化健康解释 + 简洁人类文本
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: structured + human_text
+  /cognition/answers/select:
+    post:
+      summary: 当前/历史答案选择（读路径，不写 verified）
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bank_id: { type: string }
+                query: { type: string }
+                target: { type: object, additionalProperties: true }
+                context: { type: object, additionalProperties: true }
+                at: { type: string, nullable: true }
+                mode: { type: string, enum: [current, history] }
+                budget: { type: object, additionalProperties: true }
+      responses:
+        "200":
+          description: chosen|partial|unknown selection envelope
+  /cognition/sessions/messages:
+    post:
+      summary: 会话消息账本（稳定键去重；曝光不增加事实支持）
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: recorded or deduped message
+  /cognition/sessions/deliveries:
+    post:
+      summary: 交付账本（交付≠理解）
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: recorded or deduped delivery
+  /cognition/sessions/checkpoints:
+    post:
+      summary: 保存 ContextManifest / 任务 checkpoint
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: checkpoint saved
+  /cognition/sessions/checkpoints/{checkpoint_id}:
+    get:
+      summary: 读取 checkpoint（重新鉴权，禁止跨 Bank）
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: checkpoint_id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: checkpoint pack
+        "403":
+          description: bank/session isolation
+  /cognition/sessions/checkpoints/resume:
+    post:
+      summary: 恢复任务；外部效果未知 → reconcile_required，禁止盲重试
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: resume ready or reconcile_required
+  /cognition/usage/receipts:
+    post:
+      summary: 调用级 usage 预留/回执（同 attempt 去重；unknown 不转零）
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: recorded or deduped usage entry
+  /cognition/usage/report:
+    post:
+      summary: 成本报告（Node 可零；宿主未知时总费用不冒充零）
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: scoped cost report
   /memories/search:
     post:
       summary: 检索记忆

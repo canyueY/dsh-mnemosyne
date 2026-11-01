@@ -1,0 +1,32 @@
+[
+  {
+    "check": "python-full",
+    "exit_code": 0,
+    "seconds": 80.92,
+    "tail": "........................................................................ [ 16%]\n........................................................................ [ 33%]\n........................................................................ [ 50%]\n........................................................................ [ 66%]\n........................................................................ [ 83%]\n......................................................................   [100%]\n============================== warnings summary ===============================\n.venv\\lib\\site-packages\\fastapi\\testclient.py:1\n  D:\\HuaweiMoveData\\Users\\����Y\\Desktop\\����\\dsh-mnemosyne\\service\\.venv\\lib\\site-packages\\fastapi\\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.\n    from starlette.testclient import TestClient as TestClient  # noqa\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n430 passed, 1 warning in 76.98s (0:01:16)\n\n"
+  },
+  {
+    "check": "node-full",
+    "exit_code": 0,
+    "seconds": 4.97,
+    "tail": "after initialize (2.2777ms)\n✔ DA14: tools/call success + invalid params -32602 + unknown -32601 (1.0403ms)\n✔ DA15: gateway uses injected REST client and never opens sqlite (0.5044ms)\n✔ DA05: migrates old bundle/dependency and preserves others (98.4688ms)\n✔ DA06: rollback restores pre-migration package.json (142.5421ms)\n✔ DA07: interrupted migrate is re-entrant; data dir not deleted (124.8641ms)\n✔ missing profile fails visibly (66.8134ms)\n✔ DA11: agentPresets/list includes mnemosyne; session/create accepts it (3.6649ms)\n✔ DA12: local execute / file / process tools denied; unknown fail-closed (0.8829ms)\n✔ preset shape has persona guidance and memory allowlist (0.7536ms)\n✔ DA08: settings.describe lists dsh-mnemosyne namespace and field schema (1.1715ms)\n✔ DA09: settings.update persists token but describe redacts it; logs stay masked (0.4457ms)\n✔ DA09b: illegal field/type rejected (0.4981ms)\n✔ DA10: auto_start=false without base_url/token fails apply with diagnosable error (0.9379ms)\n✔ DA10b: assertRunnableConfig helper (0.1995ms)\n✔ redactSecrets never echoes plaintext token (0.1099ms)\nℹ tests 30\nℹ suites 0\nℹ pass 30\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 4904.6579\n\n"
+  },
+  {
+    "check": "node-check",
+    "exit_code": 0,
+    "seconds": 0.73,
+    "tail": "\n> dsh-mnemosyne@2.0.0 check\n> node --check src/index.js && node --check src/memory-client.js && node --check src/memory-process.js && node --check src/tool-spec.js && node --check src/settings.js && node --check src/config-schema.js && node --check src/agent-preset.js && node --check src/mcp-gateway.js\n\n\n"
+  },
+  {
+    "check": "sdk-build",
+    "exit_code": 0,
+    "seconds": 0.74,
+    "tail": "\n> @mnemosyne/client@2.0.0 build\n> tsc -p tsconfig.json\n\n\n"
+  },
+  {
+    "check": "diff-check",
+    "exit_code": 2,
+    "seconds": 0.06,
+    "tail": "DSH_INTEGRATION.md:63: trailing whitespace.\n+`auto_start`、`service_root`、`data_dir`、`python`、`base_url`、`token`(secret)、`auto_capture`。  \nservice/docs/MNEMOSYNE_NODE_OPERATIONS.md:3: trailing whitespace.\n+**状态：** Phase 1 Implemented（2026-10-30）；E08 健康探针（2026-11-01）  \nservice/src/cognitive_memory/cognition/consolidate.py:344: new blank line at EOF.\n\nwarning: in the working copy of 'DSH_INTEGRATION.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'engineering/dsh-integration/PROGRESS.json', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'engineering/mnemosyne-retrieval-quality/PROGRESS.json', LF will be replaced by CRLF the next time Git touches it\n"
+  }
+]

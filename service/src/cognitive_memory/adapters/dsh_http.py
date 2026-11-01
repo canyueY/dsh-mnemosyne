@@ -58,6 +58,55 @@ class DshHttpAdapter:
     def search(self, query: str, *, limit: int = 8) -> dict[str, Any]:
         return self._client.search(query, limit=limit)
 
+    def select_answer(self, payload: dict[str, Any]) -> dict[str, Any]:
+        """显式答案选择；故障返回 unavailable 信封（不退回 Top1 事实）。"""
+        try:
+            raw = self._client.select_answer(payload)
+        except Exception as exc:  # noqa: BLE001 — thin host maps transport errors
+            status = getattr(exc, "status_code", None)
+            return {
+                "ok": False,
+                "availability": "unavailable",
+                "status": "unavailable",
+                "selected": [],
+                "alternatives": [],
+                "evidence_refs": [],
+                "reason_codes": ["node_unavailable"],
+                "wrote_verified": False,
+                "checks_complete": False,
+                "error": {"http_status": status, "message": str(exc)},
+                "boundary": {
+                    "not_top1_fact": True,
+                    "not_evidence_absence": True,
+                    "message": "Node unavailable — not missing counterevidence; do not fall back to unlabeled Top1",
+                },
+            }
+        status = str(raw.get("status") or "unknown")
+        delivery = {
+            "ok": True,
+            "availability": "available",
+            "status": status,
+            "decision_id": raw.get("decision_id"),
+            "selected": list(raw.get("selected") or []),
+            "alternatives": list(raw.get("alternatives") or []),
+            "evidence_refs": list(raw.get("evidence_refs") or []),
+            "counterevidence_refs": list(raw.get("counterevidence_refs") or []),
+            "applicability": raw.get("applicability") or {},
+            "reason_codes": list(raw.get("reason_codes") or []),
+            "checks_complete": bool(raw.get("checks_complete")),
+            "wrote_verified": False,
+            "budget_usage": raw.get("budget_usage") or {},
+            "trace_id": raw.get("trace_id"),
+            "raw": raw,
+        }
+        if status in {"partial", "unknown"}:
+            delivery["boundary"] = {
+                "not_top1_fact": True,
+                "labeled": True,
+                "message": "labeled non-definitive selection; search Top1 is not authoritative",
+            }
+        return delivery
+
     def propose_from_host(
         self,
         content: str,

@@ -7,6 +7,13 @@
 import { pathToFileURL } from 'node:url';
 import { MemoryClient } from './memory-client.js';
 import { MemoryProcessHost } from './memory-process.js';
+import { resolveConfigExport } from './config-schema.js';
+import {
+  assertRunnableConfig,
+  resolvePluginConfig,
+  toLoggableConfig,
+  SETTINGS_NAMESPACE,
+} from './settings.js';
 import {
   contextToolSpec,
   feedbackToolSpec,
@@ -16,15 +23,30 @@ import {
   observeToolSpec,
   proposeToolSpec,
   searchToolSpec,
+  selectAnswerToolSpec,
   taskToolSpec,
   updateToolSpec,
 } from './tool-spec.js';
 
 export const name = 'dsh-mnemosyne';
+// Only tools are mandatory. config/settings/agentPresets are optional services:
+// reading them through ctx.get(...) must not block plugin activation when a host
+// does not export the service (DSH 0.2.1 web does not provide a `config` service).
 export const inject = ['tools'];
 
 export { MemoryClient } from './memory-client.js';
 export { MemoryProcessHost } from './memory-process.js';
+export {
+  SETTINGS_NAMESPACE,
+  settingsDescribe,
+  settingsUpdate,
+  redactSecrets,
+  assertRunnableConfig,
+} from './settings.js';
+
+/** Cordis Config — settings namespace id = entry/plugin name `dsh-mnemosyne`. */
+export const Config = await resolveConfigExport();
+
 
 async function loadDefineTool() {
   try {
@@ -64,16 +86,38 @@ function contentText(content) {
 }
 
 export async function apply(ctx) {
+  // Read config through ctx.get('config') / ctx.get('settings'); never access
+  // ctx.config directly because DSH 0.2.1 treats it as an injected service and
+  // a host without a `config` service would leave the plugin pending forever.
+  const fiberCfg = null;
+  const cfg = resolvePluginConfig(ctx, fiberCfg);
+  const runnable = assertRunnableConfig({
+    ...cfg,
+    // env token satisfies remote mode when config token empty
+    token: cfg.token || process.env.DSH_MEMORY_TOKEN || '',
+  });
+  if (!runnable.ok) {
+    const err = new Error(`${runnable.error} [${runnable.code}] ${runnable.hint || ''}`);
+    err.code = runnable.code;
+    err.hint = runnable.hint;
+    // never log raw token
+    err.loggable_config = toLoggableConfig(cfg);
+    throw err;
+  }
   const defineTool = await loadDefineTool();
-  // `config` is optional: headless Cordis profiles provide no config service.
-  let rootConfig = {};
-  try {
-    rootConfig = (typeof ctx.get === 'function' ? ctx.get('config') : null) || {};
-  } catch { rootConfig = {}; }
-  const cfg = rootConfig['dsh-mnemosyne']
-    || rootConfig['dsh-cognitive-memory']
-    || {};
   const autoStart = cfg.auto_start !== false;
+
+  // Optional: register page policy when settings service exists (does not require settings to run tools)
+  try {
+    const settings = typeof ctx?.get === 'function' ? ctx.get('settings') : ctx?.settings;
+    if (settings && typeof settings.configure === 'function') {
+      ctx.effect?.(settings.configure({ auto: true }, ctx.fiber));
+    }
+  } catch { /* settings optional */ }
+
+  // Agent preset is registered declaratively by cordis.patch.yml as a real
+  // @deepseek-ai/dsh-agent-preset row. Do not also register a descriptor at
+  // runtime: the runtime registry expects {id, plugins} composition shape.
 
   const host = new MemoryProcessHost({
     serviceRoot: cfg.service_root,
@@ -93,7 +137,12 @@ export async function apply(ctx) {
       });
       return client;
     }
-    if (!autoStart) throw new Error('memory service not configured (set base_url+token or auto_start)');
+    if (!autoStart) {
+      const err = new Error('memory service not configured (set base_url+token or auto_start)');
+      err.code = 'config_incomplete';
+      err.loggable_config = toLoggableConfig(cfg);
+      throw err;
+    }
     const info = await host.start();
     client = new MemoryClient({ baseUrl: info.baseUrl, token: info.token });
     return client;
@@ -129,10 +178,56 @@ export async function apply(ctx) {
       ...contextToolSpec(),
       async execute(args, exec) {
         const c = await ensureClient();
-        return c.context({
+        const body = {
           query: args.query,
           token_budget: args.token_budget,
-        }, { signal: exec?.signal });
+        };
+        if (args.envelope && typeof args.envelope === 'object') body.envelope = args.envelope;
+        if (args.has_accurate_tokenizer === true) body.has_accurate_tokenizer = true;
+        return c.context(body, { signal: exec?.signal });
+      },
+    }),
+    defineTool({
+      ...selectAnswerToolSpec(),
+      async execute(args, exec) {
+        const c = await ensureClient();
+        const payload = {
+          bank_id: args.bank_id || 'personal',
+          query: args.query || '',
+          mode: args.mode || 'current',
+        };
+        if (args.target && typeof args.target === 'object') payload.target = args.target;
+        if (args.context && typeof args.context === 'object') payload.context = args.context;
+        if (args.at) payload.at = args.at;
+        if (args.budget && typeof args.budget === 'object') payload.budget = args.budget;
+        // 宿主未提供 usage → 不伪造零费用；由 Node 记 host unknown。
+        if (!args.host_usage) {
+          payload.context = {
+            ...(payload.context || {}),
+            correlation_id: args.correlation_id || undefined,
+            host_usage: null,
+          };
+        } else {
+          payload.context = {
+            ...(payload.context || {}),
+            host_usage: args.host_usage,
+            correlation_id: args.correlation_id || undefined,
+          };
+        }
+        const selection = await c.selectAnswer(payload, { signal: exec?.signal });
+        // 可选附带 search 候选：仅对照，不作事实权威
+        if (args.include_search_candidates && selection.availability === 'available' && args.query) {
+          try {
+            const cand = await c.search({ query: args.query, limit: 3 }, { signal: exec?.signal });
+            selection.search_candidates = {
+              items: cand?.items || cand?.results || [],
+              note: 'search candidates are not authoritative; selection service decides current answer',
+            };
+          } catch {
+            selection.search_candidates = { unavailable: true };
+          }
+        }
+        return selection;
       },
     }),
     defineTool({
@@ -213,17 +308,36 @@ export async function apply(ctx) {
         const data = event.data || {};
 
         const capture = (role, content, seq, time, source) => {
+          // Only user-visible message text — never hidden reasoning / tool traces.
           const text = contentText(content).trim();
           if (!text) return;
           const occurredAt = new Date(Number(time) || Date.now()).toISOString();
+          const messageId = `dsh:${sessionId}:${Number(seq) || 0}`;
           const metadata = {
             session_id: sessionId,
             event_seq: Number(seq) || 0,
             role,
             source: source ?? null,
+            visible_only: true,
           };
           const task = (async () => {
             const c = await ensureClient();
+            // Session ledger first: stable-key dedupe; replay does not boost fact support.
+            try {
+              await c.recordSessionMessage({
+                session_id: sessionId,
+                bank_id: cfg.bank_id || 'personal',
+                role,
+                content: text,
+                message_id: messageId,
+                producer: 'dsh.host',
+                metadata,
+              });
+            } catch (ledgerErr) {
+              if (process.env.DSH_MEMORY_DEBUG) {
+                process.stderr.write(`[mnemosyne] session ledger skipped: ${ledgerErr}\n`);
+              }
+            }
             await c.observe({
               content: text,
               source_kind: 'dialog',
@@ -231,7 +345,7 @@ export async function apply(ctx) {
               correlation_id: sessionId,
               occurred_at: occurredAt,
               metadata,
-              idempotency_key: `dsh:${sessionId}:${Number(seq) || 0}`,
+              idempotency_key: messageId,
             });
           })().catch((err) => {
             if (process.env.DSH_MEMORY_DEBUG) {

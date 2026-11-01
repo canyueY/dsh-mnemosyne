@@ -154,6 +154,11 @@ TOOLS = [
             "required": ["id"],
         },
     },
+    {
+        "name": "memory_health",
+        "description": "服务健康检查",
+        "inputSchema": {"type": "object", "properties": {}},
+    },
 ]
 
 
@@ -245,11 +250,14 @@ def _dispatch(service: MemoryService, name: str, args: dict[str, Any]) -> Any:
         return service.forget_memory(args["id"], hard=hard)
     if name == "memory_task_status":
         return service.get_task(args["id"]).model_dump()
-    raise ValueError(f"unknown tool: {name}")
+    if name == "memory_health":
+        return service.health()
+    raise KeyError(f"unknown tool: {name}")
 
 
 def run_mcp_stdio(service: MemoryService) -> None:
-    """极简 MCP-ish JSON-RPC over stdio（兼容测试；正式可换官方 SDK）。"""
+    """极简 MCP JSON-RPC over stdio（服务进程内入口；DSH 宿主优先用 REST 网关）。"""
+    initialized = False
     for line in sys.stdin:
         line = line.strip()
         if not line:
@@ -262,23 +270,38 @@ def run_mcp_stdio(service: MemoryService) -> None:
         method = req.get("method")
         params = req.get("params") or {}
         try:
-            if method == "tools/list":
+            if method == "initialize":
+                initialized = True
+                result = {
+                    "protocolVersion": "2025-06-18",
+                    "serverInfo": {"name": "mnemosyne", "version": "2.0.0"},
+                    "capabilities": {"tools": {}},
+                }
+            elif method == "ping":
+                result = {}
+            elif not initialized:
+                raise PermissionError("not initialized; call initialize first")
+            elif method == "tools/list":
                 result = {"tools": TOOLS}
             elif method == "tools/call":
                 name = params.get("name")
                 arguments = params.get("arguments") or {}
+                if not isinstance(arguments, dict):
+                    raise TypeError("invalid params: arguments must be object")
                 data = _dispatch(service, name, arguments)
                 result = {"content": [{"type": "text", "text": json.dumps(data, ensure_ascii=False)}]}
-            elif method == "initialize":
-                result = {
-                    "protocolVersion": "2024-11-05",
-                    "serverInfo": {"name": "cognitive-memory", "version": "0.1.0"},
-                    "capabilities": {"tools": {}},
-                }
             else:
-                raise ValueError(f"unsupported method: {method}")
+                raise LookupError(f"method not found: {method}")
             resp = {"jsonrpc": "2.0", "id": rid, "result": result}
-        except (NotFoundError, ConflictError, ValueError, KeyError) as exc:
+        except PermissionError as exc:
+            resp = {"jsonrpc": "2.0", "id": rid, "error": {"code": -32600, "message": str(exc)}}
+        except LookupError as exc:
+            resp = {"jsonrpc": "2.0", "id": rid, "error": {"code": -32601, "message": str(exc)}}
+        except (TypeError, KeyError) as exc:
+            # KeyError from unknown tool → -32601; TypeError invalid params → -32602
+            code = -32601 if isinstance(exc, KeyError) else -32602
+            resp = {"jsonrpc": "2.0", "id": rid, "error": {"code": code, "message": str(exc)}}
+        except (NotFoundError, ConflictError, ValueError) as exc:
             resp = {
                 "jsonrpc": "2.0",
                 "id": rid,

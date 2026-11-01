@@ -194,6 +194,61 @@ def run_retrieve(
                 }
             )
 
+        # E09：词法/向量 RRF 融合 + 前后过滤复核（默认 hash 向量不冒充高质量 embedding）
+        fusion_pack = None
+        if items:
+            from cognitive_memory.retrieval.fusion import fuse_channels
+
+            fusion_candidates = []
+            for it in items:
+                fusion_candidates.append(
+                    {
+                        "id": it.get("id"),
+                        "content": it.get("content"),
+                        "bank_id": (it.get("metadata") or {}).get("bank_id")
+                        or it.get("bank_id")
+                        or "personal",
+                        "metadata": it.get("metadata") or {},
+                        "expires_at": (it.get("metadata") or {}).get("expires_at"),
+                        "status": it.get("status"),
+                    }
+                )
+            fusion_pack = fuse_channels(
+                query=query,
+                candidates=fusion_candidates,
+                allowed_banks=None,  # search 已按 bank 执法；此处复核时间/模式
+                mode=plan.mode,
+                limit=plan.limit,
+                use_vector=True,
+                embedding_provider="hash",
+            )
+            fused_ids = {x["id"] for x in fusion_pack.get("items") or []}
+            # 安全过滤为空时禁止 or items 回退过期/越权候选
+            safe_items = [it for it in items if it.get("id") in fused_ids]
+            fusion_status = str(fusion_pack.get("status") or "")
+            if not safe_items and fusion_status in {"unknown", "partial", "blocked"}:
+                items = []
+            else:
+                items = safe_items
+            # 按融合分重排
+            order = {x["id"]: i for i, x in enumerate(fusion_pack.get("items") or [])}
+            items.sort(key=lambda it: order.get(it.get("id"), 10_000))
+            for it in items:
+                it["fusion"] = {
+                    "embedding_kind": "hash",
+                    "status": fusion_pack.get("status"),
+                    "reason_codes": fusion_pack.get("reason_codes") or [],
+                }
+            trace["channels"].append(
+                {
+                    "name": "fusion_rrf",
+                    "status": fusion_pack.get("status"),
+                    "embedding_kind": "hash",
+                    "do_not_overclaim": True,
+                    "counterevidence_independent": True,
+                }
+            )
+
         # 复用 context 打包（与 brief 一致）
         ctx = service.build_context(
             ContextBuildIn(
@@ -217,7 +272,7 @@ def run_retrieve(
         else:
             status = RESULT_FOUND
 
-        return {
+        out = {
             "status": status,
             "plan": plan.to_dict(),
             "items": items,
@@ -229,6 +284,17 @@ def run_retrieve(
             "retrieval_ready": True,
             "trace": {**trace, "elapsed_ms": int((time.perf_counter() - t0) * 1000)},
         }
+        if fusion_pack is not None:
+            out["fusion"] = {
+                "status": fusion_pack.get("status"),
+                "reason_codes": fusion_pack.get("reason_codes") or [],
+                "embedding_meta": fusion_pack.get("embedding_meta"),
+                "counterevidence": fusion_pack.get("counterevidence") or [],
+                "notes": fusion_pack.get("notes") or {},
+            }
+            if fusion_pack.get("status") in {"partial", "unknown"} and status == RESULT_FOUND:
+                out["status"] = RESULT_PARTIAL
+        return out
     except Exception as exc:
         trace["error"] = f"{type(exc).__name__}: {exc}"
         trace["traceback"] = traceback.format_exc(limit=3)

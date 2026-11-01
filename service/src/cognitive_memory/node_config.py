@@ -39,6 +39,19 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "components": {
         "profiles": ["core-default"],
     },
+    "context_budget": {
+        "model_window": 8192,
+        "conservative_reserve": 256,
+        "max_candidates": 32,
+        "timeout_ms": 5000,
+        "default_token_budget": 1200,
+        "measurement_default": "estimated",
+    },
+    "call_budget": {
+        "max_external_calls": 8,
+        "max_retrieval_rounds": 4,
+        "max_duration_ms": 30000,
+    },
 }
 
 
@@ -74,6 +87,16 @@ class NodeConfig:
     @property
     def remote_access(self) -> str:
         return str((self.raw.get("security") or {}).get("remote_access") or "disabled")
+
+    @property
+    def context_budget(self) -> dict[str, Any]:
+        raw = self.raw.get("context_budget")
+        return dict(raw) if isinstance(raw, dict) else dict(DEFAULT_CONFIG["context_budget"])
+
+    @property
+    def call_budget(self) -> dict[str, Any]:
+        raw = self.raw.get("call_budget")
+        return dict(raw) if isinstance(raw, dict) else dict(DEFAULT_CONFIG["call_budget"])
 
     def to_public_dict(self) -> dict[str, Any]:
         """不包含密钥；仅结构与来源。"""

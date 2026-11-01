@@ -1,0 +1,8 @@
+﻿{
+    "exit_code":  0,
+    "stderr":  "",
+    "response_received":  true,
+    "command":  "node src/mcp-gateway.js",
+    "initialize_sent":  true,
+    "stdout":  "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"protocolVersion\":\"2025-06-18\",\"serverInfo\":{\"name\":\"mnemosyne\",\"version\":\"2.0.0\"},\"capabilities\":{\"tools\":{}}}}"
+}

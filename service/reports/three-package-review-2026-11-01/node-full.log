@@ -1,0 +1,39 @@
+✔ auto-capture writes user + final assistant, not reasoning (85.8277ms)
+✔ apply() registers all tools without a config service (10.7048ms)
+✔ apply() survives a throwing config lookup (5.1661ms)
+✔ start() drops stale service.json before spawning (454.6362ms)
+✔ resolveServiceRoot finds bundled service/ without env (2.5569ms)
+✔ selectAnswer tool spec is 0.2.1 schema-safe and distinct from search (1.3957ms)
+✔ normalizeSelectionDelivery labels partial/unknown boundaries (0.5193ms)
+✔ unavailableSelection does not invent Top1 fact (1.1945ms)
+✔ MemoryClient.selectAnswer maps transport failure to unavailable (30.9845ms)
+✔ package.json declares engines.dsh for 0.2.1 admission (2.1283ms)
+✔ tool output schemas are 0.2.1 JsonSchemaNode-safe (0.5634ms)
+✔ DA04: missing DSH CLI returns structured failure (88.5998ms)
+✔ DA04: missing profile returns structured failure (72.1495ms)
+✔ DA02/DA03: install preserves other bundles and second run is idempotent (4610.3263ms)
+✔ DA13: tools/list returns memory tools after initialize (2.2777ms)
+✔ DA14: tools/call success + invalid params -32602 + unknown -32601 (1.0403ms)
+✔ DA15: gateway uses injected REST client and never opens sqlite (0.5044ms)
+✔ DA05: migrates old bundle/dependency and preserves others (98.4688ms)
+✔ DA06: rollback restores pre-migration package.json (142.5421ms)
+✔ DA07: interrupted migrate is re-entrant; data dir not deleted (124.8641ms)
+✔ missing profile fails visibly (66.8134ms)
+✔ DA11: agentPresets/list includes mnemosyne; session/create accepts it (3.6649ms)
+✔ DA12: local execute / file / process tools denied; unknown fail-closed (0.8829ms)
+✔ preset shape has persona guidance and memory allowlist (0.7536ms)
+✔ DA08: settings.describe lists dsh-mnemosyne namespace and field schema (1.1715ms)
+✔ DA09: settings.update persists token but describe redacts it; logs stay masked (0.4457ms)
+✔ DA09b: illegal field/type rejected (0.4981ms)
+✔ DA10: auto_start=false without base_url/token fails apply with diagnosable error (0.9379ms)
+✔ DA10b: assertRunnableConfig helper (0.1995ms)
+✔ redactSecrets never echoes plaintext token (0.1099ms)
+ℹ tests 30
+ℹ suites 0
+ℹ pass 30
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4904.6579
+

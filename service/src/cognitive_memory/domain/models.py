@@ -221,12 +221,22 @@ class ContextBuildIn(BaseModel):
     mode: str = "current"
     spatiotemporal_rerank: bool = True
     emotion_rerank: bool = False
+    # E04：完整信封预算（可选覆盖）
+    envelope: dict[str, Any] | None = None
+    """sections: stable_prefix/tools/history/header_tags/output_reserve；budget_config 等。"""
+    has_accurate_tokenizer: bool = False
 
 
 class ContextBuildOut(BaseModel):
     fragments: list[dict[str, Any]]
     token_estimate: int
     brief: str
+    fits: bool | None = True
+    measurement: str = "estimated"
+    hard_limit_verified: bool = False
+    budget_envelope: dict[str, Any] = Field(default_factory=dict)
+    reason_codes: list[str] = Field(default_factory=list)
+    status: str = "ok"
 
 
 class RetrieveIn(BaseModel):
@@ -370,7 +380,115 @@ class EvidenceObjectCreateIn(BaseModel):
     role_hint: str = "support"
     legacy_memory_id: str | None = None
     root_source_id: str = ""
+    revision: str | None = None
+    source_role: str | None = None
+    coverage: dict[str, Any] | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class AnswerSelectIn(BaseModel):
+    """E03：当前/历史答案选择（读路径，不写 verified）。"""
+
+    bank_id: str = "personal"
+    query: str = ""
+    target: dict[str, Any] | None = None
+    context: dict[str, Any] = Field(default_factory=dict)
+    at: str | None = None
+    mode: str = "current"  # current|history
+    budget: dict[str, Any] = Field(default_factory=dict)
+    expected_source_revisions: list[dict[str, Any]] = Field(default_factory=list)
+    current_source_revisions: dict[str, str] = Field(default_factory=dict)
+
+
+class SessionMessageIn(BaseModel):
+    """E06：会话消息账本（稳定键去重；曝光≠事实支持）。"""
+
+    session_id: str
+    bank_id: str = "personal"
+    role: str
+    content: str
+    message_id: str | None = None
+    producer: str = "host"
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class SessionDeliveryIn(BaseModel):
+    """E06：交付账本（交付≠理解）。"""
+
+    session_id: str
+    bank_id: str = "personal"
+    card_id: str
+    payload: dict[str, Any] = Field(default_factory=dict)
+
+
+class SessionCheckpointIn(BaseModel):
+    """E06：ContextManifest / 任务 checkpoint。"""
+
+    session_id: str
+    bank_id: str = "personal"
+    task_id: str | None = None
+    checkpoint_id: str | None = None
+    goal: str = ""
+    constraints: list[str] = Field(default_factory=list)
+    verified_progress: list[dict[str, Any]] = Field(default_factory=list)
+    pending_questions: list[str] = Field(default_factory=list)
+    pending_external_operations: list[dict[str, Any]] = Field(default_factory=list)
+    delivered_cards: list[str] = Field(default_factory=list)
+    evidence_revisions: list[dict[str, Any]] = Field(default_factory=list)
+    assistant_claims: list[dict[str, Any]] = Field(default_factory=list)
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class SessionResumeIn(BaseModel):
+    """E06：恢复前重新鉴权；未知副作用禁止盲重试。"""
+
+    checkpoint_id: str
+    confirm_blind_retry: bool = False
+
+
+class UsageReceiptIn(BaseModel):
+    """E07：调用级 usage 回执（预留/实测分开；同 attempt 去重）。"""
+
+    correlation_id: str
+    attempt: int = 1
+    provider: str = "node"
+    meter_scope: str = "node"
+    amount: float | None = None
+    measurement: str | None = None
+    success: bool | None = None
+    unit_key: str = ""
+    phase: str = "receipt"  # reserve|receipt
+    estimated_cost: float | None = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class UsageReportIn(BaseModel):
+    correlation_id: str
+
+
+class SessionConsolidateIn(BaseModel):
+    """E10：会话巩固（规则摘要；后台默认关闭至 E11）。"""
+
+    session_id: str
+    atoms: list[dict[str, Any]] = Field(default_factory=list)
+    allowed_input_ids: list[str] | None = None
+    topic: str = ""
+    foreground_preempt: bool = False
+
+
+class ExecutionPlanIn(BaseModel):
+    actor: str
+    bank_id: str = "personal"
+    capability: str
+    payload: dict[str, Any] = Field(default_factory=dict)
+    expected_state_version: int = 1
+    correlation_id: str | None = None
+    idempotency_key: str | None = None
+
+
+class ExecutionObserveIn(BaseModel):
+    outcome: str = "unknown"
+    details: dict[str, Any] = Field(default_factory=dict)
 
 
 class EvidenceIndependenceIn(BaseModel):

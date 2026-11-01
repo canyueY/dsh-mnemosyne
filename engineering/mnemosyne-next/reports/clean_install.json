@@ -1,0 +1,85 @@
+{
+  "ok": true,
+  "install_source": "C:\\Users\\残月Y\\AppData\\Local\\Temp\\mnemosyne-clean-install-3uygyqfj\\build\\mnemosyne-2.0.0-py3-none-any.whl",
+  "wheel_name": "mnemosyne-2.0.0-py3-none-any.whl",
+  "venv": "C:\\Users\\残月Y\\AppData\\Local\\Temp\\mnemosyne-clean-install-3uygyqfj\\venv",
+  "bank": "C:\\Users\\残月Y\\AppData\\Local\\Temp\\mnemosyne-clean-install-3uygyqfj\\bank",
+  "python_used_for_build": "D:\\HuaweiMoveData\\Users\\残月Y\\Desktop\\桌宠\\dsh-mnemosyne\\service\\.venv\\Scripts\\python.exe",
+  "production_interpreter_modified": false,
+  "user_effect": "not_measured",
+  "steps": [
+    {
+      "step": "build_wheel",
+      "cmd": [
+        "D:\\HuaweiMoveData\\Users\\残月Y\\Desktop\\桌宠\\dsh-mnemosyne\\service\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pip",
+        "wheel",
+        ".",
+        "-w",
+        "C:\\Users\\残月Y\\AppData\\Local\\Temp\\mnemosyne-clean-install-3uygyqfj\\build",
+        "--no-deps"
+      ],
+      "cwd": "D:\\HuaweiMoveData\\Users\\残月Y\\Desktop\\桌宠\\dsh-mnemosyne\\service",
+      "returncode": 0,
+      "stdout": "Processing .\\.\n  Installing build dependencies: started\n  Installing build dependencies: finished with status 'done'\n  Getting requirements to build wheel: started\n  Getting requirements to build wheel: finished with status 'done'\n  Preparing metadata (pyproject.toml): started\n  Preparing metadata (pyproject.toml): finished with status 'done'\nBuilding wheels for collected packages: mnemosyne\n  Building wheel for mnemosyne (pyproject.toml): started\n  Building wheel for mnemosyne (pyproject.toml): finished with status 'done'\n  Created wheel for mnemosyne: filename=mnemosyne-2.0.0-py3-none-any.whl size=404409 sha256=33bee83fbf1891e90d6c7887cec7d46ff8429ab52dd84f4de2858eb3d7d04dbc\n  Stored in directory: C:\\Users\\����Y\\AppData\\Local\\Temp\\pip-ephem-wheel-cache-wp6pxb7p\\wheels\\24\\c2\\09\\dbebc9da749b2195e8f74ee33d6c3c19d0601ac6f5d5e1a50a\nSuccessfully built mnemosyne\n",
+      "stderr": "",
+      "ok": true
+    },
+    {
+      "step": "wheel_found",
+      "ok": true,
+      "path": "C:\\Users\\残月Y\\AppData\\Local\\Temp\\mnemosyne-clean-install-3uygyqfj\\build\\mnemosyne-2.0.0-py3-none-any.whl",
+      "name": "mnemosyne-2.0.0-py3-none-any.whl"
+    },
+    {
+      "step": "venv_create",
+      "ok": true,
+      "python": "C:\\Users\\残月Y\\AppData\\Local\\Temp\\mnemosyne-clean-install-3uygyqfj\\venv\\Scripts\\python.exe"
+    },
+    {
+      "step": "pip_install_wheel",
+      "cmd": [
+        "C:\\Users\\残月Y\\AppData\\Local\\Temp\\mnemosyne-clean-install-3uygyqfj\\venv\\Scripts\\pip.exe",
+        "install",
+        "C:\\Users\\残月Y\\AppData\\Local\\Temp\\mnemosyne-clean-install-3uygyqfj\\build\\mnemosyne-2.0.0-py3-none-any.whl",
+        "fastapi>=0.115.0",
+        "uvicorn[standard]>=0.30.0",
+        "pydantic>=2.7.0",
+        "pydantic-settings>=2.3.0",
+        "httpx>=0.27.0"
+      ],
+      "cwd": null,
+      "returncode": 0,
+      "stdout": "   ---------------------------------------- 87.4/87.4 kB 2.5 MB/s eta 0:00:00\n\nCollecting pydantic>=2.7.0\n  Downloading pydantic-2.14.2-py3-none-any.whl (490 kB)\n     --------------------------------------- 490.4/490.4 kB 2.6 MB/s eta 0:00:00\n\nCollecting pydantic-settings>=2.3.0\n  Downloading pydantic_settings-2.15.0-py3-none-any.whl (69 kB)\n     ---------------------------------------- 69.4/69.4 kB ? eta 0:00:00\n\nCollecting httpx>=0.27.0\n  Downloading httpx-0.28.1-py3-none-any.whl (73 kB)\n     ---------------------------------------- 73.5/73.5 kB 4.0 MB/s eta 0:00:00\n\nCollecting starlette>=0.46.0\n  Downloading starlette-1.7.0-py3-none-any.whl (78 kB)\n     ---------------------------------------- 79.0/79.0 kB 4.6 MB/s eta 0:00:00\n\nCollecting typing-inspection>=0.4.2\n  Downloading typing_inspection-0.4.4-py3-none-any.whl (14 kB)\nCollecting opentelemetry-api>=1.44.0\n  Downloading opentelemetry_api-1.45.2-py3-none-any.whl (60 kB)\n     ---------------------------------------- 60.3/60.3 kB 3.1 MB/s eta 0:00:00\n\nCollecting typing-extensions>=4.8.0\n  Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)\n     ---------------------------------------- 45.6/45.6 kB 2.2 MB/s eta 0:00:00\n\nCollecting annotated-doc>=0.0.2\n  Downloading annotated_doc-0.0.5-py3-none-any.whl (5.3 kB)\nCollecting h11>=0.8\n  Downloading h11-0.16.0-py3-none-any.whl (37 kB)\nCollecting click>=7.0\n  Downloading click-8.5.0-py3-none-any.whl (125 kB)\n     --------------------------------------- 125.3/125.3 kB 3.6 MB/s eta 0:00:00\n\nCollecting httptools>=0.8.0\n  Downloading httptools-0.9.0-cp310-cp310-win_amd64.whl (92 kB)\n     ---------------------------------------- 92.6/92.6 kB 5.2 MB/s eta 0:00:00\n\nCollecting websockets>=13.0\n  Downloading websockets-16.1.1-cp310-cp310-win_amd64.whl (180 kB)\n     --------------------------------------- 180.2/180.2 kB 5.5 MB/s eta 0:00:00\n\nCollecting python-dotenv>=0.13\n  Downloading python_dotenv-1.2.4-py3-none-any.whl (23 kB)\nCollecting watchfiles>=0.20\n  Downloading watchfiles-1.3.0-cp310-abi3-win_amd64.whl (290 kB)\n     --------------------------------------- 290.6/290.6 kB 4.5 MB/s eta 0:00:00\n\nCollecting pyyaml>=5.1\n  Using cached pyyaml-6.0.3-cp310-cp310-win_amd64.whl (158 kB)\nCollecting pydantic-core==2.50.2\n  Downloading pydantic_core-2.50.2-cp310-cp310-win_amd64.whl (2.2 MB)\n     ---------------------------------------- 2.2/2.2 MB 3.8 MB/s eta 0:00:00\n\nCollecting annotated-types>=0.6.0\n  Downloading annotated_types-0.8.0-py3-none-any.whl (13 kB)\nCollecting idna\n  Downloading idna-3.20-py3-none-any.whl (69 kB)\n     ---------------------------------------- 69.6/69.6 kB 4.0 MB/s eta 0:00:00\n\nCollecting certifi\n  Downloading certifi-2026.10.23-py3-none-any.whl (135 kB)\n     --------------------------------------- 135.1/135.1 kB 4.0 MB/s eta 0:00:00\n\nCollecting httpcore==1.*\n  Downloading httpcore-1.0.9-py3-none-any.whl (78 kB)\n     ---------------------------------------- 78.8/78.8 kB 2.1 MB/s eta 0:00:00\n\nCollecting anyio\n  Downloading anyio-4.15.1-py3-none-any.whl (132 kB)\n     --------------------------------------- 132.1/132.1 kB 3.9 MB/s eta 0:00:00\n\nCollecting exceptiongroup>=1.0.2\n  Downloading exceptiongroup-1.3.1-py3-none-any.whl (16 kB)\nInstalling collected packages: websockets, typing-extensions, pyyaml, python-dotenv, idna, httptools, h11, click, certifi, annotated-types, annotated-doc, uvicorn, typing-inspection, pydantic-core, opentelemetry-api, httpcore, exceptiongroup, pydantic, anyio, watchfiles, starlette, pydantic-settings, httpx, fastapi, mnemosyne\nSuccessfully installed annotated-doc-0.0.5 annotated-types-0.8.0 anyio-4.15.1 certifi-2026.10.23 click-8.5.0 exceptiongroup-1.3.1 fastapi-0.162.0 h11-0.16.0 httpcore-1.0.9 httptools-0.9.0 httpx-0.28.1 idna-3.20 mnemosyne-2.0.0 opentelemetry-api-1.45.2 pydantic-2.14.2 pydantic-core-2.50.2 pydantic-settings-2.15.0 python-dotenv-1.2.4 pyyaml-6.0.3 starlette-1.7.0 typing-extensions-4.16.0 typing-inspection-0.4.4 uvicorn-0.54.0 watchfiles-1.3.0 websockets-16.1.1\n",
+      "stderr": "\n[notice] A new release of pip is available: 23.0.1 -> 26.2.2\n[notice] To update, run: C:\\Users\\����Y\\AppData\\Local\\Temp\\mnemosyne-clean-install-3uygyqfj\\venv\\Scripts\\python.exe -m pip install --upgrade pip\n",
+      "ok": true
+    },
+    {
+      "step": "import_check",
+      "cmd": [
+        "C:\\Users\\残月Y\\AppData\\Local\\Temp\\mnemosyne-clean-install-3uygyqfj\\venv\\Scripts\\python.exe",
+        "-c",
+        "import cognitive_memory; import cognitive_memory.bootstrap as b; print(getattr(cognitive_memory, '__version__', '2.0.0'))"
+      ],
+      "cwd": null,
+      "returncode": 0,
+      "stdout": "2.0.0\n",
+      "stderr": "",
+      "ok": true
+    },
+    {
+      "step": "min_closed_loop",
+      "cmd": [
+        "C:\\Users\\残月Y\\AppData\\Local\\Temp\\mnemosyne-clean-install-3uygyqfj\\venv\\Scripts\\python.exe",
+        "-c",
+        "\nfrom pathlib import Path\nfrom cognitive_memory.bootstrap import build_context\nfrom cognitive_memory.domain.models import MemoryProposeIn, MemoryStatus, MemoryUpdateIn\nroot = Path(r\"C:\\Users\\残月Y\\AppData\\Local\\Temp\\mnemosyne-clean-install-3uygyqfj\\bank\")\nctx = build_context(data_dir=str(root), token=\"clean-install\")\ntry:\n    mem = ctx.service.propose_memory(MemoryProposeIn(content=\"clean-install-alpha\", status=MemoryStatus.ACTIVE))\n    mid = mem.id\nfinally:\n    ctx.db.close()\nctx2 = build_context(data_dir=str(root), token=\"clean-install\")\ntry:\n    got = ctx2.service.get_memory(mid)\n    assert got[\"content\"] == \"clean-install-alpha\"\n    upd = ctx2.service.update_memory(mid, MemoryUpdateIn(content=\"clean-install-beta\", expected_version=got[\"version\"]))\n    assert upd.content == \"clean-install-beta\"\n    print(\"OK\", mid, upd.version)\nfinally:\n    ctx2.db.close()\n"
+      ],
+      "cwd": null,
+      "returncode": 0,
+      "stdout": "OK mem_1a195f6b69392d1084893 2\n",
+      "stderr": "",
+      "ok": true
+    }
+  ]
+}

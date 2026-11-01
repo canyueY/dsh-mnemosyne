@@ -1,0 +1,539 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-11-01T15:20:00+08:00",
+  "final_command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+  "final_log": "reports/checks-Final-E15-20261101-151627-871-2a9acdb8.log",
+  "final_exit_code": 0,
+  "python_suite": {
+    "passed": 413,
+    "failed": 0
+  },
+  "node_suite": {
+    "passed": 11,
+    "failed": 0
+  },
+  "sdk_ts_build": "passed",
+  "theory_loops": "passed",
+  "continuity": {
+    "status": "passed",
+    "artifact": "../../service/reports/memory_continuity.json",
+    "pack_copy": "reports/memory_continuity.json"
+  },
+  "clean_install": {
+    "status": "passed",
+    "artifact": "reports/clean_install.json",
+    "user_effect": "not_measured"
+  },
+  "skipped": [],
+  "xfail": [],
+  "environment_failures": [],
+  "deferred": [
+    "neural",
+    "physiology",
+    "general_causal",
+    "real_platform_ops",
+    "federation"
+  ],
+  "cases": [
+    {
+      "case_id": "AC01",
+      "task": "E01",
+      "title": "同源去重",
+      "test_locator": "tests/unit/test_source_coverage_contract.py::SourceCoverageContractTests::test_ac01",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E01-20261101-141014-754-02af2e8b.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC02",
+      "task": "E01",
+      "title": "覆盖缺失",
+      "test_locator": "tests/unit/test_source_coverage_contract.py::SourceCoverageContractTests::test_ac02",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E01-20261101-141014-754-02af2e8b.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC03",
+      "task": "E01",
+      "title": "Bank 越权",
+      "test_locator": "tests/unit/test_source_coverage_contract.py::SourceCoverageContractTests::test_ac03",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E01-20261101-141014-754-02af2e8b.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC04",
+      "task": "E01",
+      "title": "未信任工作区",
+      "test_locator": "tests/unit/test_source_coverage_contract.py::SourceCoverageContractTests::test_ac04",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E01-20261101-141014-754-02af2e8b.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC05",
+      "task": "E02",
+      "title": "源修订",
+      "test_locator": "tests/unit/test_derived_freshness.py::DerivedFreshnessTests::test_ac05",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E02-20261101-141408-608-ce7fe529.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC06",
+      "task": "E02",
+      "title": "撤回及独立支持",
+      "test_locator": "tests/unit/test_derived_freshness.py::DerivedFreshnessTests::test_ac06",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E02-20261101-141408-608-ce7fe529.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC07",
+      "task": "E02",
+      "title": "删除防复活",
+      "test_locator": "tests/unit/test_derived_freshness.py::DerivedFreshnessTests::test_ac07",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E02-20261101-141408-608-ce7fe529.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC08",
+      "task": "E02",
+      "title": "依赖环路",
+      "test_locator": "tests/unit/test_derived_freshness.py::DerivedFreshnessTests::test_ac08",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E02-20261101-141408-608-ce7fe529.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC09",
+      "task": "E02",
+      "title": "版本竞态",
+      "test_locator": "tests/unit/test_derived_freshness.py::DerivedFreshnessTests::test_ac09",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E02-20261101-141408-608-ce7fe529.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC10",
+      "task": "E03",
+      "title": "当前与历史",
+      "test_locator": "tests/unit/test_answer_selection.py::AnswerSelectionTests::test_ac10",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E03-20261101-142238-247-e4563816.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC11",
+      "task": "E03",
+      "title": "迟到记录",
+      "test_locator": "tests/unit/test_answer_selection.py::AnswerSelectionTests::test_ac11",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E03-20261101-142238-247-e4563816.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC12",
+      "task": "E03",
+      "title": "主体和否定",
+      "test_locator": "tests/unit/test_answer_selection.py::AnswerSelectionTests::test_ac12",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E03-20261101-142238-247-e4563816.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC13",
+      "task": "E03",
+      "title": "临时情境",
+      "test_locator": "tests/unit/test_answer_selection.py::AnswerSelectionTests::test_ac13",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E03-20261101-142238-247-e4563816.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC14",
+      "task": "E03",
+      "title": "反证预算",
+      "test_locator": "tests/unit/test_answer_selection.py::AnswerSelectionTests::test_ac14",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E03-20261101-142238-247-e4563816.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC15",
+      "task": "E03",
+      "title": "自述标签",
+      "test_locator": "tests/unit/test_answer_selection.py::AnswerSelectionTests::test_ac15",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E03-20261101-142238-247-e4563816.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC16",
+      "task": "E03",
+      "title": "查询不支持",
+      "test_locator": "tests/unit/test_answer_selection.py::AnswerSelectionTests::test_ac16",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E03-20261101-142238-247-e4563816.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC17",
+      "task": "E04",
+      "title": "完整预算",
+      "test_locator": "tests/unit/test_context_envelope_budget.py::ContextEnvelopeBudgetTests::test_ac17",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E04-20261101-143235-780-13409e9e.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC18",
+      "task": "E04",
+      "title": "固定开销过限",
+      "test_locator": "tests/unit/test_context_envelope_budget.py::ContextEnvelopeBudgetTests::test_ac18",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E04-20261101-143235-780-13409e9e.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC19",
+      "task": "E04",
+      "title": "估算诚实",
+      "test_locator": "tests/unit/test_context_envelope_budget.py::ContextEnvelopeBudgetTests::test_ac19",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E04-20261101-143235-780-13409e9e.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC20",
+      "task": "E05",
+      "title": "宿主真实接入",
+      "test_locator": "tests/contract/test_answer_selection_adapter_e2e.py::AnswerSelectionAdapterE2ETests::test_ac20",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E05-20261101-143633-879-5fb72eb2.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC21",
+      "task": "E05",
+      "title": "故障降级",
+      "test_locator": "tests/contract/test_answer_selection_adapter_e2e.py::AnswerSelectionAdapterE2ETests::test_ac21",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E05-20261101-143633-879-5fb72eb2.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC22",
+      "task": "E06",
+      "title": "消息幂等",
+      "test_locator": "tests/unit/test_session_checkpoint.py::SessionCheckpointTests::test_ac22",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E06-20261101-144120-587-f7b4bce0.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC23",
+      "task": "E06",
+      "title": "压缩与重启",
+      "test_locator": "tests/unit/test_session_checkpoint.py::SessionCheckpointTests::test_ac23",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E06-20261101-144120-587-f7b4bce0.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC24",
+      "task": "E06",
+      "title": "副作用未知",
+      "test_locator": "tests/unit/test_session_checkpoint.py::SessionCheckpointTests::test_ac24",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E06-20261101-144120-587-f7b4bce0.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC25",
+      "task": "E06",
+      "title": "会话隔离",
+      "test_locator": "tests/unit/test_session_checkpoint.py::SessionCheckpointTests::test_ac25",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E06-20261101-144120-587-f7b4bce0.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC26",
+      "task": "E07",
+      "title": "未知总费用",
+      "test_locator": "tests/unit/test_runtime_cost_ledger.py::RuntimeCostLedgerTests::test_ac26",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E07-20261101-144819-630-08ee50fd.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC27",
+      "task": "E07",
+      "title": "回执幂等",
+      "test_locator": "tests/unit/test_runtime_cost_ledger.py::RuntimeCostLedgerTests::test_ac27",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E07-20261101-144819-630-08ee50fd.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC28",
+      "task": "E07",
+      "title": "限额执法",
+      "test_locator": "tests/unit/test_runtime_cost_ledger.py::RuntimeCostLedgerTests::test_ac28",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E07-20261101-144819-630-08ee50fd.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC29",
+      "task": "E08",
+      "title": "探针故障识别",
+      "test_locator": "tests/unit/test_cognitive_health_probes.py::CognitiveHealthProbesTests::test_ac29",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E08-20261101-145317-647-0f80d5f9.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC30",
+      "task": "E08",
+      "title": "干净安装",
+      "test_locator": "tests/contract/test_clean_bank_lifecycle.py::CleanBankLifecycleTests::test_ac30",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E08-20261101-145317-647-0f80d5f9.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC31",
+      "task": "E08",
+      "title": "worker 未知",
+      "test_locator": "tests/unit/test_cognitive_health_probes.py::CognitiveHealthProbesTests::test_ac31",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E08-20261101-145317-647-0f80d5f9.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC32",
+      "task": "E09",
+      "title": "融合过滤",
+      "test_locator": "tests/unit/test_retrieval_fusion.py::RetrievalFusionTests::test_ac32",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E09-20261101-145628-130-2bedcdaf.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC33",
+      "task": "E09",
+      "title": "反证保护",
+      "test_locator": "tests/unit/test_retrieval_fusion.py::RetrievalFusionTests::test_ac33",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E09-20261101-145628-130-2bedcdaf.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC34",
+      "task": "E09",
+      "title": "轻量降级",
+      "test_locator": "tests/unit/test_retrieval_fusion.py::RetrievalFusionTests::test_ac34",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E09-20261101-145628-130-2bedcdaf.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC35",
+      "task": "E10",
+      "title": "摘要失真",
+      "test_locator": "tests/unit/test_session_consolidation.py::SessionConsolidationTests::test_ac35",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E10-20261101-145815-235-f77e4e71.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC36",
+      "task": "E10",
+      "title": "巩固范围",
+      "test_locator": "tests/unit/test_session_consolidation.py::SessionConsolidationTests::test_ac36",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E10-20261101-145815-235-f77e4e71.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC37",
+      "task": "E10",
+      "title": "前台抢占",
+      "test_locator": "tests/unit/test_session_consolidation.py::SessionConsolidationTests::test_ac37",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E10-20261101-145815-235-f77e4e71.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC38",
+      "task": "E11",
+      "title": "事务中断",
+      "test_locator": "tests/recovery/test_consumer_watermarks.py::ConsumerWatermarkTests::test_ac38",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E11-20261101-145955-003-ecbc9cea.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC39",
+      "task": "E11",
+      "title": "独立水位",
+      "test_locator": "tests/recovery/test_consumer_watermarks.py::ConsumerWatermarkTests::test_ac39",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E11-20261101-145955-003-ecbc9cea.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC40",
+      "task": "E11",
+      "title": "旧租约写入",
+      "test_locator": "tests/recovery/test_consumer_watermarks.py::ConsumerWatermarkTests::test_ac40",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E11-20261101-145955-003-ecbc9cea.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC41",
+      "task": "E12",
+      "title": "保存与采用",
+      "test_locator": "tests/unit/test_execution_receipts.py::ExecutionReceiptTests::test_ac41",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E12-20261101-150427-989-f0ba2a59.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC42",
+      "task": "E12",
+      "title": "效果未知",
+      "test_locator": "tests/unit/test_execution_receipts.py::ExecutionReceiptTests::test_ac42",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E12-20261101-150427-989-f0ba2a59.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC43",
+      "task": "E12",
+      "title": "版本冲突",
+      "test_locator": "tests/unit/test_execution_receipts.py::ExecutionReceiptTests::test_ac43",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E12-20261101-150427-989-f0ba2a59.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC44",
+      "task": "E13",
+      "title": "好评不增信",
+      "test_locator": "tests/unit/test_attributed_feedback_learning.py::AttributedFeedbackLearningTests::test_ac44",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E13-20261101-150612-268-5b91e295.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC45",
+      "task": "E13",
+      "title": "验收污染",
+      "test_locator": "tests/unit/test_attributed_feedback_learning.py::AttributedFeedbackLearningTests::test_ac45",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E13-20261101-150612-268-5b91e295.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC46",
+      "task": "E13",
+      "title": "采用回滚并发",
+      "test_locator": "tests/unit/test_attributed_feedback_learning.py::AttributedFeedbackLearningTests::test_ac46",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E13-20261101-150612-268-5b91e295.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC47",
+      "task": "E14",
+      "title": "迁移重放",
+      "test_locator": "tests/contract/test_staged_content_import.py::StagedContentImportTests::test_ac47",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E14-20261101-150921-755-60cae934.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC48",
+      "task": "E14",
+      "title": "书籍定位",
+      "test_locator": "tests/unit/test_text_book_anchors.py::TextBookAnchorTests::test_ac48",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E14-20261101-150921-755-60cae934.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC49",
+      "task": "E14",
+      "title": "作者观点",
+      "test_locator": "tests/unit/test_text_book_anchors.py::TextBookAnchorTests::test_ac49",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E14-20261101-150921-755-60cae934.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    },
+    {
+      "case_id": "AC50",
+      "task": "E14",
+      "title": "内容重导入",
+      "test_locator": "tests/contract/test_staged_content_import.py::StagedContentImportTests::test_ac50",
+      "status": "passed",
+      "command": "./engineering/mnemosyne-next/tools/run_checks.ps1 -Mode Final -TaskId E15",
+      "log": "reports/checks-Task-E14-20261101-150921-755-60cae934.log",
+      "notes": "mechanism_only; user_effect=not_measured; public synthetic case"
+    }
+  ]
+}

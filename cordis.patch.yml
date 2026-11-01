@@ -1,3 +1,31 @@
 - insert:
     - id: dsh-mnemosyne
       name: dsh-mnemosyne
+- insert:
+    - id: preset-mnemosyne
+      name: '@deepseek-ai/dsh-agent-preset'
+      config:
+        id: mnemosyne
+        name: Mnemosyne Memory
+        description: Optional memory-aware agent surface; use memory_* only when recall or durable notes are needed.
+        order: 10
+        plugins:
+          - id: persona
+            name: '@deepseek-ai/dsh-persona'
+            config:
+              prefix: |-
+                You may use Mnemosyne memory tools when helpful:
+                - memory_search / memory_get / memory_context for recall
+                - memory_observe / memory_propose for durable notes (confirm required)
+                - memory_feedback / memory_update / memory_forget for corrections
+                - memory_select_answer when current vs historical answers matter
+                Do not invent memories. Do not require a memory tool on every turn.
+                Refuse local shell/file/process/plugin-admin tools - this preset is memory-only.
+          - id: mnemosyne-tool-guard
+            name: dsh-mnemosyne/preset-guard
+          - id: tool-ask-user
+            name: '@deepseek-ai/dsh-tool-ask-user'
+          - id: tool-todo
+            name: '@deepseek-ai/dsh-tool-todo'
+            config:
+              allowParallelInProgress: true

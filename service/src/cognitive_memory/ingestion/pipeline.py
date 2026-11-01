@@ -17,7 +17,12 @@ def ingest_observation(
     subject_id: str | None = None,
 ) -> Observation:
     """归一化 Identity 后委托 MemoryService.capture_observation。"""
+    from cognitive_memory.governance.workspace import assert_workspace_authorized
+
     normalized = normalize_observation(body, node_id=node_id, subject_id=subject_id)
+    assert_workspace_authorized(
+        service.db, dict(normalized.metadata or {}), action="ingest"
+    )
     return service.capture_observation(normalized)
 
 

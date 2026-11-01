@@ -1,0 +1,95 @@
+{
+  "ok": true,
+  "data_dir": "C:\\Users\\残月Y\\AppData\\Local\\Temp\\mnemosyne-continuity-8wxly3st\\bank",
+  "production_path_used": false,
+  "channels": [
+    "service",
+    "rest",
+    "sdk",
+    "thin_host_adapter"
+  ],
+  "steps": [
+    {
+      "step": "record",
+      "ok": true,
+      "memory_id": "mem_1a195f8ad4833de3dfb1d",
+      "via": "service"
+    },
+    {
+      "step": "restart_read",
+      "ok": true,
+      "via": "service"
+    },
+    {
+      "step": "recall_select",
+      "ok": true,
+      "selected": [
+        {
+          "ref_type": "claim",
+          "ref": "clm_fa413ce00479",
+          "claim_id": "clm_fa413ce00479",
+          "lifecycle": "proposed",
+          "epistemic_tag": "self_report",
+          "negated": false,
+          "surface": "A喜欢茶",
+          "validity_from": "2026-06-01T00:00:00Z",
+          "validity_to": null,
+          "applicability": {
+            "validity_from": "2026-06-01T00:00:00Z",
+            "validity_to": null,
+            "negated": false,
+            "conditional": false,
+            "situation": null
+          },
+          "role": "support",
+          "subject": "A",
+          "predicate": "喜欢",
+          "arguments": [
+            "茶"
+          ]
+        }
+      ],
+      "via": "service"
+    },
+    {
+      "step": "correct",
+      "ok": true,
+      "version": 2,
+      "via": "service"
+    },
+    {
+      "step": "source_change_invalidate",
+      "ok": true,
+      "stale_ids": [
+        "drv_a665a188f611"
+      ],
+      "via": "service"
+    },
+    {
+      "step": "next_answer_rest",
+      "ok": true,
+      "status_code": 200,
+      "claim_id": "clm_fa413ce00479",
+      "via": "rest"
+    },
+    {
+      "step": "next_answer_sdk",
+      "ok": true,
+      "claim_id": "clm_fa413ce00479",
+      "via": "sdk"
+    },
+    {
+      "step": "next_answer_host",
+      "ok": true,
+      "claim_id": "clm_fa413ce00479",
+      "via": "thin_host_adapter"
+    },
+    {
+      "step": "fake_executor",
+      "ok": true,
+      "real_platform_ops": false,
+      "via": "fake_executor"
+    }
+  ],
+  "user_effect": "not_measured"
+}

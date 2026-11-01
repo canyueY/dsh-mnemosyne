@@ -96,6 +96,23 @@ class MnemosyneClient:
     def health(self) -> dict[str, Any]:
         return self._request("GET", "/health")
 
+    def health_probes(
+        self,
+        *,
+        include_write_probe: bool = False,
+        write_probe_namespace: str | None = None,
+    ) -> dict[str, Any]:
+        params: dict[str, Any] = {"include_write_probe": include_write_probe}
+        if write_probe_namespace:
+            params["write_probe_namespace"] = write_probe_namespace
+        return self._request("GET", "/cognition/health/probes", params=params)
+
+    def health_explain(self, *, subject: str = "health", ref_id: str | None = None) -> dict[str, Any]:
+        params: dict[str, Any] = {"subject": subject}
+        if ref_id:
+            params["ref_id"] = ref_id
+        return self._request("GET", "/cognition/health/explain", params=params)
+
     def observe(self, payload: dict[str, Any]) -> dict[str, Any]:
         return self._request("POST", "/observations", json=payload)
 
@@ -137,6 +154,45 @@ class MnemosyneClient:
 
     def contract(self) -> dict[str, Any]:
         return self._request("GET", "/contract")
+
+    def select_answer(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return self._request("POST", "/cognition/answers/select", json=payload)
+
+    def record_session_message(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return self._request("POST", "/cognition/sessions/messages", json=payload)
+
+    def record_session_delivery(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return self._request("POST", "/cognition/sessions/deliveries", json=payload)
+
+    def save_session_checkpoint(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return self._request("POST", "/cognition/sessions/checkpoints", json=payload)
+
+    def get_session_checkpoint(self, checkpoint_id: str) -> dict[str, Any]:
+        return self._request("GET", f"/cognition/sessions/checkpoints/{checkpoint_id}")
+
+    def resume_session_checkpoint(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return self._request("POST", "/cognition/sessions/checkpoints/resume", json=payload)
+
+    def record_usage_receipt(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return self._request("POST", "/cognition/usage/receipts", json=payload)
+
+    def usage_report(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return self._request("POST", "/cognition/usage/report", json=payload)
+
+    def plan_execution(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return self._request("POST", "/cognition/executions/plan", json=payload)
+
+    def execution_save(self, proposal_id: str) -> dict[str, Any]:
+        return self._request("POST", f"/cognition/executions/{proposal_id}/save")
+
+    def execution_adopt(self, proposal_id: str) -> dict[str, Any]:
+        return self._request("POST", f"/cognition/executions/{proposal_id}/adopt")
+
+    def execution_confirm(self, proposal_id: str) -> dict[str, Any]:
+        return self._request("POST", f"/cognition/executions/{proposal_id}/confirm")
+
+    def execution_observe(self, proposal_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+        return self._request("POST", f"/cognition/executions/{proposal_id}/observe", json=payload)
 
     def run_cognitive_task(self, payload: dict[str, Any]) -> dict[str, Any]:
         return self._request("POST", "/cognition/tasks/run", json=payload)

@@ -60,8 +60,19 @@
     "governance",
     "cognitive_task_loop",
     "validated_schema_learning",
-    "profile_hypotheses"
+    "profile_hypotheses",
+    "answer_selection",
+    "session_checkpoint",
+    "usage_ledger",
+    "health_probes"
   ],
+  "public_capability_status": {
+    "answer_selection": "available",
+    "session_checkpoint": "available",
+    "usage_ledger": "available",
+    "health_probes": "available",
+    "dsh_thin_host": "compatible_0.2.1"
+  },
   "checksums": {
     "source_sha256": "0fc853d9d9e483593b98c73b0773134a7bcac07ac560329ea987983c4a864a34"
   },

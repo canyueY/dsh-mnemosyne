@@ -706,6 +706,177 @@ CREATE TABLE cognitive_task_feedback (
 );
 """))
 
+MIGRATIONS.append(("018_derivation_manifest", """
+CREATE TABLE IF NOT EXISTS derivation_manifests (
+  derived_id TEXT PRIMARY KEY,
+  bank_id TEXT NOT NULL,
+  artifact_kind TEXT NOT NULL,
+  dependencies_json TEXT NOT NULL,
+  processor_version TEXT NOT NULL,
+  config_hash TEXT NOT NULL,
+  cursor TEXT,
+  freshness TEXT NOT NULL,
+  reason_codes_json TEXT NOT NULL DEFAULT '[]',
+  payload_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_derivation_freshness
+  ON derivation_manifests(freshness);
+CREATE TABLE IF NOT EXISTS source_revision_tombstones (
+  bank_id TEXT NOT NULL,
+  root_source_id TEXT NOT NULL,
+  content_hash TEXT NOT NULL DEFAULT '',
+  reason TEXT NOT NULL,
+  actor TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  PRIMARY KEY (bank_id, root_source_id, content_hash)
+);
+"""))
+
+MIGRATIONS.append(("019_session_checkpoint", """
+CREATE TABLE IF NOT EXISTS session_messages (
+  id TEXT PRIMARY KEY,
+  session_id TEXT NOT NULL,
+  bank_id TEXT NOT NULL,
+  stable_key TEXT NOT NULL UNIQUE,
+  role TEXT NOT NULL,
+  content TEXT NOT NULL,
+  producer TEXT NOT NULL DEFAULT 'host',
+  exposure_count INTEGER NOT NULL DEFAULT 1,
+  metadata_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_session_messages_session
+  ON session_messages(session_id, bank_id);
+CREATE TABLE IF NOT EXISTS session_deliveries (
+  id TEXT PRIMARY KEY,
+  session_id TEXT NOT NULL,
+  bank_id TEXT NOT NULL,
+  stable_key TEXT NOT NULL UNIQUE,
+  card_id TEXT NOT NULL,
+  payload_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_session_deliveries_session
+  ON session_deliveries(session_id, bank_id);
+CREATE TABLE IF NOT EXISTS session_checkpoints (
+  id TEXT PRIMARY KEY,
+  session_id TEXT NOT NULL,
+  bank_id TEXT NOT NULL,
+  task_id TEXT,
+  manifest_json TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_session_checkpoints_session
+  ON session_checkpoints(session_id, bank_id);
+"""))
+
+MIGRATIONS.append(("020_usage_ledger", """
+CREATE TABLE IF NOT EXISTS usage_ledger_entries (
+  id TEXT PRIMARY KEY,
+  correlation_id TEXT NOT NULL,
+  attempt INTEGER NOT NULL DEFAULT 1,
+  provider TEXT NOT NULL,
+  meter_scope TEXT NOT NULL,
+  stable_key TEXT NOT NULL UNIQUE,
+  phase TEXT NOT NULL,
+  measurement TEXT NOT NULL,
+  amount REAL,
+  currency TEXT NOT NULL DEFAULT 'USD',
+  metadata_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_usage_ledger_corr
+  ON usage_ledger_entries(correlation_id, attempt);
+CREATE INDEX IF NOT EXISTS idx_usage_ledger_scope
+  ON usage_ledger_entries(meter_scope, phase);
+"""))
+
+MIGRATIONS.append(("021_consumer_watermarks_fencing", """
+CREATE TABLE IF NOT EXISTS consumer_watermarks (
+  consumer TEXT NOT NULL,
+  stream TEXT NOT NULL DEFAULT 'default',
+  position INTEGER NOT NULL DEFAULT 0,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (consumer, stream)
+);
+CREATE TABLE IF NOT EXISTS consumer_event_dedupe (
+  consumer TEXT NOT NULL,
+  event_id TEXT NOT NULL,
+  effect_id TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  PRIMARY KEY (consumer, event_id)
+);
+CREATE TABLE IF NOT EXISTS consumer_effects (
+  id TEXT PRIMARY KEY,
+  consumer TEXT NOT NULL,
+  event_id TEXT NOT NULL,
+  payload_json TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_consumer_effects_c
+  ON consumer_effects(consumer, created_at);
+CREATE TABLE IF NOT EXISTS worker_leases (
+  resource TEXT PRIMARY KEY,
+  worker_id TEXT NOT NULL,
+  fencing_token TEXT NOT NULL,
+  generation INTEGER NOT NULL,
+  status TEXT NOT NULL,
+  acquired_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS worker_artifacts (
+  id TEXT PRIMARY KEY,
+  resource TEXT NOT NULL,
+  fencing_token TEXT NOT NULL,
+  generation INTEGER NOT NULL,
+  payload_json TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+"""))
+
+MIGRATIONS.append(("022_execution_receipts", """
+CREATE TABLE IF NOT EXISTS execution_actions (
+  proposal_id TEXT PRIMARY KEY,
+  execution_id TEXT NOT NULL,
+  correlation_id TEXT NOT NULL,
+  actor TEXT NOT NULL,
+  bank_id TEXT NOT NULL,
+  capability TEXT NOT NULL,
+  expected_state_version INTEGER NOT NULL,
+  state_version INTEGER NOT NULL,
+  idempotency_key TEXT NOT NULL UNIQUE,
+  phase TEXT NOT NULL,
+  payload_json TEXT NOT NULL,
+  receipt_json TEXT NOT NULL DEFAULT '{}',
+  outcome_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_execution_actions_corr
+  ON execution_actions(correlation_id);
+CREATE INDEX IF NOT EXISTS idx_execution_actions_phase
+  ON execution_actions(phase);
+"""))
+
+MIGRATIONS.append(("023_strategy_learning_candidates", """
+CREATE TABLE IF NOT EXISTS strategy_learning_candidates (
+  id TEXT PRIMARY KEY,
+  strategy_id TEXT NOT NULL,
+  version INTEGER NOT NULL,
+  status TEXT NOT NULL,
+  actor TEXT NOT NULL,
+  report_json TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_strategy_learning_status
+  ON strategy_learning_candidates(strategy_id, status);
+"""))
+
 
 def apply_migrations(conn: sqlite3.Connection) -> list[str]:
     conn.execute(

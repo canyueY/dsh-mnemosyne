@@ -1,0 +1,8 @@
+﻿{
+    "files":  450,
+    "size":  6839583,
+    "scripts/install-dsh.mjs":  true,
+    "scripts/migrate-dsh.mjs":  true,
+    "dsh/agent-presets/mnemosyne/agent.cordis.yml":  true,
+    "src/agent-preset.js":  true
+}

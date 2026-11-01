@@ -49,6 +49,14 @@ class BackgroundRuntime:
             "memory.emotion_extract": self._handle_emotion_extract,
             "memory.emotion_pattern_scan": self._handle_emotion_pattern_scan,
         }
+        # E11 / FA20：主链路租约与消费水位（不再只存在于 helper 单测）
+        from cognitive_memory.strategy.fencing import WorkerLeaseManager
+        from cognitive_memory.strategy.watermarks import ConsumerWatermarkStore
+
+        self.leases = WorkerLeaseManager(db)
+        self.watermarks = ConsumerWatermarkStore(db)
+        self._worker_id = f"dispatcher_{id(self) & 0xFFFF:x}"
+        self._lease: dict[str, Any] | None = None
 
     def start(self) -> None:
         if self._thread and self._thread.is_alive():
@@ -155,6 +163,11 @@ class BackgroundRuntime:
                     conn.commit()
         return n
 
+    def ensure_lease(self, *, resource: str = "consolidation") -> dict[str, Any]:
+        lease = self.leases.acquire(worker_id=self._worker_id, resource=resource)
+        self._lease = lease
+        return lease
+
     def run_tasks_once(self, limit: int = 16) -> int:
         now = _now()
         with self.db.exclusive() as conn:
@@ -176,6 +189,7 @@ class BackgroundRuntime:
             ttype = row["task_type"]
             payload = json.loads(row["payload_json"] or "{}")
             handler = self._task_handlers.get(ttype)
+            lease = self.ensure_lease(resource="consolidation")
             with self.db.exclusive() as conn:
                 conn.execute(
                     "UPDATE tasks SET status='running', updated_at=? WHERE id=?",
@@ -184,7 +198,27 @@ class BackgroundRuntime:
                 conn.commit()
             try:
                 if handler:
-                    handler(payload)
+                    handler({**payload, "_lease": lease})
+                # 任务完成产物经租约 fencing 提交，旧 worker 不能靠最终 UPDATE 冒充成功
+                self.leases.commit_artifact(
+                    fencing_token=str(lease["fencing_token"]),
+                    expected_generation=int(lease["generation"]),
+                    artifact={
+                        "task_id": tid,
+                        "task_type": ttype,
+                        "status": "done",
+                    },
+                    resource=str(lease.get("resource") or "consolidation"),
+                )
+                pos = self.watermarks.get_watermark("utility") + 1
+                self.watermarks.apply_effect_with_watermark(
+                    consumer="utility",
+                    event_id=f"task_done:{tid}",
+                    effect_payload={"task_id": tid, "task_type": ttype},
+                    next_position=pos,
+                    fencing_token=str(lease["fencing_token"]),
+                    expected_generation=int(lease["generation"]),
+                )
                 with self.db.exclusive() as conn:
                     conn.execute(
                         "UPDATE tasks SET status='done', updated_at=?, last_error='' WHERE id=?",
@@ -218,7 +252,16 @@ class BackgroundRuntime:
     def _handle_consolidation(self, payload: dict[str, Any]) -> None:
         """慢速通道 V1：把观察整理为 episodic 候选（规则式，可后续换 LLM）。"""
         from cognitive_memory.cognition.consolidate import consolidate_observation
+        from cognitive_memory.strategy.fencing import assert_lease_writable
 
+        lease = payload.get("_lease") or self._lease
+        if lease:
+            assert_lease_writable(
+                self.db,
+                fencing_token=str(lease.get("fencing_token") or ""),
+                expected_generation=int(lease.get("generation") or 0),
+                resource=str(lease.get("resource") or "consolidation"),
+            )
         consolidate_observation(self.service, payload.get("observation_id") or "")
 
     def _handle_promote(self, payload: dict[str, Any]) -> None:

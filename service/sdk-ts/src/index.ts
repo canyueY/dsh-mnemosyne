@@ -106,6 +106,74 @@ export class MnemosyneClient {
     });
   }
 
+  selectAnswer(payload: Record<string, unknown>) {
+    return this.request<Record<string, unknown>>("POST", "/api/v1/cognition/answers/select", payload);
+  }
+
+  recordSessionMessage(payload: Record<string, unknown>) {
+    return this.request<Record<string, unknown>>("POST", "/api/v1/cognition/sessions/messages", payload);
+  }
+
+  recordSessionDelivery(payload: Record<string, unknown>) {
+    return this.request<Record<string, unknown>>("POST", "/api/v1/cognition/sessions/deliveries", payload);
+  }
+
+  saveSessionCheckpoint(payload: Record<string, unknown>) {
+    return this.request<Record<string, unknown>>("POST", "/api/v1/cognition/sessions/checkpoints", payload);
+  }
+
+  getSessionCheckpoint(checkpointId: string) {
+    return this.request<Record<string, unknown>>(
+      "GET",
+      `/api/v1/cognition/sessions/checkpoints/${encodeURIComponent(checkpointId)}`,
+    );
+  }
+
+  resumeSessionCheckpoint(payload: Record<string, unknown>) {
+    return this.request<Record<string, unknown>>("POST", "/api/v1/cognition/sessions/checkpoints/resume", payload);
+  }
+
+  recordUsageReceipt(payload: Record<string, unknown>) {
+    return this.request<Record<string, unknown>>("POST", "/api/v1/cognition/usage/receipts", payload);
+  }
+
+  usageReport(payload: Record<string, unknown>) {
+    return this.request<Record<string, unknown>>("POST", "/api/v1/cognition/usage/report", payload);
+  }
+
+  planExecution(payload: Record<string, unknown>) {
+    return this.request<Record<string, unknown>>("POST", "/api/v1/cognition/executions/plan", payload);
+  }
+
+  executionSave(proposalId: string) {
+    return this.request<Record<string, unknown>>(
+      "POST",
+      `/api/v1/cognition/executions/${encodeURIComponent(proposalId)}/save`,
+    );
+  }
+
+  executionAdopt(proposalId: string) {
+    return this.request<Record<string, unknown>>(
+      "POST",
+      `/api/v1/cognition/executions/${encodeURIComponent(proposalId)}/adopt`,
+    );
+  }
+
+  executionConfirm(proposalId: string) {
+    return this.request<Record<string, unknown>>(
+      "POST",
+      `/api/v1/cognition/executions/${encodeURIComponent(proposalId)}/confirm`,
+    );
+  }
+
+  executionObserve(proposalId: string, payload: Record<string, unknown>) {
+    return this.request<Record<string, unknown>>(
+      "POST",
+      `/api/v1/cognition/executions/${encodeURIComponent(proposalId)}/observe`,
+      payload,
+    );
+  }
+
   runCognitiveTask(payload: Record<string, unknown>) {
     return this.request<Record<string, unknown>>("POST", "/api/v1/cognition/tasks/run", payload);
   }

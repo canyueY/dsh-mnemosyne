@@ -1,13 +1,20 @@
 {
   "schema_version": "1.0",
-  "implementation_status": "not_started",
+  "implementation_status": "complete",
+  "updated_at": "2026-11-01T16:30:00+08:00",
+  "current_task": null,
+  "review_fixes": "engineering/review-fixes F00–F12 done (R04–R07/R10 + pack/MCP/stdio)",
   "tasks": {
-    "D00": "pending",
-    "D01": "pending",
-    "D02": "pending",
-    "D03": "pending",
-    "D04": "pending",
-    "D05": "pending",
-    "D06": "pending"
+    "D00": { "status": "done", "report": "reports/D00.md", "notes": "baseline; DA01" },
+    "D01": { "status": "done", "report": "reports/D01.md", "notes": "DA02-DA04; pack files restored in review-fixes F05" },
+    "D02": { "status": "done", "report": "reports/D02.md", "notes": "DA05-DA07; stage reentry + owned rewrite in F07/F10" },
+    "D03": { "status": "done", "report": "reports/D03.md", "notes": "DA08-DA10; real DSH settings/describe+update+restart verified; file-persist in F11" },
+    "D04": { "status": "done", "report": "reports/D04.md", "notes": "DA11-DA12; real DSH 0.2.1-rc.3 agentPresets/list + session/create verified (broken=null)" },
+    "D05": { "status": "done", "report": "reports/D05.md", "notes": "DA13-DA15; stdio entry in F06" },
+    "D06": {
+      "status": "done",
+      "report": "reports/D06.md",
+      "notes": "post review-fixes: npm 34 / py 437 / diff-check clean"
+    }
   }
 }

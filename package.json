@@ -24,14 +24,18 @@
   "exports": {
     ".": "./src/index.js",
     "./client": "./src/memory-client.js",
-    "./tool-spec": "./src/tool-spec.js"
+    "./tool-spec": "./src/tool-spec.js",
+    "./preset-guard": "./src/preset-guard.js"
   },
   "files": [
     "src",
     "service",
+    "scripts",
+    "dsh",
     "README.md",
     "CHANGELOG.md",
     "MIGRATION_2.0.md",
+    "DSH_INTEGRATION.md",
     "LICENSE",
     "cordis.patch.yml",
     "dsh.plugin.json"
@@ -42,8 +46,10 @@
   },
   "scripts": {
     "test": "node --test legacy/dsh-plugin/test/*.mjs src/test/*.mjs",
-    "check": "node --check src/index.js && node --check src/memory-client.js && node --check src/memory-process.js && node --check src/tool-spec.js",
-    "test:service": "python -m pytest service/tests -q"
+    "check": "node --check src/index.js && node --check src/memory-client.js && node --check src/memory-process.js && node --check src/tool-spec.js && node --check src/settings.js && node --check src/config-schema.js && node --check src/agent-preset.js && node --check src/preset-guard.js && node --check src/mcp-gateway.js",
+    "test:service": "python -m pytest service/tests -q",
+    "install:dsh": "node scripts/install-dsh.mjs --local",
+    "migrate:dsh": "node scripts/migrate-dsh.mjs"
   },
   "peerDependencies": {
     "@deepseek-ai/dsh-tools": ">=0.2.1-0 <0.3.0"

@@ -15,6 +15,16 @@ from cognitive_memory.governance.access import AccessContext, make_access_dep, r
 from cognitive_memory.core.service import ConflictError, MemoryService, NotFoundError
 from cognitive_memory.cognition.loop_models import CognitiveTask, LearningProposal, ProfileHypothesis, TaskFeedback, ValidationSuite
 from cognitive_memory.domain.models import (
+    AnswerSelectIn,
+    SessionCheckpointIn,
+    SessionDeliveryIn,
+    SessionMessageIn,
+    SessionResumeIn,
+    UsageReceiptIn,
+    UsageReportIn,
+    SessionConsolidateIn,
+    ExecutionPlanIn,
+    ExecutionObserveIn,
     AuthorityTransitionIn,
     CapabilityCheckIn,
     CapabilitySetIn,
@@ -125,6 +135,37 @@ def create_app(
     def healthz() -> dict[str, str]:
         return {"ok": "true"}
 
+    @app.get(f"{pref}/cognition/health/probes")
+    def cognition_health_probes(
+        include_write_probe: bool = False,
+        write_probe_namespace: str | None = None,
+        access: AccessContext = Depends(
+            make_access_dep(permission="memory.read", resource="cognition.health.probes")
+        ),
+    ) -> dict[str, Any]:
+        from cognitive_memory.tracing.health_probes import CognitiveHealthProbes
+
+        result = CognitiveHealthProbes(service.db).probe(
+            include_write_probe=bool(include_write_probe),
+            write_probe_namespace=write_probe_namespace,
+        )
+        result["_actor"] = access.actor_id
+        return result
+
+    @app.get(f"{pref}/cognition/health/explain")
+    def cognition_health_explain(
+        subject: str = "health",
+        ref_id: str | None = None,
+        access: AccessContext = Depends(
+            make_access_dep(permission="memory.read", resource="cognition.health.explain")
+        ),
+    ) -> dict[str, Any]:
+        from cognitive_memory.tracing.health_probes import CognitiveHealthProbes
+
+        result = CognitiveHealthProbes(service.db).explain(subject=subject, ref_id=ref_id)
+        result["_actor"] = access.actor_id
+        return result
+
     @app.post(f"{pref}/memories/search")
     def search(
         body: SearchQuery,
@@ -226,14 +267,23 @@ def create_app(
         body: ObservationIn,
         access: AccessContext = Depends(make_access_dep(permission="memory.write", resource="observations.create")),
     ) -> dict[str, Any]:
+        from cognitive_memory.governance.policy import PolicyDeniedError
         from cognitive_memory.ingestion import ingest_observation
 
-        obs = ingest_observation(service, body)
+        try:
+            obs = ingest_observation(service, body)
+        except PolicyDeniedError as exc:
+            raise HTTPException(
+                status_code=403,
+                detail={"code": exc.code, "message": str(exc), "policy": exc.policy},
+            ) from exc
         # P2：同事务写 SQLite+FTS → PERSISTED 与 INDEXED 同时成立；字段分列便于日后外置索引
         dump = obs.model_dump()
         dump["persisted_ok"] = True
         dump["retrieval_ready"] = True
-        dump["write_stages"] = ["RECEIVED", "NORMALIZED", "PERSISTED", "INDEXED", "VERIFIED"]
+        # 写入成功 ≠ 内容 verified；阶段名 INDEXED 表示可检索，非认识论认证
+        dump["write_stages"] = ["RECEIVED", "NORMALIZED", "PERSISTED", "INDEXED"]
+        dump["auto_verified"] = False
         dump["_actor"] = access.actor_id
         return dump
 
@@ -426,7 +476,16 @@ def create_app(
     ) -> dict[str, Any]:
         _ = access
         from cognitive_memory.evidence.object_store import EvidenceObjectStore
+        from cognitive_memory.governance.policy import PolicyDeniedError
+        from cognitive_memory.governance.workspace import assert_workspace_authorized
 
+        try:
+            assert_workspace_authorized(service.db, dict(body.metadata or {}), action="ingest")
+        except PolicyDeniedError as exc:
+            raise HTTPException(
+                status_code=403,
+                detail={"code": exc.code, "message": str(exc), "policy": exc.policy},
+            ) from exc
         return EvidenceObjectStore(service.db).create(
             source_type=body.source_type,
             source_ref=body.source_ref,
@@ -437,6 +496,10 @@ def create_app(
             legacy_memory_id=body.legacy_memory_id,
             root_source_id=body.root_source_id,
             metadata=body.metadata,
+            revision=getattr(body, "revision", None),
+            coverage=getattr(body, "coverage", None),
+            source_role=getattr(body, "source_role", None),
+            apply_source_contract=True,
         )
 
     @app.get(f"{pref}/evidences/{{evidence_id}}")
@@ -2020,6 +2083,318 @@ def create_app(
     def _loops():
         from cognitive_memory.cognition.loops import CognitiveLoops
         return CognitiveLoops(service)
+
+    @app.post(f"{pref}/cognition/answers/select")
+    def cognition_answers_select(
+        body: AnswerSelectIn,
+        access: AccessContext = Depends(
+            make_access_dep(permission="memory.read", resource="cognition.answers.select")
+        ),
+    ) -> dict[str, Any]:
+        from cognitive_memory.cognition.answer_selection import AnswerSelectionService
+
+        principal = None if access.is_node_admin else access.to_security_context(
+            default_bank=(access.banks or ["personal"])[0]
+        )
+        if (
+            not access.is_node_admin
+            and body.bank_id not in (access.banks or [])
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail={"code": "bank_denied", "message": "answer bank not granted"},
+            )
+        result = AnswerSelectionService(service).select_answer(
+            bank_id=body.bank_id,
+            query=body.query,
+            target=body.target,
+            context=body.context,
+            at=body.at,
+            mode=body.mode,
+            budget=body.budget,
+            expected_source_revisions=body.expected_source_revisions,
+            current_source_revisions=body.current_source_revisions,
+            principal=principal,
+        )
+        result["_actor"] = access.actor_id
+        return result
+
+    def _session_ledger():
+        from cognitive_memory.cognition.session_checkpoint import SessionLedger
+
+        return SessionLedger(service.db)
+
+    def _deny_bank(access: AccessContext, bank_id: str) -> None:
+        if access.is_node_admin:
+            return
+        if bank_id not in (access.banks or []):
+            raise HTTPException(
+                status_code=403,
+                detail={"code": "bank_denied", "message": "session bank not granted"},
+            )
+
+    @app.post(f"{pref}/cognition/sessions/messages")
+    def cognition_session_message(
+        body: SessionMessageIn,
+        access: AccessContext = Depends(
+            make_access_dep(permission="memory.write", resource="cognition.sessions.messages")
+        ),
+    ) -> dict[str, Any]:
+        _deny_bank(access, body.bank_id)
+        result = _session_ledger().record_message(
+            session_id=body.session_id,
+            bank_id=body.bank_id,
+            role=body.role,
+            content=body.content,
+            message_id=body.message_id,
+            producer=body.producer,
+            metadata=body.metadata,
+        )
+        result["_actor"] = access.actor_id
+        return result
+
+    @app.post(f"{pref}/cognition/sessions/deliveries")
+    def cognition_session_delivery(
+        body: SessionDeliveryIn,
+        access: AccessContext = Depends(
+            make_access_dep(permission="memory.write", resource="cognition.sessions.deliveries")
+        ),
+    ) -> dict[str, Any]:
+        _deny_bank(access, body.bank_id)
+        result = _session_ledger().record_delivery(
+            session_id=body.session_id,
+            bank_id=body.bank_id,
+            card_id=body.card_id,
+            payload=body.payload,
+        )
+        result["_actor"] = access.actor_id
+        return result
+
+    @app.post(f"{pref}/cognition/sessions/checkpoints")
+    def cognition_session_checkpoint_save(
+        body: SessionCheckpointIn,
+        access: AccessContext = Depends(
+            make_access_dep(permission="memory.write", resource="cognition.sessions.checkpoints")
+        ),
+    ) -> dict[str, Any]:
+        _deny_bank(access, body.bank_id)
+        banks = None if access.is_node_admin else list(access.banks or [])
+        result = _session_ledger().save_checkpoint(
+            session_id=body.session_id,
+            bank_id=body.bank_id,
+            task_id=body.task_id,
+            goal=body.goal,
+            constraints=body.constraints,
+            verified_progress=body.verified_progress,
+            pending_questions=body.pending_questions,
+            pending_external_operations=body.pending_external_operations,
+            delivered_cards=body.delivered_cards,
+            evidence_revisions=body.evidence_revisions,
+            assistant_claims=body.assistant_claims,
+            metadata=body.metadata,
+            checkpoint_id=body.checkpoint_id,
+            principal_banks=banks,
+        )
+        if not result.get("ok"):
+            code = result.get("code") or result.get("detail")
+            status = (
+                403
+                if code
+                in {
+                    "session_isolation",
+                    "cross_bank_checkpoint_denied",
+                    "bank_denied",
+                    "bank_mismatch",
+                }
+                or result.get("detail") in {"bank_denied", "bank_mismatch", "session_mismatch"}
+                else 400
+            )
+            raise HTTPException(status_code=status, detail=result)
+        result["_actor"] = access.actor_id
+        return result
+
+    @app.get(f"{pref}/cognition/sessions/checkpoints/{{checkpoint_id}}")
+    def cognition_session_checkpoint_get(
+        checkpoint_id: str,
+        access: AccessContext = Depends(
+            make_access_dep(permission="memory.read", resource="cognition.sessions.checkpoints")
+        ),
+    ) -> dict[str, Any]:
+        banks = None if access.is_node_admin else list(access.banks or [])
+        result = _session_ledger().get_checkpoint(
+            checkpoint_id, principal_banks=banks, reauthorize=True
+        )
+        if not result.get("ok"):
+            code = result.get("code") or result.get("detail")
+            status = 403 if code == "session_isolation" or result.get("detail") == "bank_denied" else 404
+            raise HTTPException(status_code=status, detail=result)
+        result["_actor"] = access.actor_id
+        return result
+
+    @app.post(f"{pref}/cognition/sessions/checkpoints/resume")
+    def cognition_session_checkpoint_resume(
+        body: SessionResumeIn,
+        access: AccessContext = Depends(
+            make_access_dep(permission="memory.read", resource="cognition.sessions.resume")
+        ),
+    ) -> dict[str, Any]:
+        banks = None if access.is_node_admin else list(access.banks or [])
+        result = _session_ledger().resume_checkpoint(
+            body.checkpoint_id,
+            principal_banks=banks,
+            confirm_blind_retry=body.confirm_blind_retry,
+        )
+        if not result.get("ok") and result.get("detail") in {"not_found", "bank_denied"}:
+            status = 403 if result.get("detail") == "bank_denied" else 404
+            raise HTTPException(status_code=status, detail=result)
+        result["_actor"] = access.actor_id
+        return result
+
+    def _usage_ledger(limits: dict[str, Any] | None = None):
+        from cognitive_memory.tracing.cost_ledger import UsageLedger
+
+        cfg = dict(getattr(service, "call_budget_config", None) or {})
+        if limits:
+            cfg.update(limits)
+        return UsageLedger(service.db, limits=cfg)
+
+    @app.post(f"{pref}/cognition/usage/receipts")
+    def cognition_usage_receipt(
+        body: UsageReceiptIn,
+        access: AccessContext = Depends(
+            make_access_dep(permission="memory.write", resource="cognition.usage.receipts")
+        ),
+    ) -> dict[str, Any]:
+        ledger = _usage_ledger()
+        if body.phase == "reserve":
+            result = ledger.reserve(
+                correlation_id=body.correlation_id,
+                attempt=body.attempt,
+                provider=body.provider,
+                meter_scope=body.meter_scope,
+                estimated_cost=body.estimated_cost,
+                unit_key=body.unit_key,
+                metadata=body.metadata,
+            )
+        else:
+            result = ledger.record_receipt(
+                correlation_id=body.correlation_id,
+                attempt=body.attempt,
+                provider=body.provider,
+                meter_scope=body.meter_scope,
+                amount=body.amount,
+                measurement=body.measurement,
+                success=body.success,
+                unit_key=body.unit_key,
+                metadata=body.metadata,
+            )
+        result["_actor"] = access.actor_id
+        return result
+
+    @app.post(f"{pref}/cognition/usage/report")
+    def cognition_usage_report(
+        body: UsageReportIn,
+        access: AccessContext = Depends(
+            make_access_dep(permission="memory.read", resource="cognition.usage.report")
+        ),
+    ) -> dict[str, Any]:
+        result = _usage_ledger().cost_report(correlation_id=body.correlation_id)
+        result["_actor"] = access.actor_id
+        return result
+
+    @app.post(f"{pref}/cognition/sessions/consolidate")
+    def cognition_session_consolidate(
+        body: SessionConsolidateIn,
+        access: AccessContext = Depends(
+            make_access_dep(permission="memory.write", resource="cognition.sessions.consolidate")
+        ),
+    ) -> dict[str, Any]:
+        from cognitive_memory.cognition.consolidate import (
+            BACKGROUND_CONSOLIDATION_ENABLED,
+            consolidate_session,
+        )
+
+        result = consolidate_session(
+            session_id=body.session_id,
+            atoms=body.atoms,
+            allowed_input_ids=body.allowed_input_ids,
+            topic=body.topic,
+            foreground_preempt=body.foreground_preempt,
+        )
+        result["background_consolidation_enabled"] = BACKGROUND_CONSOLIDATION_ENABLED
+        result["_actor"] = access.actor_id
+        return result
+
+    def _exec_store():
+        from cognitive_memory.cognition.execution_receipts import ExecutionReceiptStore
+
+        return ExecutionReceiptStore(service.db)
+
+    @app.post(f"{pref}/cognition/executions/plan")
+    def cognition_execution_plan(
+        body: ExecutionPlanIn,
+        access: AccessContext = Depends(
+            make_access_dep(permission="memory.write", resource="cognition.executions.plan")
+        ),
+    ) -> dict[str, Any]:
+        result = _exec_store().plan_action(
+            actor=body.actor or access.actor_id,
+            bank_id=body.bank_id,
+            capability=body.capability,
+            payload=body.payload,
+            expected_state_version=body.expected_state_version,
+            correlation_id=body.correlation_id,
+            idempotency_key=body.idempotency_key,
+        )
+        result["_actor"] = access.actor_id
+        return result
+
+    @app.post(f"{pref}/cognition/executions/{{proposal_id}}/save")
+    def cognition_execution_save(
+        proposal_id: str,
+        access: AccessContext = Depends(
+            make_access_dep(permission="memory.write", resource="cognition.executions.save")
+        ),
+    ) -> dict[str, Any]:
+        result = _exec_store().save_config(proposal_id)
+        result["_actor"] = access.actor_id
+        return result
+
+    @app.post(f"{pref}/cognition/executions/{{proposal_id}}/adopt")
+    def cognition_execution_adopt(
+        proposal_id: str,
+        access: AccessContext = Depends(
+            make_access_dep(permission="memory.write", resource="cognition.executions.adopt")
+        ),
+    ) -> dict[str, Any]:
+        result = _exec_store().adopt_runtime(proposal_id)
+        result["_actor"] = access.actor_id
+        return result
+
+    @app.post(f"{pref}/cognition/executions/{{proposal_id}}/confirm")
+    def cognition_execution_confirm(
+        proposal_id: str,
+        access: AccessContext = Depends(
+            make_access_dep(permission="memory.write", resource="cognition.executions.confirm")
+        ),
+    ) -> dict[str, Any]:
+        result = _exec_store().confirm_execution(proposal_id)
+        result["_actor"] = access.actor_id
+        return result
+
+    @app.post(f"{pref}/cognition/executions/{{proposal_id}}/observe")
+    def cognition_execution_observe(
+        proposal_id: str,
+        body: ExecutionObserveIn,
+        access: AccessContext = Depends(
+            make_access_dep(permission="memory.write", resource="cognition.executions.observe")
+        ),
+    ) -> dict[str, Any]:
+        result = _exec_store().observe_effect(
+            proposal_id, outcome=body.outcome, details=body.details
+        )
+        result["_actor"] = access.actor_id
+        return result
 
     @app.post(f"{pref}/cognition/tasks/run")
     def cognitive_run(body: CognitiveTask, _: None = Depends(require_token)):

@@ -24,6 +24,7 @@ test('tool output schemas are 0.2.1 JsonSchemaNode-safe', () => {
     specs.searchToolSpec,
     specs.getToolSpec,
     specs.contextToolSpec,
+    specs.selectAnswerToolSpec,
     specs.proposeToolSpec,
     specs.feedbackToolSpec,
     specs.updateToolSpec,
