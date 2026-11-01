@@ -18,7 +18,7 @@
     "url": "git+https://github.com/canyueY/dsh-mnemosyne.git"
   },
   "author": "canyueY",
-  "license": "AGPL-3.0-or-later",
+  "license": "Apache-2.0",
   "type": "module",
   "main": "./src/index.js",
   "exports": {
@@ -37,6 +37,8 @@
     "MIGRATION_2.0.md",
     "DSH_INTEGRATION.md",
     "LICENSE",
+    "NOTICE",
+    "THIRD_PARTY_NOTICES.md",
     "cordis.patch.yml",
     "dsh.plugin.json"
   ],

@@ -1,6 +1,6 @@
 /**
  * Spawn / supervise the Python mnemosyne subprocess.
- * SPDX-License-Identifier: AGPL-3.0-or-later
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 import { spawn } from 'node:child_process';

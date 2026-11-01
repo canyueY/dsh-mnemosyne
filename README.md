@@ -938,3 +938,12 @@ Mnemosyne 希望探索一种新的 Agent 记忆基础设施：
 ---
 
 > **为什么还要开发 Mnemosyne？** [阅读全文 →](WHY_MNEMOSYNE.md)
+
+## License
+
+Current Mnemosyne code (`src/`, `service/`, `scripts/`, `dsh/`) is licensed
+under Apache-2.0. The historical `legacy/dsh-plugin/` tree remains
+AGPL-3.0-or-later; see `legacy/dsh-plugin/LICENSE`.
+
+Earlier releases remain under the license they were published with.
+Third-party dependency notices are in `THIRD_PARTY_NOTICES.md`.

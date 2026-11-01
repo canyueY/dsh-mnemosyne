@@ -8,7 +8,7 @@ version = "2.0.0"
 description = "Mnemosyne 2.0 — Personal Cognitive Infrastructure Node (merged Node + DSH plugin repository)"
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "AGPL-3.0-or-later" }
+license = { text = "Apache-2.0" }
 authors = [{ name = "canyueY" }]
 keywords = ["mnemosyne", "memory", "cognitive", "agent", "mcp"]
 dependencies = [

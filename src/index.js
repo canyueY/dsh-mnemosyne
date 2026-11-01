@@ -1,7 +1,7 @@
 /**
  * dsh-mnemosyne — DSH Host Adapter for external Memory Service.
  * Replaces in-process A-MEM with subprocess + REST/MCP tools.
- * SPDX-License-Identifier: AGPL-3.0-or-later
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 import { pathToFileURL } from 'node:url';
