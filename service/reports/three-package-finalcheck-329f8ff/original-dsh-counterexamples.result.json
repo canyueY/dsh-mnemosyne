@@ -1,0 +1,10 @@
+{
+  "name": "original-dsh-counterexamples",
+  "cmd": [
+    "node",
+    "D:\\HuaweiMoveData\\Users\\残月Y\\Desktop\\桌宠\\dsh-mnemosyne\\service\\reports\\three-package-finalcheck-329f8ff\\reproduce_dsh.mjs"
+  ],
+  "exit": 0,
+  "seconds": 17.64,
+  "tail": "{\n  \"first_action\": \"migrated\",\n  \"first_data_skipped\": true,\n  \"retry_action\": \"data_continued\",\n  \"retry_has_data_result\": true,\n  \"unrelated_original_source_path\": \"D:/fixtures/dsh-cognitive-memory/archive.txt\",\n  \"unrelated_source_path_preserved\": true,\n  \"unrelated_source_path_after\": \"sourcePath: D:/fixtures/dsh-cognitive-memory/archive.txt\",\n  \"only_isolated_profile_used\": true\n}\n"
+}

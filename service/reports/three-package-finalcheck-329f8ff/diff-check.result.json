@@ -1,0 +1,13 @@
+{
+  "name": "diff-check",
+  "cmd": [
+    "git",
+    "diff",
+    "--check",
+    "HEAD~1",
+    "HEAD"
+  ],
+  "exit": 0,
+  "seconds": 0.05,
+  "tail": ""
+}

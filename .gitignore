@@ -33,3 +33,10 @@ service/runtime/
 service/logs/
 service/cache/
 service/tmp/
+release-dist/
+
+# Generated verification fixtures/logs; reports and JSON evidence are tracked.
+service/reports/**/isolated-dsh-review-*/
+service/reports/**/migration-variant-*/
+service/reports/**/nested-variant-*/
+service/reports/**/*.log

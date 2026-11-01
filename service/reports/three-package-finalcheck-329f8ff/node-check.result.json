@@ -1,0 +1,11 @@
+{
+  "name": "node-check",
+  "cmd": [
+    "npm.cmd",
+    "run",
+    "check"
+  ],
+  "exit": 0,
+  "seconds": 0.81,
+  "tail": "\n> dsh-mnemosyne@2.0.0 check\n> node --check src/index.js && node --check src/memory-client.js && node --check src/memory-process.js && node --check src/tool-spec.js && node --check src/settings.js && node --check src/config-schema.js && node --check src/agent-preset.js && node --check src/preset-guard.js && node --check src/mcp-gateway.js\n\n"
+}

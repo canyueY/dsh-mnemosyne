@@ -1,0 +1,10 @@
+{
+  "first_action": "migrated",
+  "first_data_skipped": true,
+  "retry_action": "data_continued",
+  "retry_has_data_result": true,
+  "unrelated_original_source_path": "D:/fixtures/dsh-cognitive-memory/archive.txt",
+  "unrelated_source_path_preserved": true,
+  "unrelated_source_path_after": "sourcePath: D:/fixtures/dsh-cognitive-memory/archive.txt",
+  "only_isolated_profile_used": true
+}
