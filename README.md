@@ -1,5 +1,16 @@
 # Mnemosyne 2.0
 
+> **2026-11-03 — Standalone 3.1.0（可直接下载使用）**
+>
+> 新增独立插件分发包 `dsh-mnemosyne-standalone-3.1.0.tgz`：自带 Python Node 与独立 runtime /
+> Memory Bank，解压即可交给 DSH 安装，不再依赖本仓目录结构。
+>
+> - 源码与安装说明：[`standalone/README.md`](standalone/README.md)
+> - 发布页：<https://github.com/canyueY/dsh-mnemosyne/releases/tag/v3.1.0>
+> - 变更记录：[`standalone/CHANGELOG.md`](standalone/CHANGELOG.md)
+>
+> 本仓原有的 Monorepo（`service/` + 根目录 `src/`）保持不变，Standalone 是同一套 Core 的独立分发形式。
+
 2026-11-01：按重构理论补全证据依赖、反馈隔离、有界任务与独立验收后的规则采用／回滚。接口、兼容变化和验证范围见 [理论实现报告](service/docs/2.0/THEORY_IMPLEMENTATION_2026_11_01.md)。
 
 本轮修复了权限、Verified、Claim 身份、迁移审批和 Trace 等审查问题，并新增本地接入/迁移闭环。实际验收与尚未完成的长期目标见 [实现补全报告](service/docs/2.0/AUDIT_REMEDIATION_2026_10_31.md)。

@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Mnemosyne Memory",
+    "description": "Standalone evolving memory node for DSH: recall, context building, observations, corrections and answer selection via memory_* tools."
+  }
+}

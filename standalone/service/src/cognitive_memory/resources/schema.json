@@ -1,0 +1,103 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "manifest_version": {
+      "const": "mnemosyne.bootstrap.v1",
+      "title": "Manifest Version",
+      "type": "string"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "name": {
+      "title": "Name",
+      "type": "string"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    },
+    "source": {
+      "title": "Source",
+      "type": "object"
+    },
+    "compatibility": {
+      "title": "Compatibility",
+      "type": "object"
+    },
+    "dependencies": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Dependencies",
+      "type": "array"
+    },
+    "permissions": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Permissions",
+      "type": "array"
+    },
+    "installation": {
+      "title": "Installation",
+      "type": "object"
+    },
+    "integration": {
+      "title": "Integration",
+      "type": "object"
+    },
+    "lifecycle": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Lifecycle",
+      "type": "array"
+    },
+    "recovery": {
+      "title": "Recovery",
+      "type": "object"
+    },
+    "capabilities": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Capabilities",
+      "type": "array"
+    },
+    "checksums": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Checksums",
+      "type": "object"
+    },
+    "signatures": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Signatures",
+      "type": "array"
+    }
+  },
+  "required": [
+    "manifest_version",
+    "id",
+    "name",
+    "version",
+    "source",
+    "compatibility",
+    "dependencies",
+    "permissions",
+    "installation",
+    "integration",
+    "lifecycle",
+    "recovery",
+    "capabilities",
+    "checksums",
+    "signatures"
+  ],
+  "title": "BootstrapManifest",
+  "type": "object"
+}
