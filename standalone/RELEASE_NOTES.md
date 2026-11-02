@@ -1,10 +1,10 @@
-# Mnemosyne Standalone 3.1.0
+# Mnemosyne Standalone 2.0.0
 
 **一个可以直接下载、独立运行的 Mnemosyne DSH 插件包。** 同一套 Mnemosyne 2.0 Node/Core，不再依赖 Monorepo 目录，也不要求你手动拼装 Python 服务。
 
 - 仓库：<https://github.com/canyueY/dsh-mnemosyne>
 - 源码目录：<https://github.com/canyueY/dsh-mnemosyne/tree/main/standalone>
-- 本版本：`v3.1.0`（2026-11-03）
+- 本版本：`standalone-2.0.0`（2026-11-03）
 
 ---
 
@@ -12,7 +12,7 @@
 
 | 文件 | 大小 | SHA-256 |
 | --- | --- | --- |
-| [`dsh-mnemosyne-standalone-3.1.0.tgz`](https://github.com/canyueY/dsh-mnemosyne/releases/download/v3.1.0/dsh-mnemosyne-standalone-3.1.0.tgz) | 333,770 B | `c6f24cfeb5e21c750a0f4941b0c93fe59daa80cd0b92772b2ae88ece7b6e80e2` |
+| [`dsh-mnemosyne-standalone-2.0.0.tgz`](https://github.com/canyueY/dsh-mnemosyne/releases/download/standalone-2.0.0/dsh-mnemosyne-standalone-2.0.0.tgz) | 334,331 B | `5d7efddf51372d6af67b6c9ab4eb56ce2ed6536d4f5abd1c34bb18f3173355ba` |
 
 包内包含：DSH 适配层（11 个 `memory_*` 工具）、内嵌 Python Node/Core、可选 Preset/MCP、运行时安装脚本、冒烟测试。解压后是一个标准 npm 包（`package/`）。
 
@@ -24,12 +24,12 @@
 
 ```powershell
 # Windows（在 DSH 有 dsh CLI 的环境）
-dsh plugin --profile <profile> add "file:<绝对路径>\dsh-mnemosyne-standalone-3.1.0.tgz"
+dsh plugin --profile <profile> add "file:<绝对路径>\dsh-mnemosyne-standalone-2.0.0.tgz"
 ```
 
 ```bash
 # Linux / macOS
-dsh plugin --profile <profile> add "file:$PWD/dsh-mnemosyne-standalone-3.1.0.tgz"
+dsh plugin --profile <profile> add "file:$PWD/dsh-mnemosyne-standalone-2.0.0.tgz"
 ```
 
 如果当前 DSH 版本不接受 tarball 依赖：解压 tgz，把 `package/` 目录交给
@@ -70,7 +70,7 @@ node .\scripts\smoke.mjs     # 应输出 SMOKE_OK
 
 ---
 
-## 3.1 更新内容
+## 2.0 Standalone 更新内容
 
 - **单包发布**：DSH 适配层 + 内嵌 Node/Core + 运行时脚本，下载即用，不再依赖 `桌宠` 或 Monorepo 目录。
 - **独立 Memory Bank**：默认 `%LOCALAPPDATA%\Mnemosyne DSH Memory Bank`（Linux/macOS：`~/.local/share/Mnemosyne DSH Memory Bank`），与桌宠 Bank 隔离。
@@ -112,7 +112,7 @@ node .\scripts\smoke.mjs     # 应输出 SMOKE_OK
 ## 许可与边界
 
 - License：Apache-2.0（见 `LICENSE` / `NOTICE` / `THIRD_PARTY_NOTICES.md`）。
-- 本包是 Mnemosyne 2.0/3.0 的独立分发形式，不改变核心算法与记忆格式。
+- 本包是 Mnemosyne 2.0 的独立分发形式，不改变核心算法与记忆格式。
 - 不包含：音乐采集组件、微信/QQ 聊天导入、桌宠侧桥接；它们仍作为独立组件存在。
 
 ---
