@@ -1,0 +1,73 @@
+{
+  "name": "dsh-mnemosyne",
+  "version": "3.1.0",
+  "private": true,
+  "description": "Mnemosyne Standalone 3.1: evolving memory tools backed by a bundled Python Node and an isolated Memory Bank",
+  "homepage": "https://github.com/canyueY/dsh-mnemosyne/tree/main/standalone",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/canyueY/dsh-mnemosyne.git",
+    "directory": "standalone"
+  },
+  "bugs": {
+    "url": "https://github.com/canyueY/dsh-mnemosyne/issues"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "memory",
+    "mnemosyne"
+  ],
+  "author": "canyueY",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./client": "./src/memory-client.js",
+    "./tool-spec": "./src/tool-spec.js",
+    "./mcp": "./src/mcp-gateway.js",
+    "./preset-guard": "./src/preset-guard.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "src",
+    "service/src",
+    "service/pyproject.toml",
+    "service/requirements.txt",
+    "service/README.md",
+    "service/LICENSE",
+    "scripts",
+    "dsh",
+    "locale",
+    "optional",
+    "cordis.patch.yml",
+    "icon.svg",
+    "README.md",
+    "CHANGELOG.md",
+    "BENCHMARK.md",
+    "LICENSE",
+    "NOTICE",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "engines": {
+    "node": ">=20",
+    "dsh": ">=0.2.1-0 <0.3.0"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-tools": ">=0.2.1-0 <0.3.0"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/dsh-tools": {
+      "optional": true
+    }
+  },
+  "dsh": {
+    "manifestVersion": 1,
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}

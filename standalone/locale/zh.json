@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Mnemosyne 记忆",
+    "description": "独立运行的 DSH 演化记忆节点：通过 memory_* 工具做检索、上下文组装、观察写入、纠错与答案选择。"
+  }
+}

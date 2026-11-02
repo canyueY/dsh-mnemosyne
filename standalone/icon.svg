@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Mnemosyne">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1b2a4a"/>
+      <stop offset="1" stop-color="#0b1220"/>
+    </linearGradient>
+    <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7fd4ff"/>
+      <stop offset="1" stop-color="#7c8cff"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#bg)"/>
+  <circle cx="32" cy="32" r="17" fill="none" stroke="url(#ring)" stroke-width="2.2" opacity="0.55"/>
+  <circle cx="32" cy="32" r="10.5" fill="none" stroke="url(#ring)" stroke-width="2.4"/>
+  <circle cx="32" cy="32" r="4.2" fill="#bfe9ff"/>
+  <circle cx="32" cy="13.5" r="2.4" fill="#7fd4ff"/>
+  <circle cx="49.5" cy="41" r="2.4" fill="#9aa7ff"/>
+  <circle cx="14.5" cy="41" r="2.4" fill="#9aa7ff"/>
+  <path d="M32 15.9 L32 21.5 M46.8 39.6 L41.8 36.6 M17.2 39.6 L22.2 36.6" stroke="#7fd4ff" stroke-width="1.6" stroke-linecap="round" opacity="0.8"/>
+</svg>

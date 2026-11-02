@@ -1,0 +1,16 @@
+# ============================================================================
+# dsh-mnemosyne (standalone) — DSH bundle patch
+#
+# The Memory Node is bundled at ./service and is auto-started on the first
+# memory tool call. Runtime paths default to:
+#   bank : %LOCALAPPDATA%\Mnemosyne DSH Memory Bank
+#   venv : %LOCALAPPDATA%\Mnemosyne DSH Node\venv
+# Override them with the plugin config fields (data_dir / python /
+# service_root) in this row, or via MNEMOSYNE_* / DSH_MEMORY_* env vars.
+# ============================================================================
+- insert:
+    - id: dsh-mnemosyne
+      name: dsh-mnemosyne
+      config:
+        auto_start: true
+        auto_capture: true

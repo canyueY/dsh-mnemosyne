@@ -1,0 +1,69 @@
+{
+  "manifest_version": "mnemosyne.bootstrap.v1",
+  "id": "mnemosyne.core-node",
+  "name": "Mnemosyne",
+  "version": "3.0.0",
+  "source": {
+    "type": "local_checkout",
+    "trust": "requires_explicit_local_approval"
+  },
+  "compatibility": {
+    "python": ">=3.10",
+    "targets": [
+      "standalone",
+      "dsh",
+      "mcp",
+      "rest"
+    ]
+  },
+  "dependencies": [
+    "fastapi",
+    "uvicorn",
+    "pydantic",
+    "httpx"
+  ],
+  "permissions": [
+    "create_data_directory",
+    "write_node_config",
+    "migrate_database_on_upgrade"
+  ],
+  "installation": {
+    "mode": "configure_existing_python_runtime",
+    "entry": "mnemosyne install --plan FILE --confirm",
+    "skill": "resources/onboarding/SKILL.md"
+  },
+  "integration": {
+    "protocols": [
+      "rest",
+      "mcp"
+    ],
+    "dsh_adapter": "../src"
+  },
+  "lifecycle": [
+    "discover",
+    "diagnose",
+    "plan",
+    "install",
+    "connect",
+    "verify",
+    "upgrade",
+    "rollback"
+  ],
+  "recovery": {
+    "database": "sqlite online backup",
+    "configuration": "byte-exact snapshot"
+  },
+  "capabilities": [
+    "memory",
+    "evidence",
+    "claims",
+    "governance",
+    "cognitive_task_loop",
+    "validated_schema_learning",
+    "profile_hypotheses"
+  ],
+  "checksums": {
+    "source_sha256": "0fc853d9d9e483593b98c73b0773134a7bcac07ac560329ea987983c4a864a34"
+  },
+  "signatures": []
+}

@@ -1,0 +1,53 @@
+# Mnemosyne agent preset — memory tools usage guidance + fail-closed allowlist.
+# Registered via cordis.patch.yml insert id=dsh-mnemosyne-agent-preset.
+id: mnemosyne
+name: Mnemosyne Memory
+description: >
+  Optional memory-aware agent surface. Use memory_* tools when facts, recall,
+  or durable notes are needed. Do not call memory tools every turn.
+
+persona: |
+  You may use Mnemosyne memory tools when helpful:
+  - memory_search / memory_get / memory_context for recall
+  - memory_observe / memory_propose for durable notes (confirm required)
+  - memory_feedback / memory_update / memory_forget for corrections
+  - memory_select_answer when current vs historical answers matter
+  Do not invent memories. Do not require a memory tool on every turn.
+  Refuse local shell/file/process/plugin-admin tools — this preset is memory-only.
+
+tools:
+  allow:
+    - memory_health
+    - memory_search
+    - memory_get
+    - memory_context
+    - memory_select_answer
+    - memory_observe
+    - memory_propose
+    - memory_feedback
+    - memory_update
+    - memory_forget
+    - memory_task_status
+    - ask_user_question
+    - todo_write
+  deny_prefixes:
+    - bash
+    - shell
+    - pwsh
+    - terminal
+    - fs_
+    - file_
+    - process
+    - plugin
+    - exec
+  deny_exact:
+    - local_execute
+    - run_terminal
+    - write_file
+    - read_file
+    - manage_plugin
+  fail_closed: true
+
+session:
+  creatable: true
+  default: false

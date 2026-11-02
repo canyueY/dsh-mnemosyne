@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mnemosyne"
+version = "2.0.0"
+description = "Mnemosyne 2.0 — Personal Cognitive Infrastructure Node (merged Node + DSH plugin repository)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [{ name = "canyueY" }]
+keywords = ["mnemosyne", "memory", "cognitive", "agent", "mcp"]
+dependencies = [
+  "fastapi>=0.115.0",
+  "uvicorn[standard]>=0.30.0",
+  "pydantic>=2.7.0",
+  "pydantic-settings>=2.3.0",
+  "httpx>=0.27.0",
+]
+
+[project.optional-dependencies]
+mcp = ["mcp>=1.0.0"]
+dev = ["pytest>=8.0", "httpx>=0.27"]
+
+[project.scripts]
+mnemosyne = "cognitive_memory.node_cli:main"
+cognitive-memory = "cognitive_memory.main:main"
+cognitive-memory-cli = "cognitive_memory.cli:main"
+
+[project.urls]
+Documentation = "docs/MNEMOSYNE_NODE_OPERATIONS.md"
+Homepage = "https://github.com/canyueY/dsh-mnemosyne"
+Repository = "https://github.com/canyueY/dsh-mnemosyne"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+cognitive_memory = ["resources/*.json", "resources/onboarding/*.md"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
