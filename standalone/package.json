@@ -1,8 +1,8 @@
 {
   "name": "dsh-mnemosyne",
-  "version": "3.1.0",
+  "version": "2.0.0",
   "private": true,
-  "description": "Mnemosyne Standalone 3.1: evolving memory tools backed by a bundled Python Node and an isolated Memory Bank",
+  "description": "Mnemosyne Standalone 2.0: evolving memory tools backed by a bundled Python Node and an isolated Memory Bank",
   "homepage": "https://github.com/canyueY/dsh-mnemosyne/tree/main/standalone",
   "repository": {
     "type": "git",
@@ -48,6 +48,7 @@
     "README.md",
     "CHANGELOG.md",
     "BENCHMARK.md",
+    "VERSION_POLICY.md",
     "LICENSE",
     "NOTICE",
     "THIRD_PARTY_NOTICES.md"

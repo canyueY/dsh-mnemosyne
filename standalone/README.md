@@ -1,12 +1,12 @@
-# Mnemosyne Standalone DSH Plugin 3.1.0
+# Mnemosyne Standalone DSH Plugin 2.0.0
 
 Mnemosyne 本体的独立 DSH 插件封装：**不依赖别的工程树**，自带 Python Memory Node 与
 DSH Host 适配层，安装后由 Agent 直接调用 `memory_*` 工具。运行时只依赖自身 `service/`
 与独立 venv。
 
 - 仓库位置：[`canyueY/dsh-mnemosyne/standalone`](https://github.com/canyueY/dsh-mnemosyne/tree/main/standalone)
-- 发布页：[`v3.1.0`](https://github.com/canyueY/dsh-mnemosyne/releases/tag/v3.1.0)
-- 直接下载：`dsh-mnemosyne-standalone-3.1.0.tgz`
+- 发布页：[`standalone-2.0.0`](https://github.com/canyueY/dsh-mnemosyne/releases/tag/standalone-2.0.0)
+- 直接下载：`dsh-mnemosyne-standalone-2.0.0.tgz`
 - 宿主验证：DeepSeek Harness Desktop `0.2.1-rc.5`（profile `desktop`）
 - 许可：Apache-2.0（见 `LICENSE` / `NOTICE`）
 
@@ -69,14 +69,14 @@ Mnemosyne-DSH/
 
 ## 3. 安装与启用
 
-### 3.0 直接下载安装（推荐）
+### 直接下载安装（推荐）
 
-从 [v3.1.0 Release](https://github.com/canyueY/dsh-mnemosyne/releases/tag/v3.1.0) 下载
-`dsh-mnemosyne-standalone-3.1.0.tgz`，然后：
+从 [standalone-2.0.0 Release](https://github.com/canyueY/dsh-mnemosyne/releases/tag/standalone-2.0.0) 下载
+`dsh-mnemosyne-standalone-2.0.0.tgz`，然后：
 
 ```powershell
 # 1) 交给 DSH 安装（任选其一）
-dsh plugin --profile <profile> add "file:<绝对路径>\dsh-mnemosyne-standalone-3.1.0.tgz"
+dsh plugin --profile <profile> add "file:<绝对路径>\dsh-mnemosyne-standalone-2.0.0.tgz"
 
 # 或者在 DSH 会话里让 Agent 用 plugin_manager install_bundle 指向解压后的目录
 ```
@@ -105,7 +105,7 @@ dsh plugin --profile <profile> add "file:$PWD"
 bash ./scripts/setup-runtime.sh
 ```
 
-### 3.1 运行时（一次性）
+### 运行时（一次性）
 
 插件不使用外部工程的 `.venv`，而是独立运行时：
 

@@ -1,12 +1,12 @@
 # Changelog
 
-## 3.1.0 — 2026-11-03
+## Standalone 2.0.0 — 2026-11-03
 
 **Standalone distribution.** 同一套 Mnemosyne 2.0 Node/Core，改为一个可以直接下载、独立运行的 DSH 插件包。
 
 ### 新增
 
-- **单包发布**：`dsh-mnemosyne-standalone-3.1.0.tgz`，含 DSH 适配层 + 内嵌 Python Node + 运行时脚本；不依赖 Monorepo 目录。
+- **单包发布**：`dsh-mnemosyne-standalone-2.0.0.tgz`，含 DSH 适配层 + 内嵌 Python Node + 运行时脚本；不依赖 Monorepo 目录。
 - **独立 Memory Bank**：默认 `%LOCALAPPDATA%\Mnemosyne DSH Memory Bank`（Linux/macOS：`~/.local/share/Mnemosyne DSH Memory Bank`），与桌宠 Bank 隔离。
 - **独立 Python 运行时**：`scripts/setup-runtime.ps1` / `setup-runtime.sh`，首次安装即可用。
 - **启动可靠性**：并发启动锁、60 秒冷启动预算、Node 崩溃后 15 秒探活自动重启、跨 DSH 重启接管既有 Node。
@@ -23,7 +23,7 @@
 ### 兼容性
 
 - DSH `0.2.1-0 < 0.3.0`，Node ≥ 20，Python ≥ 3.10。
-- REST `/api/v1` 与记忆格式沿用 2.0/3.0，不改旧 Bank 数据；首次打开会执行 18→24 的 schema 迁移（请先备份）。
+- REST `/api/v1` 与记忆格式沿用 2.0，不改旧 Bank 数据；首次打开会执行 18→24 的 schema 迁移（请先备份）。
 - 可选 Agent Preset 与 MCP 网关保持原样，默认不激活。
 
 ## 2.0.0 — 2026-10-31

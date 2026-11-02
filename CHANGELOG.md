@@ -1,8 +1,8 @@
 # Changelog
 
-## 3.1.0 — 2026-11-03
+## Standalone 2.0.0 — 2026-11-03
 
-- **Standalone 独立分发**：新增 `standalone/`，发布 `dsh-mnemosyne-standalone-3.1.0.tgz`（DSH 适配层 + 内嵌 Node + runtime/setup 脚本）。
+- **Standalone 独立分发**：新增 `standalone/`，发布 `dsh-mnemosyne-standalone-2.0.0.tgz`（DSH 适配层 + 内嵌 Node + runtime/setup 脚本）。
 - 独立 Memory Bank 与独立 Python venv；并发启动锁、60s 冷启动预算、崩溃自动重启、跨 DSH 重启接管 Node。
 - `standalone/` 自带 README / CHANGELOG / RELEASE_NOTES / BENCHMARK；Monorepo 根目录结构不变。
 - 在桌宠 59,303 条记忆的只读副本上完成回归：`quick_check=ok`，search 14.4 ms，recall@10 83.3%，context 445.5 tokens。
