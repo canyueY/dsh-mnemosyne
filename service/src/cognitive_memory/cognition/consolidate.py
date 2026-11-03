@@ -72,6 +72,15 @@ def consolidate_observation(
 
     kind = row["source_kind"]
     content = row["content"]
+    from cognitive_memory.memory.shallow import is_external_perception
+    if is_external_perception(kind, raw_meta):
+        # Capture already created the first-level working view atomically.
+        # Replayed consolidation tasks must not create a long-term candidate.
+        shallow = conn.execute("""SELECT m.id FROM memories m JOIN memory_evidence e ON e.memory_id=m.id
+            WHERE e.observation_id=? AND m.type='working'
+            AND json_valid(m.metadata_json) AND json_type(m.metadata_json,'$.shallow_memory')='object'
+            LIMIT 1""", (observation_id,)).fetchone()
+        return shallow[0] if shallow else None
     # 对话类已有 working；视频/系统观察生成 episodic 候选
     if kind in (SourceKind.DIALOG.value, SourceKind.USER_STATEMENT.value):
         # 从 working 提升为 episodic 候选摘要

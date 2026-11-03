@@ -69,6 +69,11 @@ def _maybe_promote(service: MemoryService, memory_id: str) -> bool:
     if not memory_id:
         return False
     data = service.get_memory(memory_id, include_evidence=True)
+    shallow = (data.get("metadata") or {}).get("shallow_memory")
+    if shallow and not shallow.get("formal_long_term"):
+        from cognitive_memory.memory.shallow import stage_at
+        if stage_at(shallow["captured_at"]) not in {"prompt", "impression"}:
+            return False
     from cognitive_memory.claims.store import ClaimStore
     from cognitive_memory.verification.assessment import assess_evidence
     from cognitive_memory.cognition.loops import _current
@@ -82,12 +87,20 @@ def _maybe_promote(service: MemoryService, memory_id: str) -> bool:
         if claim and _current(claim.get("validity_from"), claim.get("validity_to")) and assess_evidence(service.db, claim, refs)["ok"]:
             data["verified_claim_assessment"] = True
             break
+    if shallow and data["verified_claim_assessment"]:
+        # Reclassify only after the existing database-backed evidence gate.
+        # Extraction frequency and storage age themselves provide no evidence.
+        data["metadata"] = dict(data["metadata"])
+        data["metadata"]["epistemic"] = "verified_observation"
+        data["metadata"]["shallow_memory"] = {**shallow, "formal_long_term": True,
+            "long_term_class": "formal", "selected": True}
     decision = evaluate_promotion(data)
     if not decision.get("promote"):
         return False
     service.update_memory(
         memory_id,
-        MemoryUpdateIn(status=MemoryStatus.ACTIVE, expected_version=data.get("version")),
+        MemoryUpdateIn(status=MemoryStatus.ACTIVE, metadata=data.get("metadata"), expected_version=data.get("version"),
+                       **({"expires_at": None} if shallow else {})),
     )
     return True
 

@@ -306,6 +306,8 @@ class MemoryService:
             dump["metadata"] = meta
             dump["occurred_at"] = occurred
             obs = Observation(id=oid, created_at=now, **dump)
+            from cognitive_memory.memory.shallow import create_shallow
+            create_shallow(self, conn, obs, now)
             self._emit(
                 conn,
                 "observation.captured",
@@ -442,6 +444,12 @@ class MemoryService:
             # only its task-completion record is rejected.
             if write_guard is not None:
                 write_guard()
+            if body.type != MemoryType.WORKING and body.source_ids:
+                from cognitive_memory.memory.shallow import is_external_perception
+                for oid in body.source_ids:
+                    source = conn.execute("SELECT source_kind, metadata_json FROM observations WHERE id=?", (oid,)).fetchone()
+                    if source and is_external_perception(source[0], _loads(source[1], {})):
+                        raise ConflictError("external perception requires shallow selection", code="shallow_selection_required")
             cached = self._idempotent_get(conn, body.idempotency_key, "memory_propose")
             if cached:
                 return Memory.model_validate(cached)
@@ -593,7 +601,7 @@ class MemoryService:
                 mem.metadata = body.metadata
             if body.confidence is not None:
                 mem.confidence = body.confidence
-            if body.expires_at is not None:
+            if "expires_at" in body.model_fields_set:
                 mem.expires_at = body.expires_at
             mem.version += 1
             mem.updated_at = _now()
@@ -739,6 +747,22 @@ class MemoryService:
         query = (q.query or "").strip()
         bank_clause = f" AND bank_id IN ({','.join('?' * len(banks))})"
         m_bank_clause = f" AND m.bank_id IN ({','.join('?' * len(banks))})"
+        # Keep filtering inside every recall branch, before LIMIT: a different
+        # scope or expired record must not displace a valid result.
+        banks = list(banks)
+        for key in ("user_id", "agent_id", "run_id"):
+            value = getattr(q, key, None)
+            if value is not None:
+                expr = f"json_extract(CASE WHEN json_valid(metadata_json) THEN metadata_json ELSE '{{}}' END, '$.{key}') = ?"
+                bank_clause += f" AND {expr}"
+                m_bank_clause += " AND " + expr.replace("metadata_json", "m.metadata_json")
+                banks.append(value)
+        if q.mode == "current":
+            # SQLite parses ISO offsets consistently; malformed expiry fails
+            # closed in current mode but remains inspectable in history mode.
+            expiry = "(expires_at IS NULL OR julianday(expires_at) > julianday('now'))"
+            bank_clause += f" AND {expiry}"
+            m_bank_clause += " AND " + expiry.replace("expires_at", "m.expires_at")
         rows: list[sqlite3.Row]
         if query:
             # FTS5：简单转义双引号
@@ -754,6 +778,7 @@ class MemoryService:
                 AND m.status IN ({sts})
                 AND m.type IN ({tys})
                 {banks}
+              ORDER BY bm25(memories_fts), m.updated_at DESC, m.id
               LIMIT ?
             """.format(
                 sts=",".join("?" * len(statuses)),

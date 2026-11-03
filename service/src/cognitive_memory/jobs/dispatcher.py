@@ -57,6 +57,7 @@ class BackgroundRuntime:
         self.watermarks = ConsumerWatermarkStore(db)
         self._worker_id = f"dispatcher_{id(self) & 0xFFFF:x}"
         self._lease: dict[str, Any] | None = None
+        self._shallow_checked = 0.0
 
     def start(self) -> None:
         if self._thread and self._thread.is_alive():
@@ -75,6 +76,10 @@ class BackgroundRuntime:
             try:
                 self.dispatch_outbox_once()
                 self.run_tasks_once()
+                if time.monotonic() - self._shallow_checked >= 60:
+                    from cognitive_memory.memory.shallow import maintain
+                    maintain(self.service)
+                    self._shallow_checked = time.monotonic()
             except Exception as exc:  # noqa: BLE001
                 print(f"[dispatcher] loop error: {exc}", flush=True)
             self._stop.wait(self.poll_interval)

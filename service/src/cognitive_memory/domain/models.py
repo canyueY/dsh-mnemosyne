@@ -197,6 +197,11 @@ class FeedbackIn(BaseModel):
 
 
 class SearchQuery(BaseModel):
+    # Optional exact metadata scopes, combined with AND before SQL LIMIT.
+    # Filters narrow results; authorization remains the caller's responsibility.
+    user_id: str | None = Field(default=None, min_length=1, max_length=256)
+    agent_id: str | None = Field(default=None, min_length=1, max_length=256)
+    run_id: str | None = Field(default=None, min_length=1, max_length=256)
     domain: str | None = None
     query: str = ""
     types: list[MemoryType] | None = None

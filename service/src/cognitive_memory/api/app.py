@@ -189,6 +189,21 @@ def create_app(
             "actor_kind": access.kind,
         }
 
+    @app.get(f"{pref}/shallow/policy")
+    def shallow_policy(_: None = Depends(require_token)) -> dict[str, Any]:
+        from cognitive_memory.memory.shallow import policy
+        return policy()
+
+    @app.post(f"{pref}/shallow/{{memory_id}}/select")
+    def shallow_select(memory_id: str, body: dict[str, Any], _: None = Depends(require_token)) -> dict[str, Any]:
+        from cognitive_memory.memory.shallow import select
+        if body.get("confirm") is not True:
+            raise HTTPException(status_code=400, detail="confirm_required")
+        try:
+            return select(service, memory_id, reason=str(body.get("reason") or ""), actor="node_admin")
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
     @app.get(f"{pref}/memories/{{memory_id}}")
     def get_memory(
         memory_id: str,

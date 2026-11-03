@@ -1,0 +1,8 @@
+{
+  "temporary_days": 80,
+  "prompt_until_days": 120,
+  "impression_until_days": 200,
+  "extraction_interval_hours": 24,
+  "keyword_limit": 16,
+  "external_source_kinds": ["video_observation", "system", "agent_inference"]
+}

@@ -32,6 +32,11 @@ TOOLS = [
             "type": "object",
             "properties": {
                 "query": {"type": "string"},
+                "user_id": {"type": "string", "minLength": 1},
+                "agent_id": {"type": "string", "minLength": 1},
+                "run_id": {"type": "string", "minLength": 1},
+                "banks": {"type": "array", "items": {"type": "string"}},
+                "mode": {"type": "string", "enum": ["current", "historical", "any"]},
                 "limit": {"type": "integer"},
                 "types": {"type": "array", "items": {"type": "string"}},
             },
@@ -168,7 +173,9 @@ def _dispatch(service: MemoryService, name: str, args: dict[str, Any]) -> Any:
         if args.get("types"):
             types = [MemoryType(t) for t in args["types"]]
         rows = service.search(
-            SearchQuery(query=args.get("query") or "", limit=int(args.get("limit") or 10), types=types)
+            SearchQuery(query=args.get("query") or "", limit=int(args.get("limit") or 10), types=types,
+                        user_id=args.get("user_id"), agent_id=args.get("agent_id"),
+                        run_id=args.get("run_id"), banks=args.get("banks"), mode=args.get("mode") or "current")
         )
         return {"items": [m.model_dump() for m in rows]}
     if name == "memory_get":
