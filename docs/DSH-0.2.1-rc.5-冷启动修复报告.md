@@ -228,4 +228,5 @@ npm pack --pack-destination ...\tmp\rc5-coldstart
   中停止 Node 做破坏性验证（避免动用户进程）。
 - **旧 settings.yaml 的完整迁移**：实现了文件层兼容，但旧格式的实际用户文件未在本机
   样本中复现；迁移步骤见用户说明。
-- 未修改任何 DSH 安装目录文件，未提交、未推送、未发布。
+- 未修改任何 DSH 安装目录文件；修复代码与文档已提交至 GitHub
+  `canyueY/dsh-mnemosyne` 的 `feat/shallow-memory-lifecycle` 分支，未发布 npm。
