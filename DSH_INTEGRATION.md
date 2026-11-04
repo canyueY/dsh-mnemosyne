@@ -53,7 +53,7 @@ node scripts/migrate-dsh.mjs --profile <profile> --data-dir "<临时 Bank>"
 | --- | --- | --- |
 | `engines.dsh` / bundle patch / `output.schema` | 已适配 | `package.json`、`cordis.patch.yml`、`tool-spec.js` |
 | `defineTool` + `exec.signal` | 已适配 | `src/index.js`、`memory-client.js` |
-| Settings namespace `dsh-mnemosyne` | 已适配 | `Config`（volatile + secret token）、`src/settings.js`；secret 脱敏 `********` |
+| Settings namespace `dsh-mnemosyne` | 已适配 | 不导出 `Config`（rc.5 对 `null` 会在 settings.describe 里执行 `'toJSON' in null`）。无自动表单；配置写在插件行，`src/settings.js` 读取行配置，token 脱敏为 `********` |
 | Agent preset `mnemosyne` | 已适配 | `dsh/agent-presets/mnemosyne/`、`src/agent-preset.js`（fail-closed） |
 | MCP `mcp__mnemosyne__*` | 已适配 | `src/mcp-gateway.js`（REST，不打开 SQLite）；service MCP 为进程内入口 |
 | 自动捕获 | 已适配 | `session/event` 仅 user/最终 assistant |
@@ -62,6 +62,19 @@ node scripts/migrate-dsh.mjs --profile <profile> --data-dir "<临时 Bank>"
 
 `auto_start`、`service_root`、`data_dir`、`python`、`base_url`、`token`(secret)、`auto_capture`。
 `auto_start=false` 必须有 `base_url`+`token`，否则 `apply` 拒绝（`config_incomplete`）。
+
+配置优先级：
+
+```text
+apply(ctx, config) 插件行 > MNEMOSYNE_SETTINGS_FILE 旧文件（仅非默认值）
+  > ctx.get('config')['dsh-mnemosyne' | 'dsh-cognitive-memory'] > CONFIG_DEFAULTS
+```
+
+- `apply` 不访问 `ctx.config`，也不在激活期调用 `ctx.settings.describe()`；
+- 行配置先经过 `validateConfigPatch()`，未知字段/类型错误立即失败；
+- 旧 `settings.yaml` 的持久化值仍兼容，但不会用默认值覆盖行/根配置；
+- 没有自动设置表单；旧 Config 表单值需迁移到插件行，步骤见
+  [`docs/DSH冷启动恢复说明.md`](docs/DSH冷启动恢复说明.md)。
 
 ### MCP
 

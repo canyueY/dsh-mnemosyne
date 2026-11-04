@@ -131,15 +131,11 @@ test('FA19: settings persist to file and reload after process-store reset (resta
   assert.equal(described.value.auto_start, false);
   assert.equal(described.persisted, true);
 
-  // Runtime apply path reads persisted settings via settings.describe
+  // Runtime apply path reads the legacy file store, never the host settings service.
   const tools = [];
   const ctx = {
     get(name) {
-      if (name === 'settings') {
-        return {
-          describe: ({ redactSecrets: r } = {}) => settingsDescribe(SETTINGS_NAMESPACE, { redactSecrets: r }),
-        };
-      }
+      if (name === 'settings') throw new Error('settings.describe must not run in apply');
       if (name === 'config') return {};
       return null;
     },

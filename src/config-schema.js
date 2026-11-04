@@ -42,13 +42,32 @@ export function buildConfig(Schema) {
   });
 }
 
-/** Try load real Config; tests may use metadata-only fallback. */
+/**
+ * Load a schemastery schema for diagnostics.
+ * DSH 0.2.1-rc.5 only accepts a Config export that implements
+ * `~standard.validate` and `toJSON`. `null` passes activation
+ * (`if (!runtime.Config)`) and then crashes settings.describe,
+ * because that path evaluates `'toJSON' in schema` after rejecting
+ * only `undefined`. This entry therefore does not export Config.
+ * A failed load throws; it must not be published as `null`.
+ */
 export async function resolveConfigExport() {
+  let mod;
   try {
-    const mod = await import('@deepseek-ai/schemastery');
-    const Schema = mod.default || mod.Schema || mod;
-    return buildConfig(Schema);
-  } catch {
-    return null;
+    mod = await import('@deepseek-ai/schemastery');
+  } catch (error) {
+    const err = new Error('schemastery is not resolvable; refusing to export Config');
+    err.code = 'config_schema_unavailable';
+    err.cause = error;
+    throw err;
   }
+  const Schema = mod.default || mod.Schema || mod;
+  const schema = buildConfig(Schema);
+  const validate = schema?.['~standard']?.validate;
+  if (typeof schema?.toJSON !== 'function' || typeof validate !== 'function') {
+    const err = new Error('schemastery did not produce a host Config schema; refusing to export Config');
+    err.code = 'config_schema_invalid';
+    throw err;
+  }
+  return schema;
 }

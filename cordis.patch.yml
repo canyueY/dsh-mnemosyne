@@ -1,6 +1,12 @@
 - insert:
     - id: dsh-mnemosyne
       name: dsh-mnemosyne
+      # rc.5 reads this row. Do not export a Config schema. Leave data_dir,
+      # service_root, python, base_url, and token unset so an empty default
+      # is not written over an existing Memory Bank or remote service.
+      config:
+        auto_start: true
+        auto_capture: true
 - insert:
     - id: preset-mnemosyne
       name: '@deepseek-ai/dsh-agent-preset'

@@ -11,6 +11,6 @@
   },
   "settings": {
     "namespace": "dsh-mnemosyne",
-    "note": "Forms derive from exported Config (volatile fields); token is role=secret"
+    "note": "DSH 0.2.1-rc.5: no Config export and no automatic form. Configure the plugin row in cordis.patch.yml (auto_start, service_root, data_dir, python, base_url, token, auto_capture). Precedence: row > legacy settings file > root config > defaults. Token is redacted as ******** on read paths."
   }
 }
