@@ -510,25 +510,25 @@ class MemoryService:
             return mem
 
     def get_memory(self, memory_id: str, *, include_evidence: bool = False) -> dict[str, Any]:
-        conn = self.db.connect()
-        row = conn.execute("SELECT * FROM memories WHERE id=?", (memory_id,)).fetchone()
-        if not row:
-            raise NotFoundError(f"memory not found: {memory_id}")
-        mem = self._row_memory(row)
-        out = mem.model_dump()
-        if include_evidence:
-            from cognitive_memory.evidence import list_evidence_for_memory
+        with self.db.exclusive() as conn:
+            row = conn.execute("SELECT * FROM memories WHERE id=?", (memory_id,)).fetchone()
+            if not row:
+                raise NotFoundError(f"memory not found: {memory_id}")
+            mem = self._row_memory(row)
+            out = mem.model_dump()
+            if include_evidence:
+                from cognitive_memory.evidence import list_evidence_for_memory
 
-            out["evidence"] = [
-                e.model_dump() for e in list_evidence_for_memory(self.db, memory_id)
-            ]
-            vers = conn.execute(
-                "SELECT version, created_at FROM memory_versions WHERE memory_id=? ORDER BY version",
-                (memory_id,),
-            ).fetchall()
-            out["versions"] = [dict(r) for r in vers]
-            out["relations"] = self.list_relations(memory_id, limit=40)
-        return out
+                out["evidence"] = [
+                    e.model_dump() for e in list_evidence_for_memory(self.db, memory_id)
+                ]
+                vers = conn.execute(
+                    "SELECT version, created_at FROM memory_versions WHERE memory_id=? ORDER BY version",
+                    (memory_id,),
+                ).fetchall()
+                out["versions"] = [dict(r) for r in vers]
+                out["relations"] = self.list_relations(memory_id, limit=40)
+            return out
 
     def attach_evidence(self, body: Any) -> dict[str, Any]:
         from cognitive_memory.evidence import EvidenceAttachIn, attach_evidence
@@ -862,6 +862,11 @@ class MemoryService:
             query=q.query or "",
             domain=getattr(q, "domain", None),
         )
+        from cognitive_memory.governance.ingestion import filter_retrieval_items
+
+        # 录入阶段是第一道门；检索阶段再过滤明确标记的可疑对象，防止
+        # 历史导入或旧版本写入的高风险内容进入上下文组装。
+        memories, _retrieval_security_skipped = filter_retrieval_items(memories)
         return memories[:limit]
 
     def _rerank_spatiotemporal(
@@ -1209,6 +1214,7 @@ class MemoryService:
             "supports",
             "contradicts",
             "derives",
+            "derived_from",
             "supersedes",
             "before",
             "after",
@@ -1229,6 +1235,12 @@ class MemoryService:
             "likes",
             "favorites",
             "imported_from",
+            "qualifies",
+            "derived_from",
+            "evidenced_by",
+            "observed_by",
+            "constrains",
+            "applies_to",
         }
     )
 
@@ -1251,6 +1263,17 @@ class MemoryService:
             raise ConflictError(f"unsupported relation: {relation}", code="bad_relation")
         if not from_id or not to_id or from_id == to_id:
             raise ConflictError("invalid from_id/to_id", code="bad_ids")
+        from cognitive_memory.metacognition.roles import is_metacog_overlay_id
+
+        if is_metacog_overlay_id(from_id) or is_metacog_overlay_id(to_id):
+            raise ConflictError(
+                "metacog overlay ids cannot enter memory_relations",
+                code="overlay_not_bank_relation",
+            )
+        metadata = dict(metadata or {})
+        metadata.setdefault("status", "unknown")
+        metadata.setdefault("version", 1)
+        metadata.setdefault("scope", "unknown")
         payload = {
             "from_id": from_id,
             "to_id": to_id,
@@ -1270,8 +1293,9 @@ class MemoryService:
                 """
                 INSERT INTO memory_relations(
                   from_id, to_id, relation, note, created_at,
-                  valid_from, valid_until, confidence, metadata_json
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                  valid_from, valid_until, confidence, metadata_json,
+                  status, version, audit_ref, scope, deleted_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     from_id,
@@ -1283,6 +1307,11 @@ class MemoryService:
                     valid_until,
                     confidence,
                     json.dumps(metadata or {}, ensure_ascii=False),
+                    str(metadata.get("status") or "unknown"),
+                    int(metadata.get("version") or 1),
+                    metadata.get("audit_ref"),
+                    str(metadata.get("scope") or "unknown"),
+                    None,
                 ),
             )
             rid = conn.execute("SELECT last_insert_rowid() AS i").fetchone()["i"]
@@ -1293,14 +1322,45 @@ class MemoryService:
             )
             return {"ok": True, "id": rid, "dry_run": False, **payload}
 
+    def _relation_item(self, r: Any) -> dict[str, Any]:
+        keys = set(r.keys()) if hasattr(r, "keys") else set()
+        def col(name: str, default: Any = None) -> Any:
+            return r[name] if name in keys else default
+        try:
+            meta = json.loads(col("metadata_json") or "{}")
+        except Exception:
+            meta = {}
+        if not isinstance(meta, dict):
+            meta = {}
+        status = col("status") or meta.get("status") or "unknown"
+        version = col("version") if col("version") is not None else meta.get("version") or 1
+        return {
+            "id": r["id"],
+            "from_id": r["from_id"],
+            "to_id": r["to_id"],
+            "relation": r["relation"],
+            "note": r["note"],
+            "created_at": r["created_at"],
+            "valid_from": col("valid_from"),
+            "valid_until": col("valid_until"),
+            "confidence": col("confidence"),
+            "status": status,
+            "version": version,
+            "audit_ref": col("audit_ref") or meta.get("audit_ref"),
+            "scope": col("scope") or meta.get("scope") or "unknown",
+            "deleted_at": col("deleted_at"),
+            "metadata": meta,
+        }
+
     def list_relations(self, memory_id: str, *, limit: int = 40) -> list[dict[str, Any]]:
         conn = self.db.connect()
         rows = conn.execute(
             """
             SELECT id, from_id, to_id, relation, note, created_at,
-                   valid_from, valid_until, confidence, metadata_json
+                   valid_from, valid_until, confidence, metadata_json,
+                   status, version, audit_ref, scope, deleted_at
             FROM memory_relations
-            WHERE from_id=? OR to_id=?
+            WHERE (from_id=? OR to_id=?) AND deleted_at IS NULL
             ORDER BY id DESC
             LIMIT ?
             """,
@@ -1308,23 +1368,113 @@ class MemoryService:
         ).fetchall()
         out: list[dict[str, Any]] = []
         for r in rows:
-            item = {
-                "id": r["id"],
-                "from_id": r["from_id"],
-                "to_id": r["to_id"],
-                "relation": r["relation"],
-                "note": r["note"],
-                "created_at": r["created_at"],
-                "valid_from": r["valid_from"] if "valid_from" in r.keys() else None,
-                "valid_until": r["valid_until"] if "valid_until" in r.keys() else None,
-                "confidence": r["confidence"] if "confidence" in r.keys() else None,
-            }
-            try:
-                item["metadata"] = json.loads(r["metadata_json"] or "{}")
-            except Exception:
-                item["metadata"] = {}
-            out.append(item)
+            out.append(self._relation_item(r))
         return out
+
+    def get_relation(self, rid: int) -> dict[str, Any] | None:
+        conn = self.db.connect()
+        row = conn.execute(
+            """
+            SELECT id, from_id, to_id, relation, note, created_at,
+                   valid_from, valid_until, confidence, metadata_json,
+                   status, version, audit_ref, scope, deleted_at
+            FROM memory_relations
+            WHERE id=?
+            """,
+            (int(rid),),
+        ).fetchone()
+        if not row:
+            return None
+        return self._relation_item(row)
+
+    def update_relation(
+        self,
+        rid: int,
+        *,
+        relation: str | None = None,
+        note: str | None = None,
+        valid_from: str | None = None,
+        valid_until: str | None = None,
+        confidence: float | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """软更新关系字段；relation 变更需仍在白名单内。返回更新后的关系。"""
+        current = self.get_relation(rid)
+        if not current:
+            raise ConflictError(f"relation not found: {rid}", code="not_found")
+        rel = current["relation"] if relation is None else (relation or "").strip().lower()
+        if rel not in self._RELATION_TYPES:
+            raise ConflictError(f"unsupported relation: {relation}", code="bad_relation")
+        meta = current["metadata"] if metadata is None else metadata
+        ver = int(current.get("version") or 1) + 1
+        if isinstance(meta, dict):
+            meta = dict(meta)
+            meta["version"] = ver
+        with self.db.transaction() as conn:
+            conn.execute(
+                """
+                UPDATE memory_relations
+                SET relation=?, note=?, valid_from=?, valid_until=?,
+                    confidence=?, metadata_json=?, version=?,
+                    status=?, audit_ref=?, scope=?
+                WHERE id=?
+                """,
+                (
+                    rel,
+                    current["note"] if note is None else note,
+                    current["valid_from"] if valid_from is None else valid_from,
+                    current["valid_until"] if valid_until is None else valid_until,
+                    current["confidence"] if confidence is None else confidence,
+                    json.dumps(meta or {}, ensure_ascii=False),
+                    ver,
+                    (
+                        (meta.get("status") if isinstance(meta, dict) and meta.get("status") else None)
+                        or current.get("status")
+                        or "unknown"
+                    ),
+                    (
+                        (meta.get("audit_ref") if isinstance(meta, dict) and "audit_ref" in meta else None)
+                        if isinstance(meta, dict) and "audit_ref" in meta
+                        else current.get("audit_ref")
+                    ),
+                    (
+                        (meta.get("scope") if isinstance(meta, dict) and meta.get("scope") else None)
+                        or current.get("scope")
+                        or "unknown"
+                    ),
+                    int(rid),
+                ),
+            )
+            self._emit(
+                conn,
+                "memory.relation_updated",
+                {"id": int(rid), "relation": rel},
+            )
+        return self.get_relation(int(rid)) or {}
+
+    def delete_relation(self, rid: int) -> dict[str, Any]:
+        """软删除关系（不级联节点）。返回被删关系快照供审计/回滚。"""
+        current = self.get_relation(rid)
+        if not current:
+            raise ConflictError(f"relation not found: {rid}", code="not_found")
+        if current.get("deleted_at"):
+            return {"ok": True, "deleted": current, "already_soft_deleted": True}
+        now = _now()
+        with self.db.transaction() as conn:
+            conn.execute(
+                """
+                UPDATE memory_relations
+                SET deleted_at=?, status='soft_deleted', version=COALESCE(version,1)+1
+                WHERE id=?
+                """,
+                (now, int(rid)),
+            )
+            self._emit(
+                conn,
+                "memory.relation_deleted",
+                {"id": int(rid), "from_id": current["from_id"], "to_id": current["to_id"], "soft": True},
+            )
+        return {"ok": True, "deleted": self.get_relation(int(rid)) or current}
 
     def store_change_candidates(
         self,
@@ -1536,7 +1686,7 @@ class MemoryService:
                     plan.get("rollback_reference"),
                     now,
                     now,
-                    None,
+                    plan.get("applied_at"),
                 ),
             )
         return pid

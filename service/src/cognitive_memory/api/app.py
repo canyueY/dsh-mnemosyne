@@ -8,7 +8,7 @@ import uuid
 from functools import wraps
 from typing import Any, Callable
 
-from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response
+from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request, Response
 from fastapi.responses import JSONResponse, StreamingResponse
 from cognitive_memory.governance.access import AccessContext, make_access_dep, resolve_access
 
@@ -44,6 +44,7 @@ from cognitive_memory.domain.models import (
     ClaimTransitionIn,
     ClaimVerifyIn,
     FaultPipelineIn,
+    FaultCaseIn,
     EvidenceIndependenceIn,
     EvidenceObjectCreateIn,
     AbAssignIn,
@@ -182,12 +183,27 @@ def create_app(
         if not access.is_node_admin and any(b not in (access.banks or []) for b in (body.banks or ["personal"])):
             raise HTTPException(status_code=403,detail={"code":"bank_denied"})
         rows = service.search(body)
-        return {
-            "items": [m.model_dump() for m in rows],
-            "count": len(rows),
+        items = [m.model_dump() for m in rows]
+        from cognitive_memory.scenario.store import ScenarioStore
+
+        tid = (request.headers.get("x-task-context-id") or "").strip()
+        gated = ScenarioStore(service.db).apply_access_gate(
+            access=access, task_context_id=tid, items=items
+        )
+        out_items = gated.get("items") or []
+        pack = {
+            "items": out_items,
+            "count": len(out_items),
             "actor": access.actor_id,
             "actor_kind": access.kind,
+            "scenario_gate": {k: gated[k] for k in gated if k != "items"},
         }
+        if gated.get("ok") is False:
+            pack["ok"] = False
+            pack["detail"] = gated.get("detail")
+            pack["note"] = gated.get("note")
+            pack["status"] = gated.get("status")
+        return pack
 
     @app.get(f"{pref}/shallow/policy")
     def shallow_policy(_: None = Depends(require_token)) -> dict[str, Any]:
@@ -284,6 +300,7 @@ def create_app(
     ) -> dict[str, Any]:
         from cognitive_memory.governance.policy import PolicyDeniedError
         from cognitive_memory.ingestion import ingest_observation
+        from cognitive_memory.governance.ingestion import IngestionGovernanceError
 
         try:
             obs = ingest_observation(service, body)
@@ -291,6 +308,12 @@ def create_app(
             raise HTTPException(
                 status_code=403,
                 detail={"code": exc.code, "message": str(exc), "policy": exc.policy},
+            ) from exc
+        except IngestionGovernanceError as exc:
+            status = 202 if exc.decision.get("action") == "quarantine" else 403
+            raise HTTPException(
+                status_code=status,
+                detail={"code": "ingestion_quarantined" if status == 202 else "ingestion_denied", "message": exc.decision.get("reason"), "decision": exc.decision},
             ) from exc
         # P2：同事务写 SQLite+FTS → PERSISTED 与 INDEXED 同时成立；字段分列便于日后外置索引
         dump = obs.model_dump()
@@ -301,6 +324,121 @@ def create_app(
         dump["auto_verified"] = False
         dump["_actor"] = access.actor_id
         return dump
+
+    @app.get(f"{pref}/ingestion/profiles")
+    def ingestion_profiles(
+        _: None = Depends(make_access_dep(permission="memory.read", resource="ingestion.profiles")),
+    ) -> dict[str, Any]:
+        from cognitive_memory.governance.ingestion import list_profiles
+
+        items = list_profiles(service.db)
+        return {"ok": True, "items": items, "count": len(items)}
+
+    @app.get(f"{pref}/ingestion/effective")
+    def ingestion_effective(
+        profile_id: str | None = None,
+        bank_id: str | None = None,
+        task_id: str | None = None,
+        _: None = Depends(make_access_dep(permission="memory.read", resource="ingestion.effective")),
+    ) -> dict[str, Any]:
+        from cognitive_memory.governance.ingestion import resolve_effective_profile
+
+        return resolve_effective_profile(
+            service.db,
+            profile_id=profile_id,
+            bank_id=bank_id,
+            task_id=task_id,
+        )
+
+    @app.post(f"{pref}/ingestion/profiles")
+    def ingestion_profile_upsert(
+        body: dict[str, Any],
+        access: AccessContext = Depends(make_access_dep(permission="memory.write", resource="ingestion.profiles.write")),
+    ) -> dict[str, Any]:
+        if not access.is_node_admin:
+            raise HTTPException(status_code=403, detail={"code": "user_authority_required", "message": "only the user/node administrator can change ingestion profiles"})
+        from cognitive_memory.governance.ingestion import upsert_profile
+
+        try:
+            profile = upsert_profile(
+                service.db,
+                profile_id=str(body.get("profile_id") or ""),
+                name=str(body.get("name") or body.get("profile_id") or ""),
+                mode=str(body.get("mode") or "tiered"),
+                config=body.get("config") if isinstance(body.get("config"), dict) else {},
+                actor=access.actor_id,
+                note=str(body.get("note") or ""),
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail={"code": str(exc)}) from exc
+        return {"ok": True, "profile": profile}
+
+    @app.get(f"{pref}/ingestion/profiles/{{profile_id}}/versions")
+    def ingestion_profile_versions(
+        profile_id: str,
+        limit: int = 50,
+        _: None = Depends(make_access_dep(permission="memory.read", resource="ingestion.profiles.versions")),
+    ) -> dict[str, Any]:
+        from cognitive_memory.governance.ingestion import list_profile_versions
+
+        items = list_profile_versions(service.db, profile_id, limit=limit)
+        return {"ok": True, "profile_id": profile_id, "items": items, "count": len(items)}
+
+    @app.post(f"{pref}/ingestion/simulate")
+    def ingestion_simulate(
+        body: dict[str, Any],
+        _: None = Depends(make_access_dep(permission="memory.read", resource="ingestion.simulate")),
+    ) -> dict[str, Any]:
+        from cognitive_memory.governance.ingestion import evaluate_ingestion
+
+        content = str(body.get("content") or "")
+        if not content.strip():
+            raise HTTPException(status_code=422, detail={"code": "content_required"})
+        decision = evaluate_ingestion(
+            service.db,
+            content=content,
+            source_kind=str(body.get("source_kind") or "user_statement"),
+            producer=str(body.get("producer") or "dsh"),
+            profile_id=body.get("profile_id"),
+            metadata=body.get("metadata") if isinstance(body.get("metadata"), dict) else {},
+            mode=body.get("mode"),
+        )
+        return {"ok": True, "decision": decision, "side_effects": False}
+
+    @app.get(f"{pref}/ingestion/decisions")
+    def ingestion_decisions(
+        limit: int = 100,
+        quarantine_only: bool = False,
+        _: None = Depends(make_access_dep(permission="memory.read", resource="ingestion.decisions")),
+    ) -> dict[str, Any]:
+        from cognitive_memory.governance.ingestion import list_decisions
+
+        items = list_decisions(service.db, limit=limit, quarantine_only=quarantine_only)
+        return {"ok": True, "items": items, "count": len(items), "quarantine_only": quarantine_only}
+
+    @app.post(f"{pref}/ingestion/quarantine/{{quarantine_id}}/review")
+    def ingestion_quarantine_review(
+        quarantine_id: str,
+        body: dict[str, Any],
+        access: AccessContext = Depends(make_access_dep(permission="memory.write", resource="ingestion.quarantine.review")),
+    ) -> dict[str, Any]:
+        from cognitive_memory.governance.ingestion import review_quarantine
+
+        try:
+            return {
+                "ok": True,
+                "review": review_quarantine(
+                    service.db,
+                    quarantine_id,
+                    decision=str(body.get("decision") or ""),
+                    actor=access.actor_id,
+                    note=str(body.get("note") or ""),
+                ),
+            }
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail={"code": str(exc).strip("'")}) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail={"code": str(exc)}) from exc
 
     @app.get(f"{pref}/identities")
     def list_identities(
@@ -649,11 +787,28 @@ def create_app(
         return service.build_context(body).model_dump()
 
     @app.post(f"{pref}/retrieve")
-    def retrieve(body: RetrieveIn, _: None = Depends(require_token)) -> dict[str, Any]:
+    def retrieve(
+        request: Request,
+        body: RetrieveIn,
+        access: AccessContext = Depends(make_access_dep(permission="memory.read", resource="retrieve")),
+    ) -> dict[str, Any]:
         """统一检索：Planner → 召回/过滤/排序；结果态含 NOT_NEEDED/FAILED。"""
         from cognitive_memory.retrieval.pipeline import run_retrieve
+        from cognitive_memory.scenario.store import ScenarioStore
 
-        return run_retrieve(
+        header_tid = (request.headers.get("x-task-context-id") or "").strip()
+        tid = header_tid or str(body.task_context_id or "").strip()
+        scn = ScenarioStore(service.db)
+        ctx = scn.get_task_context(tid) if tid else None
+        if ctx is None and not access.is_node_admin:
+            return {
+                "ok": False,
+                "status": "NOT_NEEDED",
+                "detail": "scenario_required",
+                "items": [],
+                "note": "no_default_global_context",
+            }
+        pack = run_retrieve(
             service,
             query=body.query,
             force=body.force,
@@ -669,6 +824,13 @@ def create_app(
             types=body.types,
             domain=body.domain,
         )
+        if ctx is None:
+            pack["scope"] = "node_admin_unscoped_not_scenario"
+            return pack
+        gated = scn.filter_items(pack.get("items") or [], ctx)
+        pack["items"] = gated.get("items") or []
+        pack["scenario_gate"] = {k: gated[k] for k in gated if k != "items"}
+        return pack
 
     @app.post(f"{pref}/tasks")
     def create_task(body: TaskCreateIn, _: None = Depends(require_token)) -> dict[str, Any]:
@@ -679,8 +841,11 @@ def create_app(
         return service.get_task(task_id).model_dump()
 
     # ---- P2–P5 spatiotemporal ----
+    # 关系路由统一走 access 依赖：Bearer node_token（桥接/管理后台）或
+    # X-Agent-Id + X-Agent-Token（Graph Studio 身份透传，按 grant 限权）。
     @app.post(f"{pref}/relations")
-    def create_relation(body: MemoryRelationIn, _: None = Depends(require_token)) -> dict[str, Any]:
+    def create_relation(body: MemoryRelationIn, access: AccessContext = Depends(make_access_dep(permission="memory.write", resource="relations"))) -> dict[str, Any]:
+        _ = access
         return service.link_memories(
             from_id=body.from_id,
             to_id=body.to_id,
@@ -693,9 +858,112 @@ def create_app(
         )
 
     @app.get(f"{pref}/memories/{{memory_id}}/relations")
-    def get_relations(memory_id: str, _: None = Depends(require_token)) -> dict[str, Any]:
+    def get_relations(memory_id: str, access: AccessContext = Depends(make_access_dep(permission="memory.read", resource="relations"))) -> dict[str, Any]:
+        _ = access
         items = service.list_relations(memory_id)
         return {"items": items, "count": len(items)}
+
+    @app.get(f"{pref}/relations/{{relation_id}}")
+    def get_relation(relation_id: int, access: AccessContext = Depends(make_access_dep(permission="memory.read", resource="relations"))) -> dict[str, Any]:
+        _ = access
+        item = service.get_relation(relation_id)
+        if not item:
+            raise HTTPException(status_code=404, detail="relation_not_found")
+        return {"item": item}
+
+    @app.patch(f"{pref}/relations/{{relation_id}}")
+    def update_relation(relation_id: int, body: dict = Body(default_factory=dict), access: AccessContext = Depends(make_access_dep(permission="memory.write", resource="relations"))) -> dict[str, Any]:
+        _ = access
+        allowed = ("relation", "note", "valid_from", "valid_until", "confidence", "metadata")
+        fields = {k: v for k, v in (body or {}).items() if k in allowed}
+        item = service.update_relation(relation_id, **fields)
+        return {"ok": True, "item": item}
+
+    @app.delete(f"{pref}/relations/{{relation_id}}")
+    def delete_relation(relation_id: int, access: AccessContext = Depends(make_access_dep(permission="memory.delete", resource="relations"))) -> dict[str, Any]:
+        _ = access
+        result = service.delete_relation(relation_id)
+        return {"ok": True, **result}
+
+    def _conflict_gov():
+        from cognitive_memory.cognition.conflict_governance import ConflictGovernance
+
+        return ConflictGovernance(service)
+
+    @app.get(f"{pref}/conflicts")
+    def conflicts_list(
+        kind: str = "",
+        status: str = "",
+        access: AccessContext = Depends(make_access_dep(permission="memory.read", resource="conflicts.list")),
+    ) -> dict[str, Any]:
+        _ = access
+        return _conflict_gov().list_cases(kind=kind, status=status)
+
+    @app.get(f"{pref}/conflicts/{{case_id}}")
+    def conflicts_get(
+        case_id: str,
+        access: AccessContext = Depends(make_access_dep(permission="memory.read", resource="conflicts.get")),
+    ) -> dict[str, Any]:
+        _ = access
+        item = _conflict_gov().get_case(case_id)
+        if not item:
+            raise HTTPException(status_code=404, detail="conflict_not_found")
+        return {"ok": True, "item": item}
+
+    @app.post(f"{pref}/conflicts/{{case_id}}/analyze")
+    def conflicts_analyze(
+        case_id: str,
+        access: AccessContext = Depends(make_access_dep(permission="memory.read", resource="conflicts.analyze")),
+    ) -> dict[str, Any]:
+        _ = access
+        return _conflict_gov().analyze(case_id)
+
+    @app.post(f"{pref}/conflicts/{{case_id}}/preview")
+    def conflicts_preview(
+        case_id: str,
+        body: dict[str, Any],
+        access: AccessContext = Depends(make_access_dep(permission="memory.read", resource="conflicts.preview")),
+    ) -> dict[str, Any]:
+        _ = access
+        return _conflict_gov().preview(case_id, body or {})
+
+    @app.post(f"{pref}/conflicts/{{case_id}}/commit")
+    def conflicts_commit(
+        case_id: str,
+        body: dict[str, Any],
+        access: AccessContext = Depends(make_access_dep(permission="memory.write", resource="conflicts.commit")),
+    ) -> dict[str, Any]:
+        payload = dict(body or {})
+        confirm = bool(payload.pop("confirm", False))
+        actor = access.actor_id if not access.is_node_admin else str(payload.pop("actor", None) or access.actor_id)
+        result = _conflict_gov().commit(case_id, payload, actor=actor, confirm=confirm)
+        if not result.get("ok"):
+            code = 400 if result.get("detail") != "version_conflict" else 409
+            if result.get("detail") == "conflict_not_found":
+                code = 404
+            raise HTTPException(status_code=code, detail=result)
+        return result
+
+    @app.post(f"{pref}/conflicts/{{case_id}}/rollback")
+    def conflicts_rollback(
+        case_id: str,
+        body: dict[str, Any],
+        access: AccessContext = Depends(make_access_dep(permission="memory.write", resource="conflicts.rollback")),
+    ) -> dict[str, Any]:
+        payload = dict(body or {})
+        actor = access.actor_id if not access.is_node_admin else str(payload.get("actor") or access.actor_id)
+        result = _conflict_gov().rollback_last(case_id, actor=actor, confirm=bool(payload.get("confirm")))
+        if not result.get("ok"):
+            raise HTTPException(status_code=400, detail=result)
+        return result
+
+    @app.get(f"{pref}/conflicts/{{case_id}}/history")
+    def conflicts_history(
+        case_id: str,
+        access: AccessContext = Depends(make_access_dep(permission="memory.read", resource="conflicts.history")),
+    ) -> dict[str, Any]:
+        _ = access
+        return _conflict_gov().history(case_id)
 
     @app.post(f"{pref}/changes/detect")
     def changes_detect(body: ChangeDetectIn, _: None = Depends(require_token)) -> dict[str, Any]:
@@ -735,6 +1003,20 @@ def create_app(
         )
         return {"ok": True, "items": items, "count": len(items)}
 
+    @app.post(f"{pref}/changes/plans/record")
+    def changes_plans_record(
+        body: dict = Body(default_factory=dict),
+        access: AccessContext = Depends(make_access_dep(permission="memory.write", resource="change_plan.record")),
+    ) -> dict[str, Any]:
+        _ = access
+        plan = dict(body or {})
+        plan.setdefault("execution_status", "proposed")
+        plan.setdefault("verification_status", "pending")
+        plan.setdefault("approval_requirement", "human")
+        plan.setdefault("change_type", plan.get("kind") or "workspace_plan")
+        pid = service.store_change_plan(plan)
+        return {"ok": True, "id": pid, "item": service.get_change_plan(pid), "note": "proposed only; not applied"}
+
     @app.post(f"{pref}/changes/plans")
     def changes_plans_build(body: ChangePlanBuildIn, _: None = Depends(require_token)) -> dict[str, Any]:
         from cognitive_memory.cognition.change_plan import build_plans_for_observation
@@ -746,6 +1028,24 @@ def create_app(
             persist=body.persist,
         )
 
+    @app.post(f"{pref}/changes/plans/{{plan_id}}/mark")
+    def changes_plans_mark(
+        plan_id: str,
+        body: dict = Body(default_factory=dict),
+        access: AccessContext = Depends(make_access_dep(permission="memory.write", resource="change_plan.mark")),
+    ) -> dict[str, Any]:
+        """Record execution_status after a governed apply. Does not mutate memories."""
+        _ = access
+        item = service.update_change_plan(
+            plan_id,
+            execution_status=str(body.get("execution_status") or ""),
+            verification_status=body.get("verification_status"),
+            payload_patch={"apply_result": body.get("result")} if body.get("result") is not None else None,
+        )
+        if not item:
+            raise HTTPException(status_code=404, detail="plan_not_found")
+        return {"ok": True, "item": item}
+
     @app.get(f"{pref}/changes/plans")
     def changes_plans_list(
         limit: int = 40,
@@ -754,6 +1054,17 @@ def create_app(
     ) -> dict[str, Any]:
         items = service.list_change_plans(limit=limit, execution_status=execution_status)
         return {"ok": True, "items": items, "count": len(items)}
+
+    @app.get(f"{pref}/changes/plans/{{plan_id}}")
+    def changes_plans_get(
+        plan_id: str,
+        access: AccessContext = Depends(make_access_dep(permission="memory.read", resource="change_plan.get")),
+    ) -> dict[str, Any]:
+        _ = access
+        item = service.get_change_plan(plan_id)
+        if not item:
+            raise HTTPException(status_code=404, detail="plan_not_found")
+        return {"ok": True, "item": item}
 
     @app.post(f"{pref}/changes/plans/{{plan_id}}/apply")
     def changes_plans_apply(
@@ -1243,6 +1554,40 @@ def create_app(
             run_regression=body.run_regression,
         )
 
+    def _fault_store():
+        from cognitive_memory.fault.store import FaultStore
+
+        if not hasattr(app.state, "fault_store"):
+            app.state.fault_store = FaultStore(service.db)
+        return app.state.fault_store
+
+    @app.get(f"{pref}/fault-cases")
+    def fault_cases_list(
+        limit: int = 40,
+        status: str | None = None,
+        _: None = Depends(make_access_dep(permission="memory.read", resource="fault.cases")),
+    ) -> dict[str, Any]:
+        items = _fault_store().list(limit=limit, status=status)
+        return {"ok": True, "items": items, "count": len(items), "note": "open_is_not_repaired"}
+
+    @app.post(f"{pref}/fault-cases")
+    def fault_cases_create(
+        body: FaultCaseIn,
+        access: AccessContext = Depends(
+            make_access_dep(permission="memory.write", resource="fault.cases.write")
+        ),
+    ) -> dict[str, Any]:
+        _ = access
+        code = str(body.invariant_code or "").strip()
+        if not code:
+            raise HTTPException(status_code=422, detail={"code": "invariant_code_required"})
+        case = _fault_store().create(
+            invariant_code=code,
+            subject_refs=list(body.subject_refs or []),
+            detail=dict(body.detail or {}),
+        )
+        return {"ok": True, "fault": case, "note": "created_open_pipeline_not_run"}
+
     @app.post(f"{pref}/claims/{{claim_id}}/verify")
     @claim_mutation
     def claims_verify(
@@ -1316,9 +1661,12 @@ def create_app(
             make_access_dep(permission="memory.read", resource="tms.belief")
         ),
     ) -> dict[str, Any]:
-        _ = access
-        bel = _claim_store().tms.get_belief(node_id)
-        impact = _claim_store().tms.engine.impact(node_id)
+        tms = _claim_store().tms
+        bel = tms.projected_for_access(node_id, access)
+        if access.is_node_admin:
+            impact = tms.engine.impact(node_id)
+        else:
+            impact = {"ok": True, "affected": [], "count": 0, "note": "impact_hidden_non_admin"}
         return {"ok": True, "belief": bel.model_dump(mode="json"), "impact": impact}
 
     # ---- P5 Experience / Strategy ----
@@ -1330,9 +1678,10 @@ def create_app(
         ),
     ) -> dict[str, Any]:
         from cognitive_memory.strategy.experience_store import ExperienceStore
+        from cognitive_memory.metacognition.store import MetacogStore
 
         _ = access
-        return ExperienceStore(service.db).create(
+        legacy = ExperienceStore(service.db).create(
             context=body.context,
             action=body.action,
             outcome=body.outcome,
@@ -1342,6 +1691,44 @@ def create_app(
             bank_id=body.bank_id,
             source=body.source,
         )
+        ctx = dict(body.context or {})
+        goal = body.goal or str(ctx.get("goal") or "")
+        from cognitive_memory.metacognition.online import stamp_experience, working_set
+
+        mstore = MetacogStore(service.db)
+        stamped = stamp_experience(
+            {
+                "goal": goal,
+                "request_id": body.request_id,
+                "session_id": body.session_id,
+                "principal_id": body.principal_id or access.actor_id,
+                "bank_id": body.bank_id,
+                "scope": body.scope or "unknown",
+                "memory_snapshot_id": body.memory_snapshot_id,
+                "strategy_snapshot_id": body.strategy_snapshot_id,
+                "self_model_snapshot_id": body.self_model_snapshot_id,
+                "selected_strategy_ids": body.selected_strategy_ids,
+            },
+            working_set(mstore, bank_id=body.bank_id or "personal"),
+        )
+        stamped.update(
+            {
+                "context_refs": body.memory_ids,
+                "evidence_refs": body.evidence_refs or body.claim_ids,
+                "tool_calls": body.tool_calls,
+                "actions": [body.action] if body.action else [],
+                "result": body.outcome,
+                "outcome_status": body.outcome_status or "unknown",
+            }
+        )
+        meta = mstore.create_experience(stamped, actor=access.actor_id)
+        return {
+            **legacy,
+            "experience": meta.get("experience"),
+            "governed_id": (meta.get("experience") or {}).get("id"),
+            "legacy_id": legacy.get("id"),
+            "note": "Experience is a record, not fact certification; dual-written to governed store",
+        }
 
     @app.get(f"{pref}/experiences")
     def experience_list(
@@ -1356,7 +1743,11 @@ def create_app(
         _ = access
         items = ExperienceStore(service.db).list(
             bank_id=bank_id if access.is_node_admin else (bank_id or "personal"), limit=limit)
-        return {"ok": True, "items": items, "count": len(items)}
+        from cognitive_memory.metacognition.store import MetacogStore
+
+        meta = MetacogStore(service.db).list_experiences(
+            bank_id=bank_id if access.is_node_admin else (bank_id or "personal"), limit=limit)
+        return {"ok": True, "items": meta + items, "count": len(meta) + len(items)}
 
     @app.post(f"{pref}/strategies")
     def strategy_propose(
@@ -1588,6 +1979,12 @@ def create_app(
         from cognitive_memory.knowledge.store import KnowledgeStore
 
         _ = access
+        payload = body.payload or {}
+        if payload.get("external_bundle_id") or payload.get("source") == "external_bundle" or body.kind == "external_bundle":
+            raise HTTPException(
+                status_code=403,
+                detail={"code": "external_bundle_not_knowledge", "message": "External Bundle cannot be promoted to Knowledge online"},
+            )
         return KnowledgeStore(service.db).propose(
             kind=body.kind,
             name=body.name,
@@ -1644,6 +2041,26 @@ def create_app(
         _ = access
         return KnowledgeStore(service.db).set_status(knowledge_id, body.status)
 
+    @app.post(f"{pref}/knowledge/batch-from-memories")
+    def knowledge_batch_from_memories(
+        body: dict[str, Any] = Body(default_factory=dict),
+        access: AccessContext = Depends(
+            make_access_dep(permission="memory.write", resource="knowledge.batch_from_memories")
+        ),
+    ) -> dict[str, Any]:
+        from cognitive_memory.knowledge.upgrade import batch_from_memories
+
+        _ = access
+        if not access.is_node_admin:
+            raise HTTPException(status_code=403, detail="node_admin_required")
+        return batch_from_memories(
+            service.db,
+            types=list(body.get("types") or ["episodic", "working"]),
+            after_id=str(body.get("after_id") or body.get("cursor") or ""),
+            limit=int(body.get("limit") or 200),
+            confirm=bool(body.get("confirm")),
+        )
+
     @app.post(f"{pref}/knowledge/from-schema")
     def knowledge_from_schema(
         body: KnowledgeFromSchemaIn,
@@ -1672,6 +2089,48 @@ def create_app(
             limit=limit, state=state, schema_type=schema_type
         )
         return {"ok": True, "items": items, "count": len(items)}
+
+    @app.post(f"{pref}/schemas/plans")
+    def schemas_plans_create(
+        body: CognitiveChangePlanIn, _: None = Depends(require_token)
+    ) -> dict[str, Any]:
+        pid = service.store_cognitive_change_plan(
+            {
+                "operation": body.operation,
+                "targetSchemaIds": body.target_schema_ids,
+                "evidenceRefs": body.evidence_refs,
+                "expectedImpact": body.expected_impact,
+                "risk_level": body.risk_level,
+                "approval_required": body.approval_required,
+                "status": "PROPOSED",
+                "reason": body.reason,
+            }
+        )
+        return {"ok": True, "id": pid, "plan": service.get_cognitive_change_plan(pid)}
+
+    @app.get(f"{pref}/schemas/plans")
+    def schemas_plans_list(
+        limit: int = 40,
+        status: str | None = None,
+        _: None = Depends(require_token),
+    ) -> dict[str, Any]:
+        items = service.list_cognitive_change_plans(limit=limit, status=status)
+        return {"ok": True, "items": items, "count": len(items)}
+
+    @app.post(f"{pref}/schemas/plans/{{plan_id}}/apply")
+    def schemas_plans_apply(
+        plan_id: str,
+        body: CognitiveChangePlanApplyIn,
+        _: None = Depends(require_token),
+    ) -> dict[str, Any]:
+        from cognitive_memory.cognition.schema_ops import apply_cognitive_change_plan
+
+        return apply_cognitive_change_plan(
+            service,
+            plan_id,
+            confirm=bool(body.confirm),
+            preview=bool(getattr(body, "preview", False)),
+        )
 
     @app.get(f"{pref}/schemas/{{schema_id}}")
     def schemas_get(schema_id: str, _: None = Depends(require_token)) -> dict[str, Any]:
@@ -1751,48 +2210,6 @@ def create_app(
             propose_split=body.propose_split,
             confirm=bool(body.confirm),
             preview=bool(body.preview),
-        )
-
-    @app.post(f"{pref}/schemas/plans")
-    def schemas_plans_create(
-        body: CognitiveChangePlanIn, _: None = Depends(require_token)
-    ) -> dict[str, Any]:
-        pid = service.store_cognitive_change_plan(
-            {
-                "operation": body.operation,
-                "targetSchemaIds": body.target_schema_ids,
-                "evidenceRefs": body.evidence_refs,
-                "expectedImpact": body.expected_impact,
-                "risk_level": body.risk_level,
-                "approval_required": body.approval_required,
-                "status": "PROPOSED",
-                "reason": body.reason,
-            }
-        )
-        return {"ok": True, "id": pid, "plan": service.get_cognitive_change_plan(pid)}
-
-    @app.get(f"{pref}/schemas/plans")
-    def schemas_plans_list(
-        limit: int = 40,
-        status: str | None = None,
-        _: None = Depends(require_token),
-    ) -> dict[str, Any]:
-        items = service.list_cognitive_change_plans(limit=limit, status=status)
-        return {"ok": True, "items": items, "count": len(items)}
-
-    @app.post(f"{pref}/schemas/plans/{{plan_id}}/apply")
-    def schemas_plans_apply(
-        plan_id: str,
-        body: CognitiveChangePlanApplyIn,
-        _: None = Depends(require_token),
-    ) -> dict[str, Any]:
-        from cognitive_memory.cognition.schema_ops import apply_cognitive_change_plan
-
-        return apply_cognitive_change_plan(
-            service,
-            plan_id,
-            confirm=bool(body.confirm),
-            preview=bool(getattr(body, "preview", False)),
         )
 
     @app.post(f"{pref}/metacognition/reflect")
@@ -2449,5 +2866,19 @@ def create_app(
     @app.post(f"{pref}/cognition/profile-hypotheses")
     def cognitive_profile(body: ProfileHypothesis, _: None = Depends(require_token)):
         return _loops().record_profile(body)
+
+    from cognitive_memory.autonomy.routes import register_autonomy_routes
+    from cognitive_memory.evolution.routes import register_evolution_routes
+    from cognitive_memory.media.routes import register_media_routes
+    from cognitive_memory.metacognition.routes import register_metacog_routes
+    from cognitive_memory.objects.routes import register_object_routes
+    from cognitive_memory.scenario.routes import register_scenario_routes
+
+    register_metacog_routes(app, service, pref)
+    register_object_routes(app, service, pref)
+    register_scenario_routes(app, service, pref)
+    register_media_routes(app, service, pref)
+    register_autonomy_routes(app, service, pref)
+    register_evolution_routes(app, service, pref)
 
     return app

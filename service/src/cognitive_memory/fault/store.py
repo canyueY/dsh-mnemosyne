@@ -95,6 +95,27 @@ class FaultStore:
             )
         return {"ok": True, "fault": self.get(fault_id)}
 
+    def list(self, *, limit: int = 40, status: str | None = None) -> list[dict[str, Any]]:
+        lim = max(1, min(200, int(limit or 40)))
+        with self.db.exclusive() as conn:
+            try:
+                sql = "SELECT id FROM fault_cases WHERE 1=1"
+                args: list[Any] = []
+                if status:
+                    sql += " AND status=?"
+                    args.append(str(status))
+                sql += " ORDER BY updated_at DESC LIMIT ?"
+                args.append(lim)
+                rows = conn.execute(sql, tuple(args)).fetchall()
+            except Exception:
+                return []
+        out: list[dict[str, Any]] = []
+        for row in rows:
+            item = self.get(str(row["id"]))
+            if item:
+                out.append(item)
+        return out
+
     def get(self, fault_id: str) -> dict[str, Any] | None:
         with self.db.transaction() as conn:
             row = conn.execute(

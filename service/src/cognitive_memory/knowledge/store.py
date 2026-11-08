@@ -124,6 +124,49 @@ class KnowledgeStore:
         row = self.get(knowledge_id)
         if not row:
             return {"ok": False, "detail": "not_found"}
+        if st == KnowledgeStatus.ACTIVE.value:
+            claims = list(row.get("claim_ids") or [])
+            if not claims:
+                return {
+                    "ok": False,
+                    "detail": "knowledge_requires_claims",
+                    "note": "ACTIVE is a governance state, not absolute truth; no Evidence/Claim → stay proposed",
+                }
+            missing = []
+            no_evidence = []
+            unverified = []
+            with self.db.transaction() as conn:
+                for cid in claims:
+                    hit = conn.execute("SELECT id, lifecycle FROM claims WHERE id=?", (cid,)).fetchone()
+                    if not hit:
+                        missing.append(cid)
+                        continue
+                    ev = conn.execute(
+                        "SELECT 1 FROM claim_evidence WHERE claim_id=? AND role IN ('support','supports') LIMIT 1",
+                        (cid,),
+                    ).fetchone()
+                    if not ev:
+                        rec = conn.execute(
+                            "SELECT evidence_refs_json FROM verification_records WHERE claim_id=? LIMIT 1",
+                            (cid,),
+                        ).fetchone()
+                        refs = []
+                        if rec:
+                            try:
+                                refs = json.loads(rec["evidence_refs_json"] or "[]")
+                            except json.JSONDecodeError:
+                                refs = []
+                        if not refs:
+                            no_evidence.append(cid)
+                    life = str(hit["lifecycle"] or "")
+                    if life != "verified":
+                        unverified.append(cid)
+            if missing:
+                return {"ok": False, "detail": "knowledge_claims_missing", "missing": missing}
+            if no_evidence:
+                return {"ok": False, "detail": "knowledge_requires_evidence", "missing": no_evidence}
+            if unverified:
+                return {"ok": False, "detail": "knowledge_requires_verified_claims", "unverified": unverified}
         # ACTIVE knowledge ≠ Claim Verified / Strategy deploy
         now = _now()
         with self.db.transaction() as conn:
@@ -137,6 +180,39 @@ class KnowledgeStore:
             "knowledge": out,
             "note": "knowledge_active_does_not_verify_claims_or_deploy_strategy",
         }
+
+    def revalidate_for_claims(self, claim_ids: list[str], *, reason: str = "evidence_retracted") -> dict[str, Any]:
+        """Demote ACTIVE knowledge that cites these claims. Does not delete rows."""
+        wanted = {str(x) for x in claim_ids if x}
+        if not wanted:
+            return {"ok": True, "changed": []}
+        changed: list[str] = []
+        now = _now()
+        with self.db.transaction() as conn:
+            rows = conn.execute("SELECT id, claim_ids_json, status, validation_json FROM knowledge_nodes").fetchall()
+            for row in rows:
+                try:
+                    cited = set(json.loads(row["claim_ids_json"] or "[]"))
+                except json.JSONDecodeError:
+                    cited = set()
+                if not (cited & wanted):
+                    continue
+                if str(row["status"] or "") not in {KnowledgeStatus.ACTIVE.value, KnowledgeStatus.VALIDATED.value}:
+                    continue
+                try:
+                    validation = json.loads(row["validation_json"] or "{}")
+                except json.JSONDecodeError:
+                    validation = {}
+                if not isinstance(validation, dict):
+                    validation = {}
+                validation["needs_revalidation"] = True
+                validation["revalidation_reason"] = reason
+                conn.execute(
+                    "UPDATE knowledge_nodes SET status=?, validation_json=?, updated_at=?, version=version+1 WHERE id=?",
+                    (KnowledgeStatus.PROPOSED.value, json.dumps(validation, ensure_ascii=False), now, row["id"]),
+                )
+                changed.append(row["id"])
+        return {"ok": True, "changed": changed, "note": "re-evaluated_not_deleted"}
 
     def from_schema(
         self,

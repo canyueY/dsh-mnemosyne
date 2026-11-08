@@ -877,6 +877,562 @@ CREATE INDEX IF NOT EXISTS idx_strategy_learning_status
   ON strategy_learning_candidates(strategy_id, status);
 """))
 
+MIGRATIONS.append(("024_ingestion_governance_v1", """
+CREATE TABLE IF NOT EXISTS ingestion_profiles (
+  profile_id TEXT PRIMARY KEY,
+  version INTEGER NOT NULL DEFAULT 1,
+  name TEXT NOT NULL,
+  mode TEXT NOT NULL,
+  enabled INTEGER NOT NULL DEFAULT 1,
+  config_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS ingestion_rules (
+  rule_id TEXT PRIMARY KEY,
+  profile_id TEXT NOT NULL,
+  version INTEGER NOT NULL DEFAULT 1,
+  priority INTEGER NOT NULL,
+  name TEXT NOT NULL,
+  enabled INTEGER NOT NULL DEFAULT 1,
+  config_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS ingestion_decisions (
+  decision_id TEXT PRIMARY KEY,
+  source_kind TEXT NOT NULL,
+  producer TEXT NOT NULL,
+  profile_id TEXT NOT NULL,
+  profile_version INTEGER NOT NULL,
+  action TEXT NOT NULL,
+  content_type TEXT NOT NULL,
+  threat_level TEXT NOT NULL,
+  threat_codes_json TEXT NOT NULL DEFAULT '[]',
+  matched_rules_json TEXT NOT NULL DEFAULT '[]',
+  security_json TEXT NOT NULL DEFAULT '{}',
+  reason TEXT NOT NULL DEFAULT '',
+  review_required INTEGER NOT NULL DEFAULT 0,
+  observation_id TEXT,
+  result_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_ingestion_decisions_created ON ingestion_decisions(created_at);
+CREATE TABLE IF NOT EXISTS ingestion_quarantine (
+  quarantine_id TEXT PRIMARY KEY,
+  decision_id TEXT NOT NULL,
+  payload_json TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending',
+  reviewed_by TEXT,
+  review_note TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL,
+  reviewed_at TEXT
+);
+"""))
+
+MIGRATIONS.append(("026_conflict_governance", """
+CREATE TABLE IF NOT EXISTS conflict_cases (
+  id TEXT PRIMARY KEY,
+  relation_id INTEGER NOT NULL,
+  from_id TEXT NOT NULL,
+  to_id TEXT NOT NULL,
+  kind TEXT NOT NULL DEFAULT 'semantic',
+  status TEXT NOT NULL DEFAULT 'open',
+  priority TEXT NOT NULL DEFAULT 'normal',
+  snapshot_json TEXT NOT NULL DEFAULT '{}',
+  last_resolution_json TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_conflict_cases_status ON conflict_cases(status);
+CREATE TABLE IF NOT EXISTS conflict_events (
+  id TEXT PRIMARY KEY,
+  case_id TEXT NOT NULL,
+  actor TEXT NOT NULL DEFAULT '',
+  action TEXT NOT NULL,
+  scheme TEXT NOT NULL DEFAULT '',
+  before_json TEXT NOT NULL DEFAULT '{}',
+  after_json TEXT NOT NULL DEFAULT '{}',
+  tms_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_conflict_events_case ON conflict_events(case_id, created_at);
+"""))
+
+MIGRATIONS.append(("025_ingestion_profile_versions", """
+CREATE TABLE IF NOT EXISTS ingestion_profile_versions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  profile_id TEXT NOT NULL,
+  version INTEGER NOT NULL,
+  snapshot_json TEXT NOT NULL,
+  changed_by TEXT NOT NULL,
+  change_note TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL,
+  UNIQUE(profile_id, version)
+);
+"""))
+
+MIGRATIONS.append(("027_metacognition_v1", """
+CREATE TABLE IF NOT EXISTS meta_experiences (
+  id TEXT PRIMARY KEY,
+  goal TEXT NOT NULL DEFAULT '',
+  request_id TEXT NOT NULL DEFAULT '',
+  session_id TEXT NOT NULL DEFAULT '',
+  principal_id TEXT,
+  bank_id TEXT NOT NULL DEFAULT 'personal',
+  scope TEXT,
+  memory_snapshot_id TEXT,
+  strategy_snapshot_id TEXT,
+  self_model_snapshot_id TEXT,
+  selected_strategy_ids_json TEXT NOT NULL DEFAULT '[]',
+  context_refs_json TEXT NOT NULL DEFAULT '[]',
+  evidence_refs_json TEXT NOT NULL DEFAULT '[]',
+  tool_calls_json TEXT NOT NULL DEFAULT '[]',
+  actions_json TEXT NOT NULL DEFAULT '[]',
+  result_json TEXT NOT NULL DEFAULT '{}',
+  outcome_status TEXT NOT NULL DEFAULT 'unknown',
+  user_feedback_refs_json TEXT NOT NULL DEFAULT '[]',
+  latency_ms REAL,
+  token_cost REAL,
+  resource_cost REAL,
+  uncertainty_json TEXT NOT NULL DEFAULT '{}',
+  created_by TEXT,
+  created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS meta_traces (
+  id TEXT PRIMARY KEY,
+  experience_id TEXT NOT NULL,
+  summary_json TEXT NOT NULL,
+  created_by TEXT,
+  created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS meta_outcomes (
+  id TEXT PRIMARY KEY,
+  experience_id TEXT NOT NULL,
+  body_json TEXT NOT NULL,
+  user_feedback_state TEXT NOT NULL DEFAULT 'unknown',
+  outcome_status TEXT NOT NULL DEFAULT 'unknown',
+  created_by TEXT,
+  created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS meta_rubrics (
+  id TEXT PRIMARY KEY,
+  rubric_id TEXT NOT NULL,
+  version INTEGER NOT NULL,
+  body_json TEXT NOT NULL,
+  created_by TEXT,
+  status TEXT NOT NULL DEFAULT 'active',
+  audit_ref TEXT,
+  created_at TEXT NOT NULL,
+  UNIQUE(rubric_id, version)
+);
+CREATE TABLE IF NOT EXISTS meta_evaluations (
+  id TEXT PRIMARY KEY,
+  experience_id TEXT NOT NULL,
+  evaluator_id TEXT,
+  evaluator_kind TEXT,
+  rubric_id TEXT,
+  rubric_version INTEGER,
+  body_json TEXT NOT NULL,
+  result TEXT NOT NULL DEFAULT 'inconclusive',
+  user_feedback_state TEXT NOT NULL DEFAULT 'unknown',
+  created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS meta_hypotheses (
+  id TEXT PRIMARY KEY,
+  statement TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'Candidate',
+  body_json TEXT NOT NULL,
+  created_by TEXT,
+  created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS meta_hypothesis_relations (
+  id TEXT PRIMARY KEY,
+  hypothesis_id TEXT NOT NULL,
+  target_id TEXT NOT NULL,
+  relation_type TEXT NOT NULL,
+  created_by TEXT,
+  created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS meta_strategy_candidates (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'Candidate',
+  publication_state TEXT NOT NULL DEFAULT 'draft',
+  body_json TEXT NOT NULL,
+  created_by TEXT,
+  created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS meta_change_plans (
+  id TEXT PRIMARY KEY,
+  strategy_id TEXT NOT NULL,
+  body_json TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'draft',
+  created_by TEXT,
+  created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS meta_experiments (
+  id TEXT PRIMARY KEY,
+  strategy_candidate_id TEXT,
+  baseline_strategy_id TEXT,
+  bank_id TEXT NOT NULL DEFAULT 'personal',
+  status TEXT NOT NULL DEFAULT 'proposed',
+  body_json TEXT NOT NULL,
+  created_by TEXT,
+  completed_at TEXT,
+  created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS meta_self_models (
+  id TEXT PRIMARY KEY,
+  status TEXT NOT NULL DEFAULT 'Candidate',
+  publication_state TEXT NOT NULL DEFAULT 'draft',
+  body_json TEXT NOT NULL,
+  created_by TEXT,
+  created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS meta_snapshots (
+  id TEXT PRIMARY KEY,
+  kind TEXT NOT NULL,
+  bank_id TEXT NOT NULL,
+  generation INTEGER NOT NULL,
+  manifest_hash TEXT NOT NULL,
+  publication_state TEXT NOT NULL DEFAULT 'draft',
+  body_json TEXT NOT NULL,
+  created_by TEXT,
+  created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS meta_snapshot_heads (
+  bank_id TEXT NOT NULL,
+  kind TEXT NOT NULL,
+  snapshot_id TEXT NOT NULL,
+  generation INTEGER NOT NULL,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (bank_id, kind)
+);
+CREATE TABLE IF NOT EXISTS meta_snapshot_audit (
+  id TEXT PRIMARY KEY,
+  snapshot_id TEXT NOT NULL,
+  actor_id TEXT,
+  action TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS meta_external_bundles (
+  id TEXT PRIMARY KEY,
+  body_json TEXT NOT NULL,
+  created_by TEXT,
+  created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS meta_revocations (
+  id TEXT PRIMARY KEY,
+  actor_id TEXT NOT NULL,
+  revoked_by TEXT,
+  reason TEXT,
+  created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS meta_audit (
+  id TEXT PRIMARY KEY,
+  kind TEXT NOT NULL,
+  object_id TEXT NOT NULL,
+  actor_id TEXT,
+  action TEXT NOT NULL,
+  detail_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_meta_exp_bank ON meta_experiences(bank_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_meta_eval_exp ON meta_evaluations(experience_id, created_at);
+"""))
+
+MIGRATIONS.append(("029_scenario_task_context_v1", """
+CREATE TABLE IF NOT EXISTS scenarios (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  parent_id TEXT,
+  status TEXT NOT NULL DEFAULT 'candidate',
+  version INTEGER NOT NULL DEFAULT 1,
+  owner TEXT NOT NULL DEFAULT '',
+  policy_json TEXT NOT NULL DEFAULT '{}',
+  audit_ref TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS scenario_memberships (
+  id TEXT PRIMARY KEY,
+  scenario_id TEXT NOT NULL,
+  object_id TEXT NOT NULL,
+  object_kind TEXT NOT NULL DEFAULT '',
+  source TEXT NOT NULL DEFAULT 'manual',
+  status TEXT NOT NULL DEFAULT 'candidate',
+  valid_from TEXT,
+  valid_to TEXT,
+  created_at TEXT NOT NULL,
+  UNIQUE(scenario_id, object_id)
+);
+CREATE INDEX IF NOT EXISTS idx_scn_mem_scn ON scenario_memberships(scenario_id, status);
+CREATE TABLE IF NOT EXISTS scenario_relations (
+  id TEXT PRIMARY KEY,
+  from_id TEXT NOT NULL,
+  to_id TEXT NOT NULL,
+  kind TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS scenario_candidate_rejects (
+  fingerprint TEXT PRIMARY KEY,
+  scenario_id TEXT,
+  reason TEXT,
+  created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS task_contexts (
+  id TEXT PRIMARY KEY,
+  principal TEXT NOT NULL DEFAULT '',
+  scenario_id TEXT,
+  project_id TEXT,
+  role_id TEXT,
+  allowed_banks_json TEXT NOT NULL DEFAULT '[]',
+  allowed_scopes_json TEXT NOT NULL DEFAULT '[]',
+  memory_allowlist_json TEXT NOT NULL DEFAULT '[]',
+  memory_denylist_json TEXT NOT NULL DEFAULT '[]',
+  sharing_policy TEXT NOT NULL DEFAULT 'isolated',
+  authorization_level TEXT NOT NULL DEFAULT 'minimal',
+  context_budget INTEGER NOT NULL DEFAULT 32,
+  expires_at TEXT,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_task_ctx_principal ON task_contexts(principal, created_at);
+"""))
+
+MIGRATIONS.append(("028_relation_governance", """
+ALTER TABLE memory_relations ADD COLUMN status TEXT NOT NULL DEFAULT 'unknown';
+ALTER TABLE memory_relations ADD COLUMN version INTEGER NOT NULL DEFAULT 1;
+ALTER TABLE memory_relations ADD COLUMN audit_ref TEXT;
+ALTER TABLE memory_relations ADD COLUMN scope TEXT;
+ALTER TABLE memory_relations ADD COLUMN deleted_at TEXT;
+CREATE INDEX IF NOT EXISTS idx_memory_relations_status ON memory_relations(status, deleted_at);
+UPDATE memory_relations
+   SET status = COALESCE(json_extract(metadata_json, '$.status'), status),
+       version = CASE
+         WHEN typeof(json_extract(metadata_json, '$.version')) IN ('integer','real')
+           THEN CAST(json_extract(metadata_json, '$.version') AS INTEGER)
+         ELSE version
+       END,
+       audit_ref = json_extract(metadata_json, '$.audit_ref'),
+       scope = json_extract(metadata_json, '$.scope')
+ WHERE metadata_json IS NOT NULL AND metadata_json != '{}';
+"""))
+
+MIGRATIONS.append(("030_media_assets_v1", """
+CREATE TABLE IF NOT EXISTS media_assets (
+  id TEXT PRIMARY KEY,
+  content_hash TEXT NOT NULL,
+  mime TEXT NOT NULL DEFAULT '',
+  owner TEXT NOT NULL DEFAULT '',
+  bank_id TEXT NOT NULL DEFAULT 'unknown',
+  scope TEXT,
+  lifecycle TEXT NOT NULL DEFAULT 'active',
+  uri TEXT NOT NULL DEFAULT '',
+  sensitivity TEXT NOT NULL DEFAULT 'unknown',
+  created_at TEXT NOT NULL,
+  archived_at TEXT,
+  deleted_at TEXT,
+  metadata_json TEXT NOT NULL DEFAULT '{}'
+);
+CREATE INDEX IF NOT EXISTS idx_media_hash ON media_assets(content_hash, bank_id);
+CREATE TABLE IF NOT EXISTS parsed_artifacts (
+  id TEXT PRIMARY KEY,
+  media_asset_id TEXT NOT NULL,
+  parser TEXT NOT NULL,
+  parser_version TEXT NOT NULL DEFAULT '',
+  params_json TEXT NOT NULL DEFAULT '{}',
+  quality TEXT,
+  uncertainty TEXT,
+  created_at TEXT NOT NULL,
+  lineage_parent_id TEXT,
+  payload_json TEXT NOT NULL DEFAULT '{}',
+  status TEXT NOT NULL DEFAULT 'candidate'
+);
+CREATE INDEX IF NOT EXISTS idx_parsed_asset ON parsed_artifacts(media_asset_id, created_at);
+CREATE TABLE IF NOT EXISTS source_locators (
+  id TEXT PRIMARY KEY,
+  media_asset_id TEXT NOT NULL,
+  parsed_artifact_id TEXT,
+  kind TEXT NOT NULL DEFAULT 'unknown',
+  locator_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_locator_asset ON source_locators(media_asset_id);
+"""))
+
+MIGRATIONS.append(("031_goal_attention_events_v1", """
+CREATE TABLE IF NOT EXISTS goals (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  origin TEXT NOT NULL DEFAULT 'user',
+  owner TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'active',
+  version INTEGER NOT NULL DEFAULT 1,
+  parent_id TEXT,
+  bank_id TEXT,
+  scenario_id TEXT,
+  authorization_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS goal_plans (
+  id TEXT PRIMARY KEY,
+  goal_id TEXT NOT NULL,
+  title TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'draft',
+  depends_on_json TEXT NOT NULL DEFAULT '[]',
+  created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS goal_actions (
+  id TEXT PRIMARY KEY,
+  goal_id TEXT NOT NULL,
+  plan_id TEXT,
+  kind TEXT NOT NULL DEFAULT 'note',
+  authorization TEXT NOT NULL DEFAULT '',
+  receipt_json TEXT NOT NULL DEFAULT '{}',
+  trace_id TEXT,
+  created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS env_events (
+  id TEXT PRIMARY KEY,
+  source TEXT NOT NULL DEFAULT '',
+  fingerprint TEXT NOT NULL,
+  stage TEXT NOT NULL DEFAULT 'discovered',
+  response_level TEXT NOT NULL DEFAULT 'E0',
+  status TEXT NOT NULL DEFAULT 'open',
+  payload_json TEXT NOT NULL DEFAULT '{}',
+  impact_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE(fingerprint)
+);
+CREATE TABLE IF NOT EXISTS attention_items (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  priority INTEGER NOT NULL DEFAULT 0,
+  deadline TEXT,
+  resource_budget INTEGER NOT NULL DEFAULT 0,
+  aging INTEGER NOT NULL DEFAULT 0,
+  checkpoint TEXT,
+  disposition TEXT NOT NULL DEFAULT 'Deferred',
+  status TEXT NOT NULL DEFAULT 'open',
+  goal_id TEXT,
+  event_id TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_attn_status ON attention_items(status, priority, created_at);
+"""))
+
+MIGRATIONS.append(("032_evolution_governance_v1", """
+CREATE TABLE IF NOT EXISTS repair_proposals (
+  id TEXT PRIMARY KEY,
+  fault_id TEXT,
+  evidence_json TEXT NOT NULL DEFAULT '[]',
+  impact_json TEXT NOT NULL DEFAULT '{}',
+  risk_level TEXT NOT NULL DEFAULT 'high',
+  change_set_json TEXT NOT NULL DEFAULT '[]',
+  tests_json TEXT NOT NULL DEFAULT '[]',
+  rollback_json TEXT NOT NULL DEFAULT '{}',
+  sandbox_json TEXT NOT NULL DEFAULT '{}',
+  expires_at TEXT,
+  status TEXT NOT NULL DEFAULT 'proposed',
+  created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS tech_debt (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  area TEXT NOT NULL DEFAULT 'unknown',
+  status TEXT NOT NULL DEFAULT 'open',
+  notes TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS evolution_experiments (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  version TEXT NOT NULL DEFAULT '1',
+  control_json TEXT NOT NULL DEFAULT '{}',
+  result_json TEXT NOT NULL DEFAULT '{}',
+  status TEXT NOT NULL DEFAULT 'draft',
+  bank_id TEXT NOT NULL DEFAULT 'sandbox',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS capability_gates (
+  id TEXT PRIMARY KEY,
+  frozen INTEGER NOT NULL DEFAULT 0,
+  autonomy_level TEXT NOT NULL DEFAULT 'none',
+  note TEXT NOT NULL DEFAULT '',
+  updated_at TEXT NOT NULL
+);
+INSERT OR IGNORE INTO capability_gates(id, frozen, autonomy_level, note, updated_at) VALUES
+ ('user_final_authority', 1, 'none', 'user retains final decision', '1970-01-01T00:00:00Z'),
+ ('identity_auth_base', 1, 'none', 'identity and authorization base', '1970-01-01T00:00:00Z'),
+ ('approval_audit', 1, 'none', 'approval and audit are mandatory', '1970-01-01T00:00:00Z'),
+ ('production_data_protection', 1, 'none', 'production data protection', '1970-01-01T00:00:00Z'),
+ ('bank_scenario_isolation', 1, 'none', 'cross bank/scenario isolation', '1970-01-01T00:00:00Z'),
+ ('evolution_safety_gate', 1, 'none', 'self-evolution safety gate', '1970-01-01T00:00:00Z');
+"""))
+
+ROLLBACK_SQL = {
+    "027_metacognition_v1": """
+DROP TABLE IF EXISTS meta_audit;
+DROP TABLE IF EXISTS meta_revocations;
+DROP TABLE IF EXISTS meta_external_bundles;
+DROP TABLE IF EXISTS meta_snapshot_audit;
+DROP TABLE IF EXISTS meta_snapshot_heads;
+DROP TABLE IF EXISTS meta_snapshots;
+DROP TABLE IF EXISTS meta_self_models;
+DROP TABLE IF EXISTS meta_experiments;
+DROP TABLE IF EXISTS meta_change_plans;
+DROP TABLE IF EXISTS meta_strategy_candidates;
+DROP TABLE IF EXISTS meta_hypothesis_relations;
+DROP TABLE IF EXISTS meta_hypotheses;
+DROP TABLE IF EXISTS meta_evaluations;
+DROP TABLE IF EXISTS meta_rubrics;
+DROP TABLE IF EXISTS meta_outcomes;
+DROP TABLE IF EXISTS meta_traces;
+DROP TABLE IF EXISTS meta_experiences;
+DELETE FROM schema_migrations WHERE id='027_metacognition_v1';
+""",
+    "029_scenario_task_context_v1": """
+DROP TABLE IF EXISTS task_contexts;
+DROP TABLE IF EXISTS scenario_candidate_rejects;
+DROP TABLE IF EXISTS scenario_relations;
+DROP TABLE IF EXISTS scenario_memberships;
+DROP TABLE IF EXISTS scenarios;
+DELETE FROM schema_migrations WHERE id='029_scenario_task_context_v1';
+""",
+    "028_relation_governance": """
+-- columns cannot be dropped portably; mark migration unapplied only after backup restore
+DELETE FROM schema_migrations WHERE id='028_relation_governance';
+""",
+    "030_media_assets_v1": """
+DROP TABLE IF EXISTS source_locators;
+DROP TABLE IF EXISTS parsed_artifacts;
+DROP TABLE IF EXISTS media_assets;
+DELETE FROM schema_migrations WHERE id='030_media_assets_v1';
+""",
+    "031_goal_attention_events_v1": """
+DROP TABLE IF EXISTS attention_items;
+DROP TABLE IF EXISTS env_events;
+DROP TABLE IF EXISTS goal_actions;
+DROP TABLE IF EXISTS goal_plans;
+DROP TABLE IF EXISTS goals;
+DELETE FROM schema_migrations WHERE id='031_goal_attention_events_v1';
+""",
+    "032_evolution_governance_v1": """
+DROP TABLE IF EXISTS capability_gates;
+DROP TABLE IF EXISTS evolution_experiments;
+DROP TABLE IF EXISTS tech_debt;
+DROP TABLE IF EXISTS repair_proposals;
+DELETE FROM schema_migrations WHERE id='032_evolution_governance_v1';
+""",
+}
+
+
 
 def apply_migrations(conn: sqlite3.Connection) -> list[str]:
     conn.execute(

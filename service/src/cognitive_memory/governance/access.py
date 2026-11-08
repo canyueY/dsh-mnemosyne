@@ -184,7 +184,9 @@ def enforce_object_scope(request: Request, access: AccessContext, body: dict) ->
     from cognitive_memory.security.disclosure import opaque_not_found
     allowed = set(access.banks or [])
     db = request.app.state.service.db
-    if any(part in str(request.url.path) for part in
+    route = str(request.url.path)
+    tms_read = request.method == "GET" and "/tms/belief/" in route
+    if (not tms_read) and any(part in route for part in
            ("/tms/", "/fault/", "/knowledge", "/meta/", "/ab/", "/strategies")):
         raise HTTPException(status_code=403, detail={"code":"node_admin_required"})
     def deny():
@@ -236,7 +238,8 @@ def enforce_object_scope(request: Request, access: AccessContext, body: dict) ->
                             deny()
     # Whole-node graphs/learning operations are not bank-scoped public mutations.
     route = str(request.url.path)
-    if any(part in route for part in ("/tms/", "/fault/", "/knowledge", "/meta/", "/ab/")):
+    tms_read = request.method == "GET" and "/tms/belief/" in route
+    if (not tms_read) and any(part in route for part in ("/tms/", "/fault/", "/knowledge", "/meta/", "/ab/")):
         raise HTTPException(status_code=403, detail={"code":"node_admin_required"})
 
 

@@ -32,6 +32,15 @@ def _new_plan_id() -> str:
     return f"cpl_{uuid.uuid4().hex[:16]}"
 
 
+def _status_value(raw: Any) -> str:
+    if hasattr(raw, "value"):
+        return str(raw.value)
+    text = str(raw or MemoryStatus.ACTIVE.value)
+    if "." in text:
+        text = text.split(".")[-1]
+    return text.strip().lower() or MemoryStatus.ACTIVE.value
+
+
 def _risk_and_approval(change_type: str, confidence: float) -> tuple[str, str]:
     if change_type in ("NO_CHANGE",) or confidence < 0.45:
         return "high", "human"
@@ -137,6 +146,14 @@ def apply_change_plan(
         return {"ok": False, "detail": "high_risk_blocked", "plan": plan}
 
     change_type = str(plan.get("change_type") or "")
+    mutating = {"SUPERSEDE", "INVALIDATE", "UPDATE", "MERGE"}
+    if change_type in mutating:
+        sandbox = plan.get("sandbox") if isinstance(plan.get("sandbox"), dict) else None
+        extra = plan.get("expected_changes") if isinstance(plan.get("expected_changes"), dict) else {}
+        if sandbox is None and isinstance(extra.get("sandbox"), dict):
+            sandbox = extra.get("sandbox")
+        if not sandbox or not sandbox.get("ok") or not (sandbox.get("rollback_plan") or sandbox.get("rollback")):
+            return {"ok": False, "detail": "sandbox_required", "plan": plan}
     targets = list(plan.get("target_memory_ids") or [])
     conf = float(plan.get("confidence") or 0)
     if conf < 0.7 and change_type in ("SUPERSEDE", "INVALIDATE", "UPDATE", "MERGE"):
@@ -152,7 +169,7 @@ def apply_change_plan(
                 {
                     "memory_id": old_id,
                     "version": before.get("version"),
-                    "status": before.get("status"),
+                    "status": _status_value(before.get("status")),
                     "content": before.get("content"),
                 }
             )
@@ -180,7 +197,7 @@ def apply_change_plan(
                     {
                         "memory_id": mid,
                         "version": before.get("version"),
-                        "status": before.get("status"),
+                        "status": _status_value(before.get("status")),
                         "content": before.get("content"),
                     }
                 )
@@ -253,7 +270,7 @@ def rollback_change_plan(service: MemoryService, plan_id: str) -> dict[str, Any]
             mid = str(ref.get("memory_id") or "")
             if not mid:
                 continue
-            status_raw = str(ref.get("status") or "active")
+            status_raw = _status_value(ref.get("status"))
             try:
                 st = MemoryStatus(status_raw)
             except ValueError:
