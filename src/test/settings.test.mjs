@@ -131,7 +131,7 @@ test('FA19: settings persist to file and reload after process-store reset (resta
   assert.equal(described.value.auto_start, false);
   assert.equal(described.persisted, true);
 
-  // Runtime apply path reads persisted settings via settings.describe
+  // Runtime apply path reads the settings file directly, not settings.describe.
   const tools = [];
   const ctx = {
     get(name) {

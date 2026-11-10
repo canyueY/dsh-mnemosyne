@@ -142,9 +142,24 @@ export function mergeConfigLayers(rootConfig = {}, fiberConfig = null) {
   return { ...CONFIG_DEFAULTS, ...fromRoot, ...(fiberConfig || {}) };
 }
 
+function persistedConfig(ns) {
+  const bucket = loadPersisted(ns);
+  const value = bucket?.value;
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  // Older settings files wrote the full default set. Do not let those default
+  // values mask an explicit root/row value; only keep values that differ.
+  return Object.fromEntries(
+    Object.entries(value).filter(([key, entry]) => entry !== CONFIG_DEFAULTS[key]),
+  );
+}
+
 /**
  * Resolve effective config from Cordis ctx.
- * Prefer plugin fiber config / settings namespace; fall back to ctx.get('config')[ns].
+ * Precedence: Loader/row config (fiber) > legacy file store > ctx.get('config')[ns] > defaults.
+ *
+ * Deliberately does not call `ctx.get('settings').describe()`: in DSH
+ * 0.2.1-rc.5 through 0.2.2 that path reads every plugin's Config and crashes
+ * on a null schema (`'toJSON' in null`).
  */
 export function resolvePluginConfig(ctx, fiberConfig = null) {
   let rootConfig = {};
@@ -153,20 +168,8 @@ export function resolvePluginConfig(ctx, fiberConfig = null) {
   } catch {
     rootConfig = {};
   }
-  // Optional live settings service (DSH 0.2.x)
-  try {
-    const forms = typeof ctx?.get === 'function' ? ctx.get('settings') : ctx?.settings;
-    if (forms && typeof forms.describe === 'function') {
-      const list = forms.describe({ redactSecrets: false }) || [];
-      const hit = list.find((d) => d?.ns === SETTINGS_NAMESPACE || d?.ns?.id === SETTINGS_NAMESPACE);
-      if (hit && hit.value && typeof hit.value === 'object') {
-        return mergeConfigLayers(rootConfig, { ...hit.value, ...fiberConfig });
-      }
-    }
-  } catch {
-    /* settings optional */
-  }
-  return mergeConfigLayers(rootConfig, fiberConfig);
+  const persisted = persistedConfig(SETTINGS_NAMESPACE);
+  return mergeConfigLayers(rootConfig, { ...persisted, ...(fiberConfig || {}) });
 }
 
 /** Test/host helper implementing settings.describe contract. */

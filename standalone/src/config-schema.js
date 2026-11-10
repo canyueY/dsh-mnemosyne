@@ -42,13 +42,29 @@ export function buildConfig(Schema) {
   });
 }
 
-/** Try load real Config; tests may use metadata-only fallback. */
+/**
+ * Diagnostic loader only. The plugin entry must not export the result.
+ * DSH 0.2.1-rc.5 through 0.2.2 accept a null Config (`if (!runtime.Config)`
+ * is false for null) and then crash settings.describe on `'toJSON' in null`.
+ * A failed load throws; it must not be published as null.
+ */
 export async function resolveConfigExport() {
+  let mod;
   try {
-    const mod = await import('@deepseek-ai/schemastery');
-    const Schema = mod.default || mod.Schema || mod;
-    return buildConfig(Schema);
-  } catch {
-    return null;
+    mod = await import('@deepseek-ai/schemastery');
+  } catch (error) {
+    const err = new Error('schemastery is not resolvable; refusing to export Config');
+    err.code = 'config_schema_unavailable';
+    err.cause = error;
+    throw err;
   }
+  const Schema = mod.default || mod.Schema || mod;
+  const schema = buildConfig(Schema);
+  const validate = schema?.['~standard']?.validate;
+  if (typeof schema?.toJSON !== 'function' || typeof validate !== 'function') {
+    const err = new Error('schemastery did not produce a host Config schema; refusing to export Config');
+    err.code = 'config_schema_invalid';
+    throw err;
+  }
+  return schema;
 }
