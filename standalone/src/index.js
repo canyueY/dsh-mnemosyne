@@ -7,12 +7,12 @@
 import { pathToFileURL } from 'node:url';
 import { MemoryClient } from './memory-client.js';
 import { MemoryProcessHost } from './memory-process.js';
-import { resolveConfigExport } from './config-schema.js';
 import {
   assertRunnableConfig,
   resolvePluginConfig,
   toLoggableConfig,
   SETTINGS_NAMESPACE,
+  validateConfigPatch,
 } from './settings.js';
 import {
   contextToolSpec,
@@ -44,9 +44,9 @@ export {
   assertRunnableConfig,
 } from './settings.js';
 
-/** Cordis Config — settings namespace id = entry/plugin name `dsh-mnemosyne`. */
-export const Config = await resolveConfigExport();
-
+// No Config export. DSH 0.2.1-rc.5 through 0.2.2 treat a null Config as
+// present and then crash settings.describe on `'toJSON' in null`
+// (desktop welcome: Web RPC failed). Configure the plugin row instead.
 
 async function loadDefineTool() {
   try {
@@ -89,8 +89,19 @@ export async function apply(ctx, config = null) {
   // Standalone build: the Loader-validated row config is the authoritative
   // layer for this plugin. Fall back to the optional host config service when
   // a host does not pass the fiber config, so activation never blocks on a
-  // missing `config` service.
-  const fiberCfg = config && typeof config === 'object' ? config : null;
+  // missing `config` service. Do not export Config and do not call
+  // settings.describe during activation.
+  const hasConfig = config !== null && config !== undefined;
+  const fiberCfg = hasConfig && typeof config === 'object' && !Array.isArray(config) ? config : null;
+  if (hasConfig) {
+    const check = validateConfigPatch(config);
+    if (!check.ok) {
+      const err = new Error(`${check.error} [${check.code}] ${check.hint || ''}`);
+      err.code = check.code;
+      err.hint = check.hint;
+      throw err;
+    }
+  }
   const cfg = resolvePluginConfig(ctx, fiberCfg);
   const runnable = assertRunnableConfig({
     ...cfg,

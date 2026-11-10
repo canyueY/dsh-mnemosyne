@@ -7,12 +7,12 @@
 import { pathToFileURL } from 'node:url';
 import { MemoryClient } from './memory-client.js';
 import { MemoryProcessHost } from './memory-process.js';
-import { resolveConfigExport } from './config-schema.js';
 import {
   assertRunnableConfig,
   resolvePluginConfig,
   toLoggableConfig,
   SETTINGS_NAMESPACE,
+  validateConfigPatch,
 } from './settings.js';
 import {
   contextToolSpec,
@@ -44,9 +44,9 @@ export {
   assertRunnableConfig,
 } from './settings.js';
 
-/** Cordis Config — settings namespace id = entry/plugin name `dsh-mnemosyne`. */
-export const Config = await resolveConfigExport();
-
+// No Config export. DSH 0.2.1-rc.5 through 0.2.2 treat a null Config as
+// present and then crash settings.describe on `'toJSON' in null`
+// (desktop welcome: Web RPC failed). Configure the plugin row instead.
 
 async function loadDefineTool() {
   try {
@@ -85,11 +85,23 @@ function contentText(content) {
   return '';
 }
 
-export async function apply(ctx) {
-  // Read config through ctx.get('config') / ctx.get('settings'); never access
-  // ctx.config directly because DSH 0.2.1 treats it as an injected service and
-  // a host without a `config` service would leave the plugin pending forever.
-  const fiberCfg = null;
+export async function apply(ctx, config = null) {
+  // The loader passes the plugin-row config as the second argument. Do not read
+  // ctx.config: DSH 0.2.1 treats it as an injected service and would leave the
+  // plugin pending when that service is absent. Do not call settings.describe
+  // during activation: that walk crashes the welcome page when any plugin
+  // publishes a null Config.
+  const hasConfig = config !== null && config !== undefined;
+  const fiberCfg = hasConfig && typeof config === 'object' && !Array.isArray(config) ? config : null;
+  if (hasConfig) {
+    const check = validateConfigPatch(config);
+    if (!check.ok) {
+      const err = new Error(`${check.error} [${check.code}] ${check.hint || ''}`);
+      err.code = check.code;
+      err.hint = check.hint;
+      throw err;
+    }
+  }
   const cfg = resolvePluginConfig(ctx, fiberCfg);
   const runnable = assertRunnableConfig({
     ...cfg,
