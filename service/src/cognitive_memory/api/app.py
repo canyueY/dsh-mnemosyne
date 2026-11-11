@@ -13,6 +13,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from cognitive_memory.governance.access import AccessContext, make_access_dep, resolve_access
 
 from cognitive_memory.core.service import ConflictError, MemoryService, NotFoundError
+from cognitive_memory.memory.banks import UnknownMemoryBankError
 from cognitive_memory.cognition.loop_models import CognitiveTask, LearningProposal, ProfileHypothesis, TaskFeedback, ValidationSuite
 from cognitive_memory.domain.models import (
     AnswerSelectIn,
@@ -124,6 +125,9 @@ def create_app(
     async def _cf(_req: Request, exc: ConflictError):
         return JSONResponse(status_code=409, content={"code": exc.code, "message": str(exc)})
 
+    @app.exception_handler(UnknownMemoryBankError)
+    async def _unknown_bank(_req: Request, _exc: UnknownMemoryBankError):
+        return JSONResponse(status_code=400, content={"code": "unknown_memory_bank", "message": "Unknown memory bank"})
     pref = api_prefix.rstrip("/") or "/api/v1"
 
     @app.get(f"{pref}/health")
@@ -404,7 +408,7 @@ def create_app(
 
         agent_id = str(body.get("agent_id") or "")
         token = str(body.get("agent_token") or "")
-        bank = str(body.get("bank") or "personal")
+        bank = "personal" if body.get("bank") is None else str(body["bank"])
         try:
             require_agent_access(
                 service.db,
@@ -882,7 +886,7 @@ def create_app(
     )) -> dict[str, Any]:
         from cognitive_memory.migration.compat_gateway import CompatGateway
         return CompatGateway(service=service).search(
-            str(body.get("query") or ""),bank_id=str(body.get("bank_id") or "personal"),
+            str(body.get("query") or ""),bank_id="personal" if body.get("bank_id") is None else str(body["bank_id"]),
             limit=int(body.get("limit") or 10),
         )
 

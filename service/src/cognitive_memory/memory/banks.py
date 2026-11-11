@@ -75,12 +75,18 @@ def normalize_bank_id(raw: str | None) -> str:
     return v
 
 
+class UnknownMemoryBankError(ValueError):
+    """An explicitly requested search bank is not in the catalog."""
+
+
 def resolve_search_banks(requested: list[str] | None) -> list[str]:
     """None/空 → 仅 personal。显式传入才可包含 shared/public。"""
     if not requested:
         return list(DEFAULT_SEARCH_BANKS)
     out: list[str] = []
     for b in requested:
+        if not isinstance(b, str) or not b.strip() or b.strip().lower() not in BANK_CATALOG:
+            raise UnknownMemoryBankError("unknown_memory_bank")
         nb = normalize_bank_id(b)
         if nb not in out:
             out.append(nb)
